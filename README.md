@@ -1,5 +1,5 @@
 # QuantumTrader-Pro
-Quantum AI-powered trading dashboard, EA, and ML control system with Telegram bot
+Quantum-powered trading system for MT4 with machine learning, Telegram control, and probability dashboard.
 
 README.md
 
