@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'screens/dashboard_screen.dart';
 import 'screens/portfolio_screen.dart';
+import 'screens/quantum_screen.dart';
 import 'screens/settings_screen.dart';
 import 'services/mt4_service.dart';
 import 'services/telegram_service.dart';
@@ -81,6 +82,7 @@ class _MainNavigatorState extends State<MainNavigator> {
   final List<Widget> _screens = [
     const DashboardScreen(),
     const PortfolioScreen(),
+    const QuantumScreen(),
     const SettingsScreen(),
   ];
 
@@ -121,6 +123,11 @@ class _MainNavigatorState extends State<MainNavigator> {
             icon: Icon(Icons.account_balance_wallet_outlined),
             selectedIcon: Icon(Icons.account_balance_wallet),
             label: 'Portfolio',
+          ),
+          NavigationDestination(
+            icon: Icon(Icons.psychology_outlined),
+            selectedIcon: Icon(Icons.psychology),
+            label: 'Quantum',
           ),
           NavigationDestination(
             icon: Icon(Icons.settings_outlined),
