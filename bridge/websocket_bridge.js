@@ -1,21 +1,66 @@
 /**
- * QuantumTrader-Pro WebSocket Bridge Server
+ * QuantumTrader-Pro WebSocket Bridge Server (SECURED)
  * Node.js server bridging MT4/LHFX with ML Python backend
  * Port: 8080
+ *
+ * Security Features:
+ * - JWT Authentication
+ * - Rate Limiting
+ * - Input Validation
+ * - CORS Whitelist
+ * - Security Headers (Helmet)
  */
+
+// Load environment variables
+require('dotenv').config();
 
 const express = require('express');
 const WebSocket = require('ws');
 const http = require('http');
-const cors = require('cors');
+const helmet = require('helmet');
+
+// Security middleware
+const { secureCors, logCorsConfig } = require('./middleware/corsConfig');
+const {
+  authenticateToken,
+  authenticateWebSocket,
+  login,
+  refreshTokenHandler
+} = require('./middleware/auth');
+const {
+  apiLimiter,
+  authLimiter,
+  tradeLimiter,
+  healthCheckLimiter
+} = require('./middleware/rateLimit');
+const {
+  validateLogin,
+  validateTrade,
+  validateClosePosition,
+  validateConnection,
+  validateSignalsQuery,
+  validatePositionsQuery,
+  validateToken,
+  validateWebSocketMessage
+} = require('./middleware/validation');
 
 const app = express();
 const server = http.createServer(app);
 const wss = new WebSocket.Server({ server });
 
-// Middleware
-app.use(cors());
-app.use(express.json());
+// Security Middleware
+app.use(helmet()); // Security headers
+app.use(secureCors); // CORS with whitelist
+app.use(express.json({ limit: '1mb' })); // Body parser with size limit
+app.use(express.urlencoded({ extended: true, limit: '1mb' }));
+
+// Trust proxy if behind reverse proxy (nginx, load balancer)
+if (process.env.TRUST_PROXY === 'true') {
+  app.set('trust proxy', 1);
+}
+
+// Log CORS configuration on startup
+logCorsConfig();
 
 // Configuration
 const PORT = process.env.PORT || 8080;
@@ -43,11 +88,32 @@ const logger = {
 // WebSocket connection handler
 wss.on('connection', (ws, req) => {
     const clientId = `${req.socket.remoteAddress}:${req.socket.remotePort}`;
-    logger.info(`New WebSocket connection`, { clientId });
+    logger.info(`New WebSocket connection attempt`, { clientId });
+
+    // Authenticate WebSocket connection
+    const authResult = authenticateWebSocket(ws, req);
+
+    if (!authResult.authenticated) {
+        logger.warn(`WebSocket authentication failed`, { clientId, error: authResult.error });
+        ws.send(JSON.stringify({
+            type: 'error',
+            message: authResult.error,
+            code: 'WS_AUTH_FAILED',
+            timestamp: Date.now()
+        }));
+        ws.close(1008, authResult.error); // Policy violation
+        return;
+    }
+
+    logger.info(`WebSocket authenticated`, {
+        clientId,
+        username: authResult.user.username
+    });
 
     state.clients.add(ws);
     ws.isAlive = true;
     ws.clientId = clientId;
+    ws.user = authResult.user;
 
     // Send connection acknowledgment
     ws.send(JSON.stringify({
@@ -71,12 +137,30 @@ wss.on('connection', (ws, req) => {
     ws.on('message', async (message) => {
         try {
             const data = JSON.parse(message);
+
+            // Validate message structure
+            const validation = validateWebSocketMessage(data);
+            if (!validation.valid) {
+                logger.warn('Invalid WebSocket message', {
+                    clientId,
+                    error: validation.error
+                });
+                ws.send(JSON.stringify({
+                    type: 'error',
+                    message: validation.error,
+                    code: 'VALIDATION_ERROR',
+                    timestamp: Date.now()
+                }));
+                return;
+            }
+
             await handleWebSocketMessage(ws, data);
         } catch (error) {
             logger.error('WebSocket message error', { error: error.message, clientId });
             ws.send(JSON.stringify({
                 type: 'error',
                 message: 'Invalid message format',
+                code: 'MESSAGE_PARSE_ERROR',
                 timestamp: Date.now()
             }));
         }
@@ -275,8 +359,25 @@ function broadcastSystemStatus() {
 
 // REST API Endpoints
 
-// Health check endpoint
-app.get('/api/health', (req, res) => {
+// ============================================
+// Authentication Endpoints (Public)
+// ============================================
+
+// Login endpoint - Get JWT tokens
+app.post('/api/auth/login', authLimiter, validateLogin, login);
+
+// Token refresh endpoint - Get new access token
+app.post('/api/auth/refresh', authLimiter, validateToken, refreshTokenHandler);
+
+// ============================================
+// API Endpoints (Protected)
+// ============================================
+
+// Apply general rate limiting to all API endpoints
+app.use('/api', apiLimiter);
+
+// Health check endpoint (less restrictive)
+app.get('/api/health', healthCheckLimiter, (req, res) => {
     const health = {
         status: 'healthy',
         uptime: process.uptime(),
@@ -292,8 +393,8 @@ app.get('/api/health', (req, res) => {
     logger.debug('Health check requested', health);
 });
 
-// LHFX connection endpoint
-app.post('/api/connect', async (req, res) => {
+// LHFX connection endpoint (PROTECTED)
+app.post('/api/connect', authenticateToken, validateConnection, async (req, res) => {
     try {
         const { accountId, password, server } = req.body;
 
@@ -328,8 +429,8 @@ app.post('/api/connect', async (req, res) => {
     }
 });
 
-// Get signals endpoint
-app.get('/api/signals', (req, res) => {
+// Get signals endpoint (PROTECTED)
+app.get('/api/signals', authenticateToken, validateSignalsQuery, (req, res) => {
     try {
         const { symbol, timeframe } = req.query;
 
@@ -353,8 +454,8 @@ app.get('/api/signals', (req, res) => {
     }
 });
 
-// Get positions endpoint
-app.get('/api/positions', (req, res) => {
+// Get positions endpoint (PROTECTED)
+app.get('/api/positions', authenticateToken, validatePositionsQuery, (req, res) => {
     try {
         const positions = Array.from(state.activePositions.values());
 
@@ -375,8 +476,8 @@ app.get('/api/positions', (req, res) => {
     }
 });
 
-// Execute trade endpoint
-app.post('/api/trade', async (req, res) => {
+// Execute trade endpoint (PROTECTED + RATE LIMITED)
+app.post('/api/trade', authenticateToken, tradeLimiter, validateTrade, async (req, res) => {
     try {
         const { symbol, type, lots, stopLoss, takeProfit, comment } = req.body;
 
@@ -427,8 +528,8 @@ app.post('/api/trade', async (req, res) => {
     }
 });
 
-// Close position endpoint
-app.post('/api/close', async (req, res) => {
+// Close position endpoint (PROTECTED)
+app.post('/api/close', authenticateToken, validateClosePosition, async (req, res) => {
     try {
         const { ticket } = req.body;
 
