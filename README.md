@@ -146,47 +146,56 @@ Quantum mechanics and machine learning-based market prediction system.
 | Max Drawdown | 20-30% | **5-8%** |
 | Sharpe Ratio | 1.0-1.5 | **3.0-4.0** |
 
-### 3. MT4/MT5 Expert Advisors (MQL4)
+### 3. MT4/MT5 Expert Advisors & Indicators
 
-**Location:** `mql4/`
+**Locations:** `mql4/` (MetaTrader 4) and `mql5/` (MetaTrader 5)
 
-Automated trading Expert Advisors and custom indicators for MetaTrader platforms.
+Automated trading Expert Advisors and custom indicators for both MetaTrader 4 and MetaTrader 5 platforms.
 
-**Expert Advisors:**
+**Users can choose either MT4 or MT5** - full feature parity between both versions.
 
-#### `QuantumTraderPro.mq4`
+**Expert Advisors (Available in both MQ4 and MQ5):**
+
+#### `QuantumTraderPro` (.mq4 / .mq5)
 Main automated trading EA with quantum algorithms.
 - Quantum market state analysis
 - Automatic position management
 - Cantilever trailing stops
 - ML signal integration
 - Risk management (configurable lot sizing)
+- Bridge server integration
+- Telegram notifications
 
-#### `QuickHedge.mq4`
+#### `QuickHedge` (.mq4 / .mq5)
 Counter-hedge recovery system.
 - Automatic opposite position on SL hit
-- 1.5x position sizing
+- 1.5x position sizing (configurable)
 - ML-guided leg-out strategy
 - Combined P&L tracking
+- Breakeven recovery
 
-**Indicators:**
+**Indicators (Available in both MQ4 and MQ5):**
 
-#### `QuantumTrendIndicator.mq4`
+#### `QuantumTrendIndicator` (.mq4 / .mq5)
 Visualizes quantum market states and trends.
 - Quantum superposition visualization
-- Probability-weighted trends
+- Probability-weighted trends (Bullish/Bearish/Neutral)
 - Multi-timeframe analysis
 - Alert system
+- Real-time bridge integration
 
-#### `MLSignalOverlay.mq4`
+#### `MLSignalOverlay` (.mq4 / .mq5)
 Displays ML predictions on charts.
+- Buy/Sell signal arrows
 - 3-8 candle ahead predictions
 - Confidence score visualization
+- Prediction bands (high/low ranges)
 - Entry/exit zones
 - Real-time updates from ML engine
 
 **Configuration:**
-- `config.mqh` - Global configuration file
+- `config.mqh` - Global configuration file (MT4)
+- Parameters configured via EA inputs (MT5)
 
 ### 4. Backtesting Framework
 
@@ -333,6 +342,10 @@ python quantum_predictor.py --predict --output predictions.json
 
 ### 3. MT4/MT5 Expert Advisors Installation
 
+Choose either MT4 or MT5 (both have full feature parity):
+
+#### Option A: MetaTrader 4 Installation
+
 **Step 1: Copy files to MT4**
 ```bash
 # Windows MT4 default path
@@ -349,21 +362,65 @@ cp mql4/MLSignalOverlay.mq4 "C:\Program Files\MetaTrader 4\MQL4\Indicators\"
 2. Navigate to Experts folder
 3. Right-click each `.mq4` file → Compile
 4. Verify no errors in Toolbox
+5. Compiled files will have `.ex4` extension
 
 **Step 3: Configure Expert Advisor**
 1. Drag `QuantumTraderPro.ex4` onto chart
 2. Configure parameters:
-   - `LotSize` - Position size (0.01 - 100.0)
+   - `BridgeURL` - Bridge server URL (e.g., `http://192.168.1.100:8080`)
    - `RiskPercent` - Risk per trade (1.0 - 5.0%)
-   - `MaxSpread` - Maximum spread filter (3.0 pips)
+   - `MaxDailyLoss` - Maximum daily loss (%)
    - `MagicNumber` - Unique identifier
-   - `UseCantileverStop` - Enable progressive trailing (true)
-   - `UseMLSignals` - Enable ML predictions (true)
-   - `BridgeServerURL` - WebSocket bridge URL
+   - `EnableQuantumSignals` - Enable quantum predictions
+   - `EnableMLSignals` - Enable ML predictions
+   - `EnableCantileverHedge` - Enable progressive trailing
 
 **Step 4: Enable Auto-Trading**
 - Click "AutoTrading" button in MT4 toolbar (or press Ctrl+E)
 - Verify green light on EA name in chart
+
+#### Option B: MetaTrader 5 Installation
+
+**Step 1: Copy files to MT5**
+```bash
+# Windows MT5 default path
+cp mql5/*.mq5 "C:\Program Files\MetaTrader 5\MQL5\Experts\"
+
+# Copy indicators
+cp mql5/QuantumTrendIndicator.mq5 "C:\Program Files\MetaTrader 5\MQL5\Indicators\"
+cp mql5/MLSignalOverlay.mq5 "C:\Program Files\MetaTrader 5\MQL5\Indicators\"
+```
+
+**Step 2: Compile in MetaEditor**
+1. Open MetaEditor (F4 in MT5)
+2. Navigate to MQL5/Experts folder
+3. Right-click each `.mq5` file → Compile
+4. Verify no errors in Toolbox
+5. Compiled files will have `.ex5` extension
+
+**Step 3: Configure Expert Advisor**
+1. Drag `QuantumTraderPro.ex5` onto chart
+2. Configure parameters (same as MT4):
+   - `BridgeURL` - Bridge server URL
+   - `RiskPercent` - Risk per trade
+   - `MaxDailyLoss` - Maximum daily loss
+   - `MagicNumber` - Unique identifier
+   - Trading feature toggles
+
+**Step 4: Add Allowed URLs**
+1. Tools → Options → Expert Advisors tab
+2. Check "Allow WebRequest for listed URL"
+3. Add your bridge server URLs:
+   ```
+   http://localhost:8080
+   http://192.168.1.100:8080
+   ```
+
+**Step 5: Enable Algo Trading**
+- Click "Algo Trading" button in MT5 toolbar (or press Ctrl+E)
+- Verify green "smiley face" icon appears on EA name
+
+**See:** Complete MT5 documentation in [`mql5/README.md`](mql5/README.md)
 
 ### 4. Complete System Integration
 
