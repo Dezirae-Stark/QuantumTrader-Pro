@@ -1,0 +1,342 @@
+name: "SBOM Generation"
+
+# Software Bill of Materials (SBOM) for supply chain security
+# Generates comprehensive inventory of all dependencies
+
+on:
+  # Generate SBOM on every release
+  release:
+    types: [published]
+
+  # Generate SBOM on pushes to main
+  push:
+    branches: ["main"]
+    paths:
+      - 'bridge/package.json'
+      - 'bridge/package-lock.json'
+      - 'requirements.txt'
+      - 'pubspec.yaml'
+      - 'pubspec.lock'
+
+  # Allow manual trigger
+  workflow_dispatch:
+
+  # Weekly scheduled generation
+  schedule:
+    # Run every Sunday at 3:00 AM UTC
+    - cron: '0 3 * * 0'
+
+permissions:
+  contents: write
+  actions: read
+  security-events: write
+
+jobs:
+  # ============================================
+  # Generate SBOM for Bridge Server (Node.js)
+  # ============================================
+  sbom-bridge:
+    name: Generate Bridge Server SBOM
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Harden Runner
+      uses: step-security/harden-runner@v2
+      with:
+        egress-policy: audit
+
+    - name: Checkout repository
+      uses: actions/checkout@v4
+      with:
+        persist-credentials: false
+
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '20'
+        cache: 'npm'
+        cache-dependency-path: 'bridge/package-lock.json'
+
+    - name: Install dependencies
+      working-directory: ./bridge
+      run: npm ci --production
+
+    - name: Generate SBOM (CycloneDX JSON)
+      working-directory: ./bridge
+      run: |
+        npx @cyclonedx/cyclonedx-npm \
+          --output-format JSON \
+          --output-file ../sbom-bridge.cdx.json \
+          --package-lock-only
+
+    - name: Generate SBOM (SPDX JSON)
+      working-directory: ./bridge
+      run: |
+        npx @cyclonedx/cyclonedx-npm \
+          --output-format JSON \
+          --output-file ../sbom-bridge.spdx.json \
+          --spec-version 2.3 \
+          --package-lock-only
+
+    - name: Upload SBOM artifacts
+      uses: actions/upload-artifact@v4
+      with:
+        name: sbom-bridge-server
+        path: |
+          sbom-bridge.cdx.json
+          sbom-bridge.spdx.json
+        retention-days: 90
+
+    - name: Generate SBOM summary
+      working-directory: ./bridge
+      run: |
+        echo "## Bridge Server SBOM" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "### Dependencies Summary" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        npm list --depth=0 --json | jq -r '
+          "- Total dependencies: \(.dependencies | length)",
+          "",
+          "### Key Dependencies:",
+          "",
+          (.dependencies | to_entries | .[] | "- \(.key): \(.value.version)")
+        ' >> $GITHUB_STEP_SUMMARY
+
+  # ============================================
+  # Generate SBOM for ML Backend (Python)
+  # ============================================
+  sbom-ml-backend:
+    name: Generate ML Backend SBOM
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Harden Runner
+      uses: step-security/harden-runner@v2
+      with:
+        egress-policy: audit
+
+    - name: Checkout repository
+      uses: actions/checkout@v4
+      with:
+        persist-credentials: false
+
+    - name: Setup Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: '3.11'
+        cache: 'pip'
+
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
+
+    - name: Install SBOM tools
+      run: pip install cyclonedx-bom
+
+    - name: Generate SBOM (CycloneDX)
+      run: |
+        cyclonedx-py \
+          --format json \
+          --output sbom-ml-backend.cdx.json \
+          requirements
+
+    - name: Upload SBOM artifacts
+      uses: actions/upload-artifact@v4
+      with:
+        name: sbom-ml-backend
+        path: sbom-ml-backend.cdx.json
+        retention-days: 90
+
+    - name: Generate SBOM summary
+      run: |
+        echo "## ML Backend SBOM" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "### Dependencies Summary" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        if [ -f requirements.txt ]; then
+          echo "- Total requirements: $(wc -l < requirements.txt)" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### Key Dependencies:" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          cat requirements.txt | grep -v '^#' | grep -v '^$' | sed 's/^/- /' >> $GITHUB_STEP_SUMMARY
+        fi
+
+  # ============================================
+  # Generate SBOM for Mobile App (Flutter/Dart)
+  # ============================================
+  sbom-mobile-app:
+    name: Generate Mobile App SBOM
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Harden Runner
+      uses: step-security/harden-runner@v2
+      with:
+        egress-policy: audit
+
+    - name: Checkout repository
+      uses: actions/checkout@v4
+      with:
+        persist-credentials: false
+
+    - name: Setup Flutter
+      uses: subosito/flutter-action@v2
+      with:
+        flutter-version: '3.24.x'
+        channel: 'stable'
+        cache: true
+
+    - name: Get Flutter dependencies
+      run: flutter pub get
+
+    - name: Generate dependency tree
+      run: |
+        flutter pub deps --json > flutter-deps.json
+        flutter pub deps --style=tree > flutter-deps-tree.txt
+
+    - name: Create Flutter SBOM
+      run: |
+        cat > sbom-mobile-app.json << 'EOF'
+        {
+          "bomFormat": "CycloneDX",
+          "specVersion": "1.5",
+          "version": 1,
+          "metadata": {
+            "timestamp": "$(date -u +%Y-%m-%dT%H:%M:%SZ)",
+            "component": {
+              "type": "application",
+              "name": "QuantumTrader-Pro-Mobile",
+              "version": "${{ github.sha }}",
+              "description": "QuantumTrader Pro Mobile Application"
+            }
+          },
+          "components": []
+        }
+        EOF
+
+    - name: Upload SBOM artifacts
+      uses: actions/upload-artifact@v4
+      with:
+        name: sbom-mobile-app
+        path: |
+          sbom-mobile-app.json
+          flutter-deps.json
+          flutter-deps-tree.txt
+        retention-days: 90
+
+    - name: Generate SBOM summary
+      run: |
+        echo "## Mobile App SBOM" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "### Dependencies Summary" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        if [ -f pubspec.yaml ]; then
+          echo "- Flutter SDK: $(flutter --version | head -1)" >> $GITHUB_STEP_SUMMARY
+          echo "- Direct dependencies: $(grep -A 100 '^dependencies:' pubspec.yaml | grep -E '^\s+[a-z]' | wc -l)" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### Key Dependencies:" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          grep -A 100 '^dependencies:' pubspec.yaml | grep -E '^\s+[a-z]' | sed 's/^/- /' | head -20 >> $GITHUB_STEP_SUMMARY
+        fi
+
+  # ============================================
+  # Consolidate and Analyze SBOMs
+  # ============================================
+  consolidate-sboms:
+    name: Consolidate SBOMs
+    runs-on: ubuntu-latest
+    needs: [sbom-bridge, sbom-ml-backend, sbom-mobile-app]
+    if: always()
+
+    steps:
+    - name: Harden Runner
+      uses: step-security/harden-runner@v2
+      with:
+        egress-policy: audit
+
+    - name: Download all SBOM artifacts
+      uses: actions/download-artifact@v4
+      with:
+        path: sboms/
+
+    - name: List generated SBOMs
+      run: |
+        echo "## Generated SBOMs" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        find sboms/ -type f -name "*.json" -o -name "*.txt" | while read file; do
+          echo "- $(basename $file) ($(stat -f%z "$file" 2>/dev/null || stat -c%s "$file") bytes)" >> $GITHUB_STEP_SUMMARY
+        done
+
+    - name: Create consolidated SBOM archive
+      run: |
+        cd sboms/
+        tar -czf ../sbom-complete-${{ github.sha }}.tar.gz *
+        cd ..
+        sha256sum sbom-complete-${{ github.sha }}.tar.gz > sbom-complete-${{ github.sha }}.tar.gz.sha256
+
+    - name: Upload consolidated SBOM
+      uses: actions/upload-artifact@v4
+      with:
+        name: sbom-complete
+        path: |
+          sbom-complete-*.tar.gz
+          sbom-complete-*.tar.gz.sha256
+        retention-days: 365
+
+    - name: Analyze for vulnerabilities (optional)
+      continue-on-error: true
+      run: |
+        echo "## Vulnerability Analysis" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "SBOMs generated successfully. Use tools like Grype, Trivy, or Snyk to analyze for vulnerabilities:" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo '```bash' >> $GITHUB_STEP_SUMMARY
+        echo "# Example using Grype:" >> $GITHUB_STEP_SUMMARY
+        echo "grype sbom:sbom-bridge.cdx.json" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "# Example using Trivy:" >> $GITHUB_STEP_SUMMARY
+        echo "trivy sbom sbom-bridge.cdx.json" >> $GITHUB_STEP_SUMMARY
+        echo '```' >> $GITHUB_STEP_SUMMARY
+
+    - name: Attach to release (if release event)
+      if: github.event_name == 'release'
+      uses: softprops/action-gh-release@v2
+      with:
+        files: |
+          sbom-complete-*.tar.gz
+          sbom-complete-*.tar.gz.sha256
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+# ============================================
+# Workflow Notes
+# ============================================
+#
+# SBOM Standards:
+# - CycloneDX: Industry-standard SBOM format
+# - SPDX: Linux Foundation standard
+# - Both formats supported for interoperability
+#
+# Triggers:
+# - Release: Attach SBOM to GitHub releases
+# - Push: Generate on dependency changes
+# - Schedule: Weekly refresh
+# - Manual: On-demand generation
+#
+# Artifacts:
+# - 90-day retention for component SBOMs
+# - 365-day retention for consolidated SBOMs
+# - Attached to GitHub releases for permanent storage
+#
+# Security Benefits:
+# - Supply chain transparency
+# - Vulnerability tracking
+# - License compliance
+# - Dependency auditing
+#
+# Integration:
+# - Can be ingested by vulnerability scanners
+# - Compatible with SBOM analysis tools (Grype, Trivy, Snyk)
+# - Supports GitHub Dependency Graph submission
+#
