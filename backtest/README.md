@@ -16,11 +16,11 @@ Python-based backtesting engine that connects to LHFX MT5 practice account to ru
 pip install MetaTrader5 pandas numpy
 ```
 
-## LHFX Practice Account
+## Open Demo/Practice Account
 
-**Login:** 194302
-**Password:** ajty2ky
-**Server:** LHFXDemo-Server
+**Login:** [Provided by your broker]
+**Password:** [Provided by your broker]
+**Server:** [Broker]Demo-Server
 
 ## Usage
 
@@ -36,9 +36,9 @@ Edit the script to modify:
 
 ```python
 # Account credentials
-LHFX_LOGIN = 194302
-LHFX_PASSWORD = "ajty2ky"
-LHFX_SERVER = "LHFXDemo-Server"
+LOGIN = [Provided by broker]
+PASSWORD = "[Provided by broker]"
+SERVER = "[Broker]Demo-Server"
 
 # Backtest parameters
 symbol = "EURUSD"
