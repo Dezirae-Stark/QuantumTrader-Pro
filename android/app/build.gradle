@@ -22,6 +22,22 @@ if (flutterVersionName == null) {
     flutterVersionName = '1.0'
 }
 
+// Get git commit hash for build watermark
+def getGitHash = { ->
+    try {
+        def stdout = new ByteArrayOutputStream()
+        exec {
+            commandLine 'git', 'rev-parse', '--short', 'HEAD'
+            standardOutput = stdout
+        }
+        return stdout.toString().trim()
+    } catch (Exception e) {
+        return 'unknown'
+    }
+}
+
+def gitCommitHash = getGitHash()
+
 android {
     namespace "com.quantumtrader.pro"
     compileSdk 34
@@ -47,6 +63,14 @@ android {
         versionCode flutterVersionCode.toInteger()
         versionName flutterVersionName
         multiDexEnabled true
+
+        // Build watermark: embed git commit hash for traceability
+        buildConfigField "String", "GIT_COMMIT_HASH", "\"${gitCommitHash}\""
+        buildConfigField "long", "BUILD_TIMESTAMP", "${System.currentTimeMillis()}L"
+    }
+
+    buildFeatures {
+        buildConfig = true
     }
 
     buildTypes {

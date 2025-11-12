@@ -1,0 +1,104 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Network Security Configuration
+
+  This file enforces secure network communication for QuantumTrader Pro.
+
+  Key Security Policies:
+  1. Cleartext traffic (HTTP) is BLOCKED - only HTTPS allowed
+  2. Certificate pinning can be configured for known API endpoints
+  3. Debugging certificates are disabled in production
+
+  Reference: https://developer.android.com/training/articles/security-config
+-->
+<network-security-config>
+    <!--
+        Base Configuration: Apply to all domains by default
+
+        - cleartextTrafficPermitted="false": Blocks HTTP, requires HTTPS
+        - This prevents accidental transmission of credentials over unencrypted connections
+    -->
+    <base-config cleartextTrafficPermitted="false">
+        <trust-anchors>
+            <!-- Trust system CAs (default Android certificate authorities) -->
+            <certificates src="system" />
+        </trust-anchors>
+    </base-config>
+
+    <!--
+        Development/Testing Exception (localhost)
+
+        Allow cleartext for local development testing ONLY.
+        Remove or comment out this section for production builds.
+    -->
+    <domain-config cleartextTrafficPermitted="true">
+        <domain includeSubdomains="true">localhost</domain>
+        <domain includeSubdomains="true">127.0.0.1</domain>
+        <domain includeSubdomains="true">10.0.2.2</domain> <!-- Android emulator host -->
+        <domain includeSubdomains="true">192.168.0.0</domain> <!-- Local network (adjust as needed) -->
+    </domain-config>
+
+    <!--
+        Certificate Pinning Configuration (Optional but Recommended)
+
+        Pins SSL certificates for specific API endpoints to prevent MITM attacks.
+
+        How to implement:
+        1. Get your API server's certificate fingerprint (SHA-256)
+        2. Uncomment and configure the section below
+        3. Replace "api.yourserver.com" with your actual API domain
+        4. Replace "BASE64_ENCODED_CERT_HASH" with your certificate's SHA-256 hash
+
+        Example to get certificate hash:
+          openssl s_client -connect api.yourserver.com:443 < /dev/null | \
+            openssl x509 -pubkey -noout | \
+            openssl rsa -pubin -outform der | \
+            openssl dgst -sha256 -binary | \
+            openssl enc -base64
+
+        IMPORTANT: Certificate pinning requires maintenance:
+        - Update hashes when certificates are renewed
+        - Include backup pins to avoid lockout
+        - Consider pin expiration dates
+    -->
+    <!--
+    <domain-config>
+        <domain includeSubdomains="true">api.yourserver.com</domain>
+        <pin-set expiration="2026-01-01">
+            <pin digest="SHA-256">BASE64_ENCODED_CERT_HASH</pin>
+            <pin digest="SHA-256">BACKUP_CERT_HASH</pin>
+        </pin-set>
+    </domain-config>
+    -->
+
+    <!--
+        Bridge Server Configuration (Customize for your setup)
+
+        If you're running a bridge server for MT4 communication,
+        configure certificate pinning here.
+
+        Example for self-hosted bridge:
+    -->
+    <!--
+    <domain-config>
+        <domain includeSubdomains="true">bridge.yourdomain.com</domain>
+        <pin-set expiration="2026-01-01">
+            <pin digest="SHA-256">YOUR_BRIDGE_CERT_HASH</pin>
+        </pin-set>
+    </domain-config>
+    -->
+
+    <!--
+        Debug Certificate Restriction
+
+        For enhanced security, explicitly reject debug certificates in production.
+        This prevents accidental use of dev/test certificates in release builds.
+    -->
+    <debug-overrides>
+        <!-- This section is only active in debug builds -->
+        <trust-anchors>
+            <certificates src="user" />
+            <certificates src="system" />
+        </trust-anchors>
+    </debug-overrides>
+</network-security-config>
