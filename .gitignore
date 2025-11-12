@@ -231,3 +231,4 @@ mt4_credentials.json
 *.tmp
 *.bak
 *~
+.secret-scan-results.md
