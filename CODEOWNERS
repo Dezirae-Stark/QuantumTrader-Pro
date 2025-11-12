@@ -1,0 +1,59 @@
+# Code Owners for QuantumTrader Pro
+#
+# This file defines individuals or teams responsible for code in this repository.
+# Code owners are automatically requested for review when someone opens a pull
+# request that modifies code they own.
+#
+# More information: https://docs.github.com/en/repositories/managing-your-repositorys-settings-and-features/customizing-your-repository/about-code-owners
+
+# Default owner for everything in the repo
+* @Dezirae-Stark
+
+# Android Application
+/android/**                     @Dezirae-Stark
+/lib/**                         @Dezirae-Stark
+/assets/**                      @Dezirae-Stark
+/pubspec.yaml                   @Dezirae-Stark
+
+# Bridge Server (WebSocket API)
+/bridge/**                      @Dezirae-Stark
+/bridge/package.json            @Dezirae-Stark
+/bridge/websocket_bridge.js     @Dezirae-Stark
+
+# Machine Learning & Backtesting
+/backtest/**                    @Dezirae-Stark
+/ml/**                          @Dezirae-Stark
+
+# MQL4 Expert Advisors & Indicators
+/mql4/**                        @Dezirae-Stark
+/mql4/*.mq4                     @Dezirae-Stark
+/mql4/*.mqh                     @Dezirae-Stark
+
+# Documentation
+/docs/**                        @Dezirae-Stark
+/*.md                           @Dezirae-Stark
+/README.md                      @Dezirae-Stark
+
+# Security & Policy
+/SECURITY.md                    @Dezirae-Stark
+/SECURITY-ADVISORY-*.md         @Dezirae-Stark
+/.gitleaks.toml                 @Dezirae-Stark
+
+# CI/CD & GitHub Configuration
+/.github/**                     @Dezirae-Stark
+/.github/workflows/**           @Dezirae-Stark
+/.github/dependabot.yml         @Dezirae-Stark
+
+# License & Legal
+/LICENSE                        @Dezirae-Stark
+/CONTRIBUTING.md                @Dezirae-Stark
+/CODEOWNERS                     @Dezirae-Stark
+
+# Build Configuration
+/gradle/**                      @Dezirae-Stark
+/android/app/build.gradle       @Dezirae-Stark
+/android/build.gradle           @Dezirae-Stark
+
+# Dependencies
+/package*.json                  @Dezirae-Stark
+/pubspec.lock                   @Dezirae-Stark

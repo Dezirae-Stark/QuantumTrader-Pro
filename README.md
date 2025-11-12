@@ -326,7 +326,19 @@ Please ensure all commits are GPG-signed.
 
 ## 📝 License
 
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+This project is licensed under the **MIT License** - see the [LICENSE](LICENSE) file for details.
+
+**Key Points:**
+- ✅ **Open Source**: Free to use, modify, and distribute
+- ✅ **Commercial Use Allowed**: Use in commercial projects without restriction
+- ✅ **No Warranty**: Provided "as-is" without warranty of any kind
+- ✅ **Attribution Required**: Preserve copyright notice in redistributions
+
+**For Contributors:**
+All contributions to this project are licensed under the MIT License. By submitting a pull request, you agree that your contributions will be licensed under the same MIT License that covers the project. See [CONTRIBUTING.md](CONTRIBUTING.md) for details.
+
+**Licensing History:**
+As of PR-2 (January 2025), this repository is **MIT-only**. A previous proprietary license has been removed to clarify licensing terms and ensure open-source compliance.
 
 ---
 
