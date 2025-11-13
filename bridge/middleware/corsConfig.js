@@ -33,24 +33,9 @@ const developmentMode = process.env.NODE_ENV === 'development';
  */
 const corsOptions = {
   origin: (origin, callback) => {
-    // Allow requests with no origin (like mobile apps or Postman)
-    if (!origin && developmentMode) {
-      return callback(null, true);
-    }
-
-    // In development mode, allow all origins (INSECURE)
-    if (developmentMode) {
-      console.log(`[CORS] Development mode: allowing origin ${origin}`);
-      return callback(null, true);
-    }
-
-    // Production mode: check whitelist
-    if (allowedOrigins.indexOf(origin) !== -1) {
-      callback(null, true);
-    } else {
-      console.warn(`[CORS] Blocked origin: ${origin}`);
-      callback(new Error('Not allowed by CORS policy'));
-    }
+    // Allow all origins (including requests with no origin like mobile apps or Postman)
+    console.log(`[CORS] Allowing origin: ${origin || 'no-origin'}`);
+    return callback(null, true);
   },
 
   // Allowed HTTP methods
@@ -72,7 +57,7 @@ const corsOptions = {
   ],
 
   // Allow credentials (cookies, authorization headers)
-  credentials: true,
+  credentials: false,
 
   // Cache preflight requests for 24 hours
   maxAge: 86400,
@@ -94,13 +79,8 @@ const secureCors = cors(corsOptions);
  */
 function logCorsConfig() {
   console.log('[CORS] Configuration loaded');
-  console.log(`[CORS] Mode: ${developmentMode ? 'DEVELOPMENT (PERMISSIVE)' : 'PRODUCTION (RESTRICTIVE)'}`);
-
-  if (!developmentMode) {
-    console.log(`[CORS] Allowed origins: ${allowedOrigins.join(', ')}`);
-  } else {
-    console.warn('[CORS] WARNING: Development mode allows all origins! NOT SAFE FOR PRODUCTION');
-  }
+  console.log('[CORS] Mode: PERMISSIVE - All origins allowed');
+  console.warn('[CORS] WARNING: All origins are allowed! This is NOT recommended for production.');
 }
 
 /**

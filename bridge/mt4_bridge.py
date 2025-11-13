@@ -12,7 +12,17 @@ from datetime import datetime
 import os
 
 app = Flask(__name__)
-CORS(app)
+# Allow all domains for CORS
+CORS(app, resources={
+    r"/api/*": {
+        "origins": "*",
+        "methods": ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+        "allow_headers": ["Content-Type", "Authorization"],
+        "expose_headers": ["Content-Type"],
+        "supports_credentials": False,
+        "max_age": 3600
+    }
+})
 
 # Sample data storage
 signals_data = []
