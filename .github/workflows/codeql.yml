@@ -2,12 +2,13 @@ name: "CodeQL Security Analysis"
 
 on:
   push:
-    branches: [ "main", "develop" ]
+    branches: [ main, desktop, security/* ]
   pull_request:
-    branches: [ "main", "develop" ]
+    branches: [ main ]
   schedule:
-    # Run at 2:00 AM UTC every Monday
-    - cron: '0 2 * * 1'
+    # Run at 6:00 AM UTC every Monday
+    - cron: '0 6 * * 1'
+  workflow_dispatch:
 
 permissions:
   actions: read
@@ -15,18 +16,10 @@ permissions:
   security-events: write
 
 jobs:
-  analyze:
-    name: CodeQL Analysis
+  analyze-java-kotlin:
+    name: Analyze Java/Kotlin (Android)
     runs-on: ubuntu-latest
-    timeout-minutes: 360
-
-    strategy:
-      fail-fast: false
-      matrix:
-        language: [ 'javascript', 'python' ]
-        # CodeQL supports: 'cpp', 'csharp', 'go', 'java', 'javascript', 'python', 'ruby', 'swift'
-        # Learn more about CodeQL language support:
-        # https://aka.ms/codeql-docs/language-support
+    timeout-minutes: 30
 
     steps:
     - name: Harden Runner
@@ -36,38 +29,120 @@ jobs:
 
     - name: Checkout repository
       uses: actions/checkout@v4
+
+    - name: Set up JDK 17
+      uses: actions/setup-java@v4
       with:
-        persist-credentials: false
+        java-version: '17'
+        distribution: 'temurin'
+        cache: 'gradle'
+
+    - name: Set up Flutter
+      uses: subosito/flutter-action@v2
+      with:
+        flutter-version: '3.19.0'
+        channel: 'stable'
+        cache: true
+
+    - name: Install Flutter dependencies
+      run: flutter pub get
 
     - name: Initialize CodeQL
       uses: github/codeql-action/init@v3
       with:
-        languages: ${{ matrix.language }}
-        # If you wish to specify custom queries, you can do so here or in a config file.
-        # By default, queries listed here will override any specified in a config file.
-        # Prefix the list here with "+" to use these queries and those in the config file.
-
-        # For more details on CodeQL's query packs, refer to:
-        # https://docs.github.com/en/code-security/code-scanning/automatically-scanning-your-code-for-vulnerabilities-and-errors/configuring-code-scanning#using-queries-in-ql-packs
+        languages: java-kotlin
+        # Auto-detect Java source in android/ directory
         queries: +security-extended,security-and-quality
 
-    - name: Autobuild
-      uses: github/codeql-action/autobuild@v3
+    - name: Build Android project
+      run: |
+        # Build the Android project to generate bytecode for analysis
+        cd android
+        ./gradlew assembleDebug --no-daemon --stacktrace
 
     - name: Perform CodeQL Analysis
       uses: github/codeql-action/analyze@v3
       with:
-        category: "/language:${{matrix.language}}"
+        category: "/language:java-kotlin"
+        upload: true
 
-  results:
-    name: CodeQL Results Summary
+  analyze-javascript:
+    name: Analyze JavaScript/TypeScript
     runs-on: ubuntu-latest
-    needs: analyze
+    timeout-minutes: 20
+
+    # Only run if JavaScript/TypeScript files exist
+    steps:
+    - name: Harden Runner
+      uses: step-security/harden-runner@v2
+      with:
+        egress-policy: audit
+
+    - name: Checkout repository
+      uses: actions/checkout@v4
+
+    - name: Check for JS/TS files
+      id: check-js
+      run: |
+        if [ -f "package.json" ] || [ -f "bridge/package.json" ]; then
+          echo "has_js=true" >> $GITHUB_OUTPUT
+        else
+          echo "has_js=false" >> $GITHUB_OUTPUT
+        fi
+
+    - name: Set up Node.js
+      if: steps.check-js.outputs.has_js == 'true'
+      uses: actions/setup-node@v4
+      with:
+        node-version: '20'
+        cache: 'npm'
+
+    - name: Install dependencies
+      if: steps.check-js.outputs.has_js == 'true'
+      run: |
+        if [ -f "package.json" ]; then
+          npm ci
+        elif [ -f "bridge/package.json" ]; then
+          cd bridge && npm ci
+        fi
+
+    - name: Initialize CodeQL
+      if: steps.check-js.outputs.has_js == 'true'
+      uses: github/codeql-action/init@v3
+      with:
+        languages: javascript-typescript
+        queries: +security-extended,security-and-quality
+
+    - name: Perform CodeQL Analysis
+      if: steps.check-js.outputs.has_js == 'true'
+      uses: github/codeql-action/analyze@v3
+      with:
+        category: "/language:javascript-typescript"
+        upload: true
+
+    - name: Skip JS analysis
+      if: steps.check-js.outputs.has_js == 'false'
+      run: echo "No JavaScript/TypeScript files detected - skipping analysis"
+
+  security-summary:
+    name: Security Analysis Summary
+    runs-on: ubuntu-latest
+    needs: [analyze-java-kotlin, analyze-javascript]
     if: always()
 
     steps:
-    - name: Check Analysis Status
+    - name: Check analysis results
       run: |
-        echo "CodeQL Analysis completed"
-        echo "Check Security tab for detailed results"
-        echo "https://github.com/${{ github.repository }}/security/code-scanning"
+        echo "📊 CodeQL Security Analysis Complete"
+        echo ""
+        echo "✅ Java/Kotlin Analysis: ${{ needs.analyze-java-kotlin.result }}"
+        echo "✅ JavaScript Analysis: ${{ needs.analyze-javascript.result }}"
+        echo ""
+        echo "🔍 View detailed results in the Security tab:"
+        echo "   https://github.com/${{ github.repository }}/security/code-scanning"
+        echo ""
+
+        if [ "${{ needs.analyze-java-kotlin.result }}" = "failure" ] || [ "${{ needs.analyze-javascript.result }}" = "failure" ]; then
+          echo "⚠️  Some analyses failed - check workflow logs"
+          exit 1
+        fi

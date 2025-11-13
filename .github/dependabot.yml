@@ -1,119 +1,51 @@
-# Dependabot Configuration for QuantumTrader-Pro
-# Automated dependency updates and vulnerability scanning
-# See: https://docs.github.com/en/code-security/dependabot
+# Dependabot configuration for automated dependency updates
+# Watches Gradle (Android), npm (if present), and GitHub Actions
 
 version: 2
+
 updates:
-  # ============================================
-  # Node.js Dependencies (Bridge Server)
-  # ============================================
-  - package-ecosystem: "npm"
-    directory: "/bridge"
+  # Android Gradle dependencies
+  - package-ecosystem: "gradle"
+    directory: "/android"
     schedule:
       interval: "weekly"
       day: "monday"
-      time: "02:00"
+      time: "06:00"
       timezone: "UTC"
     open-pull-requests-limit: 5
     reviewers:
       - "Dezirae-Stark"
-    assignees:
-      - "Dezirae-Stark"
     labels:
       - "dependencies"
+      - "android"
       - "security"
-      - "bridge-server"
     commit-message:
-      prefix: "chore(bridge)"
+      prefix: "chore(deps)"
       include: "scope"
-    # Automatically group minor and patch updates
+    # Group minor and patch updates together
     groups:
-      security-updates:
-        patterns:
-          - "*"
-        update-types:
-          - "security"
-      dependencies-minor:
+      gradle-minor-patch:
         patterns:
           - "*"
         update-types:
           - "minor"
           - "patch"
-    # Version requirements
-    versioning-strategy: "increase"
-    ignore:
-      # Ignore major version updates for stable dependencies
-      - dependency-name: "express"
-        update-types: ["version-update:semver-major"]
-      - dependency-name: "ws"
-        update-types: ["version-update:semver-major"]
 
-  # ============================================
-  # Python Dependencies (ML Backend)
-  # ============================================
-  - package-ecosystem: "pip"
-    directory: "/"
-    schedule:
-      interval: "weekly"
-      day: "monday"
-      time: "03:00"
-      timezone: "UTC"
-    open-pull-requests-limit: 5
-    reviewers:
-      - "Dezirae-Stark"
-    assignees:
-      - "Dezirae-Stark"
-    labels:
-      - "dependencies"
-      - "security"
-      - "ml-backend"
-    commit-message:
-      prefix: "chore(ml)"
-      include: "scope"
-    # Automatically group minor and patch updates
-    groups:
-      security-updates:
-        patterns:
-          - "*"
-        update-types:
-          - "security"
-      dependencies-minor:
-        patterns:
-          - "*"
-        update-types:
-          - "minor"
-          - "patch"
-    versioning-strategy: "increase"
-    ignore:
-      # Ignore major version updates for critical ML libraries
-      - dependency-name: "numpy"
-        update-types: ["version-update:semver-major"]
-      - dependency-name: "pandas"
-        update-types: ["version-update:semver-major"]
-      - dependency-name: "tensorflow"
-        update-types: ["version-update:semver-major"]
-      - dependency-name: "scikit-learn"
-        update-types: ["version-update:semver-major"]
-
-  # ============================================
-  # GitHub Actions Workflows
-  # ============================================
+  # GitHub Actions updates
   - package-ecosystem: "github-actions"
     directory: "/"
     schedule:
       interval: "weekly"
       day: "monday"
-      time: "04:00"
+      time: "06:00"
       timezone: "UTC"
     open-pull-requests-limit: 3
     reviewers:
       - "Dezirae-Stark"
-    assignees:
-      - "Dezirae-Stark"
     labels:
       - "dependencies"
       - "github-actions"
-      - "ci-cd"
+      - "security"
     commit-message:
       prefix: "chore(ci)"
       include: "scope"
@@ -122,61 +54,64 @@ updates:
       github-actions:
         patterns:
           - "*"
-    versioning-strategy: "increase"
 
-  # ============================================
-  # Future: Pub Dependencies (Flutter/Dart)
-  # ============================================
-  # Uncomment when Dependabot supports pub ecosystem
-  # - package-ecosystem: "pub"
-  #   directory: "/"
-  #   schedule:
-  #     interval: "weekly"
-  #     day: "monday"
-  #     time: "05:00"
-  #     timezone: "UTC"
-  #   open-pull-requests-limit: 5
-  #   reviewers:
-  #     - "Dezirae-Stark"
-  #   labels:
-  #     - "dependencies"
-  #     - "flutter"
-  #     - "mobile-app"
-  #   commit-message:
-  #     prefix: "chore(flutter)"
-  #     include: "scope"
+  # npm dependencies (if package.json exists in root)
+  - package-ecosystem: "npm"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "06:00"
+      timezone: "UTC"
+    open-pull-requests-limit: 5
+    reviewers:
+      - "Dezirae-Stark"
+    labels:
+      - "dependencies"
+      - "npm"
+      - "security"
+    commit-message:
+      prefix: "chore(deps)"
+      include: "scope"
+    # Ignore Flutter-generated package-lock.json
+    ignore:
+      - dependency-name: "*"
+        update-types: ["version-update:semver-major"]
+    versioning-strategy: increase
+    # Group minor and patch updates
+    groups:
+      npm-minor-patch:
+        patterns:
+          - "*"
+        update-types:
+          - "minor"
+          - "patch"
 
-# ============================================
-# Configuration Notes
-# ============================================
-#
-# Staggered Schedule:
-# - Bridge npm: Monday 02:00 UTC
-# - ML pip: Monday 03:00 UTC
-# - GitHub Actions: Monday 04:00 UTC
-#
-# This prevents all PRs from opening simultaneously
-#
-# Security Updates:
-# - Always grouped separately with highest priority
-# - No version constraints on security patches
-#
-# Version Strategy:
-# - increase: Always bump version requirements
-# - Prevents rollbacks of already-updated dependencies
-#
-# Grouping:
-# - Security updates: Always separate
-# - Minor/patch: Grouped to reduce PR noise
-# - Major: Individual PRs for careful review
-#
-# Ignored Updates:
-# - Major version updates for core dependencies
-# - Requires manual review due to breaking changes
-#
-# PR Limits:
-# - npm: 5 PRs max
-# - pip: 5 PRs max
-# - actions: 3 PRs max
-# - Prevents overwhelming the review queue
-#
+  # npm dependencies for bridge server (if on desktop branch)
+  - package-ecosystem: "npm"
+    directory: "/bridge"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "06:00"
+      timezone: "UTC"
+    open-pull-requests-limit: 5
+    reviewers:
+      - "Dezirae-Stark"
+    labels:
+      - "dependencies"
+      - "npm"
+      - "bridge-server"
+      - "security"
+    commit-message:
+      prefix: "chore(deps)"
+      include: "scope"
+    versioning-strategy: increase
+    # Group minor and patch updates
+    groups:
+      bridge-minor-patch:
+        patterns:
+          - "*"
+        update-types:
+          - "minor"
+          - "patch"
