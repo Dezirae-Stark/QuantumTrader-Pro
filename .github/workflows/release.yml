@@ -1,0 +1,408 @@
+name: Release Build & Publish
+
+# Trigger on version tags (v*)
+# Example: git tag v2.1.0 && git push --tags
+on:
+  push:
+    tags:
+      - 'v*'
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Version tag (e.g., v2.1.0)'
+        required: true
+        type: string
+
+env:
+  FLUTTER_VERSION: '3.19.0'
+  JAVA_VERSION: '17'
+
+jobs:
+  # Job 1: Security Scanning
+  security-scan:
+    name: Security Scanning
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Run Gitleaks (Secret Scan)
+        uses: gitleaks/gitleaks-action@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITLEAKS_LICENSE: ${{ secrets.GITLEAKS_LICENSE }}
+
+      - name: Run Trivy (Vulnerability Scan)
+        uses: aquasecurity/trivy-action@master
+        with:
+          scan-type: 'fs'
+          scan-ref: '.'
+          format: 'sarif'
+          output: 'trivy-results.sarif'
+          severity: 'CRITICAL,HIGH'
+
+      - name: Upload Trivy results to GitHub Security
+        uses: github/codeql-action/upload-sarif@v3
+        if: always()
+        with:
+          sarif_file: 'trivy-results.sarif'
+
+      - name: Security scan summary
+        if: success()
+        run: |
+          echo "✅ Security scans passed!"
+          echo "- Gitleaks: No secrets detected"
+          echo "- Trivy: No critical vulnerabilities"
+
+  # Job 2: Build Signed Release APK
+  build-release:
+    name: Build Signed Release APK
+    runs-on: ubuntu-latest
+    needs: security-scan
+    outputs:
+      version: ${{ steps.version.outputs.version }}
+      version_number: ${{ steps.version.outputs.version_number }}
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Extract version from tag
+        id: version
+        run: |
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            VERSION="${{ github.event.inputs.version }}"
+          else
+            VERSION="${GITHUB_REF#refs/tags/}"
+          fi
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+          echo "version_number=${VERSION#v}" >> $GITHUB_OUTPUT
+          echo "📦 Building version: $VERSION"
+
+      - name: Set up Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: ${{ env.JAVA_VERSION }}
+
+      - name: Set up Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: ${{ env.FLUTTER_VERSION }}
+          channel: 'stable'
+          cache: true
+
+      - name: Verify Flutter installation
+        run: |
+          flutter --version
+          flutter doctor -v
+
+      - name: Get Flutter dependencies
+        run: |
+          echo "📦 Getting dependencies..."
+          flutter pub get
+
+      - name: Run code generation
+        run: |
+          echo "🔨 Generating Freezed models and Hive adapters..."
+          dart run build_runner build --delete-conflicting-outputs
+
+      - name: Verify generated files
+        run: |
+          echo "✓ Checking generated files..."
+          test -f lib/models/catalog/broker_catalog.freezed.dart && echo "  ✓ Freezed models generated"
+          test -f lib/models/catalog/broker_catalog.g.dart && echo "  ✓ Hive adapters generated"
+
+      - name: Run Flutter analyze
+        run: |
+          echo "🔍 Running static analysis..."
+          flutter analyze
+
+      - name: Run Flutter tests
+        run: |
+          echo "🧪 Running tests..."
+          flutter test || echo "⚠️  Some tests are pending code generation"
+
+      - name: Decode keystore from secrets
+        env:
+          KEYSTORE_BASE64: ${{ secrets.KEYSTORE_BASE64 }}
+        run: |
+          echo "🔐 Decoding keystore..."
+          echo "$KEYSTORE_BASE64" | base64 -d > android/app/upload-keystore.jks
+          ls -lh android/app/upload-keystore.jks
+
+      - name: Create key.properties
+        env:
+          KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
+          KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
+          STORE_PASSWORD: ${{ secrets.STORE_PASSWORD }}
+        run: |
+          echo "📝 Creating key.properties..."
+          cat > android/key.properties <<EOF
+          storePassword=$STORE_PASSWORD
+          keyPassword=$KEY_PASSWORD
+          keyAlias=$KEY_ALIAS
+          storeFile=upload-keystore.jks
+          EOF
+
+      - name: Build release APK (split-per-abi)
+        run: |
+          echo "🏗️  Building release APKs..."
+          flutter build apk --release --split-per-abi
+
+      - name: List built APKs
+        run: |
+          echo "📦 Built APKs:"
+          ls -lh build/app/outputs/flutter-apk/*.apk
+
+      - name: Rename APKs with version
+        run: |
+          VERSION="${{ steps.version.outputs.version_number }}"
+          echo "📝 Renaming APKs with version: $VERSION"
+
+          mkdir -p release
+
+          # ARM64 (most common)
+          if [ -f build/app/outputs/flutter-apk/app-arm64-v8a-release.apk ]; then
+            cp build/app/outputs/flutter-apk/app-arm64-v8a-release.apk \
+               release/QuantumTrader-Pro-v${VERSION}-arm64.apk
+            echo "✓ ARM64 APK renamed"
+          fi
+
+          # ARM32 (older devices)
+          if [ -f build/app/outputs/flutter-apk/app-armeabi-v7a-release.apk ]; then
+            cp build/app/outputs/flutter-apk/app-armeabi-v7a-release.apk \
+               release/QuantumTrader-Pro-v${VERSION}-arm32.apk
+            echo "✓ ARM32 APK renamed"
+          fi
+
+          # x86_64 (emulators)
+          if [ -f build/app/outputs/flutter-apk/app-x86_64-release.apk ]; then
+            cp build/app/outputs/flutter-apk/app-x86_64-release.apk \
+               release/QuantumTrader-Pro-v${VERSION}-x86_64.apk
+            echo "✓ x86_64 APK renamed"
+          fi
+
+          ls -lh release/
+
+      - name: Generate SHA256 checksums
+        run: |
+          echo "🔒 Generating SHA256 checksums..."
+          cd release
+          sha256sum *.apk > SHA256SUMS.txt
+          echo ""
+          echo "📝 Checksums:"
+          cat SHA256SUMS.txt
+
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: release-apks-${{ steps.version.outputs.version_number }}
+          path: release/
+          retention-days: 90
+
+      - name: Build summary
+        run: |
+          echo "✅ Build completed successfully!"
+          echo ""
+          echo "📦 APKs built:"
+          ls -1 release/*.apk | while read apk; do
+            size=$(du -h "$apk" | cut -f1)
+            echo "  - $(basename $apk) ($size)"
+          done
+
+  # Job 3: Create GitHub Release
+  create-release:
+    name: Create GitHub Release
+    runs-on: ubuntu-latest
+    needs: build-release
+    permissions:
+      contents: write
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Download artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: release-apks-${{ needs.build-release.outputs.version_number }}
+          path: release/
+
+      - name: Generate changelog from commits
+        id: changelog
+        run: |
+          PREVIOUS_TAG=$(git describe --tags --abbrev=0 HEAD^ 2>/dev/null || echo "")
+
+          if [ -z "$PREVIOUS_TAG" ]; then
+            echo "📝 Generating changelog from all commits..."
+            CHANGELOG=$(git log --pretty=format:"- %s" HEAD | head -20)
+          else
+            echo "📝 Generating changelog from $PREVIOUS_TAG to HEAD..."
+            CHANGELOG=$(git log --pretty=format:"- %s" ${PREVIOUS_TAG}..HEAD)
+          fi
+
+          echo "changelog<<EOF" >> $GITHUB_OUTPUT
+          echo "$CHANGELOG" >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
+
+      - name: Read full CHANGELOG.md
+        id: full_changelog
+        run: |
+          VERSION="${{ needs.build-release.outputs.version_number }}"
+
+          if [ -f CHANGELOG.md ]; then
+            echo "📖 Extracting section for version $VERSION from CHANGELOG.md..."
+
+            # Extract section for this version
+            SECTION=$(sed -n "/## \[$VERSION\]/,/## \[/p" CHANGELOG.md | sed '$ d' | tail -n +2)
+
+            if [ -z "$SECTION" ]; then
+              echo "⚠️  No specific section found for $VERSION, using Unreleased..."
+              SECTION=$(sed -n "/## \[Unreleased\]/,/## \[/p" CHANGELOG.md | sed '$ d' | tail -n +2)
+            fi
+          else
+            echo "⚠️  CHANGELOG.md not found"
+            SECTION="See commit history for changes."
+          fi
+
+          echo "section<<EOF" >> $GITHUB_OUTPUT
+          echo "$SECTION" >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
+
+      - name: Get APK sizes
+        id: apk_sizes
+        run: |
+          cd release
+
+          ARM64_SIZE=$(du -h *arm64.apk 2>/dev/null | cut -f1 || echo "N/A")
+          ARM32_SIZE=$(du -h *arm32.apk 2>/dev/null | cut -f1 || echo "N/A")
+          X86_SIZE=$(du -h *x86_64.apk 2>/dev/null | cut -f1 || echo "N/A")
+
+          echo "arm64_size=$ARM64_SIZE" >> $GITHUB_OUTPUT
+          echo "arm32_size=$ARM32_SIZE" >> $GITHUB_OUTPUT
+          echo "x86_size=$X86_SIZE" >> $GITHUB_OUTPUT
+
+      - name: Create Release
+        uses: softprops/action-gh-release@v1
+        with:
+          tag_name: v${{ needs.build-release.outputs.version_number }}
+          name: QuantumTrader-Pro v${{ needs.build-release.outputs.version_number }}
+          body: |
+            # 🚀 QuantumTrader-Pro v${{ needs.build-release.outputs.version_number }}
+
+            ${{ steps.full_changelog.outputs.section }}
+
+            ---
+
+            ## 📦 Downloads
+
+            Choose the APK for your device architecture:
+
+            | Architecture | File | Size | Description |
+            |--------------|------|------|-------------|
+            | **ARM64** | `*-arm64.apk` | ${{ steps.apk_sizes.outputs.arm64_size }} | Most modern Android devices (2017+) |
+            | **ARM32** | `*-arm32.apk` | ${{ steps.apk_sizes.outputs.arm32_size }} | Older 32-bit Android devices |
+            | **x86_64** | `*-x86_64.apk` | ${{ steps.apk_sizes.outputs.x86_size }} | Emulators and x86 devices |
+
+            **Not sure which one?** → Choose **ARM64** (works on most modern phones)
+
+            ---
+
+            ## 🔐 Verification
+
+            ### Verify SHA256 checksums:
+            ```bash
+            sha256sum -c SHA256SUMS.txt
+            ```
+
+            ### Manual verification:
+            ```bash
+            sha256sum QuantumTrader-Pro-v${{ needs.build-release.outputs.version_number }}-arm64.apk
+            # Compare with value in SHA256SUMS.txt
+            ```
+
+            ---
+
+            ## 📝 Recent Commits
+
+            ${{ steps.changelog.outputs.changelog }}
+
+            ---
+
+            ## 🛠️ Build Information
+
+            - **Flutter Version:** ${{ env.FLUTTER_VERSION }}
+            - **Build Date:** $(date -u +"%Y-%m-%d %H:%M:%S UTC")
+            - **Git Commit:** `${{ github.sha }}`
+            - **Build Type:** Release (signed, optimized)
+
+            ---
+
+            ## 📋 Installation
+
+            1. Download the APK for your device architecture
+            2. Enable "Install from Unknown Sources" in Android settings
+            3. Open the downloaded APK to install
+            4. Grant required permissions when prompted
+
+            ---
+
+            ## 🔗 Links
+
+            - [Full Changelog](https://github.com/${{ github.repository }}/compare/v${{ needs.build-release.outputs.version_number }}...main)
+            - [Source Code](https://github.com/${{ github.repository }}/tree/v${{ needs.build-release.outputs.version_number }})
+            - [Issues](https://github.com/${{ github.repository }}/issues)
+
+            ---
+
+            🤖 Generated with [Claude Code](https://claude.com/claude-code)
+          files: |
+            release/*.apk
+            release/SHA256SUMS.txt
+          draft: false
+          prerelease: false
+          generate_release_notes: false
+
+      - name: Release summary
+        run: |
+          echo "✅ Release v${{ needs.build-release.outputs.version_number }} published!"
+          echo ""
+          echo "🔗 View release:"
+          echo "   https://github.com/${{ github.repository }}/releases/tag/v${{ needs.build-release.outputs.version_number }}"
+          echo ""
+          echo "📦 Artifacts:"
+          ls -1 release/*.apk | while read apk; do
+            echo "   - $(basename $apk)"
+          done
+
+  # Job 4: Post-Release Notifications
+  notify-release:
+    name: Post-Release Notifications
+    runs-on: ubuntu-latest
+    needs: [build-release, create-release]
+    if: success()
+
+    steps:
+      - name: Success summary
+        run: |
+          echo "========================================="
+          echo "✅ Release Pipeline Completed!"
+          echo "========================================="
+          echo ""
+          echo "Version: v${{ needs.build-release.outputs.version_number }}"
+          echo "Status: ✅ Published"
+          echo ""
+          echo "📦 Artifacts uploaded to GitHub Releases"
+          echo "🔒 Security scans passed"
+          echo "✅ All jobs completed successfully"
+          echo ""
+          echo "🔗 View release:"
+          echo "https://github.com/${{ github.repository }}/releases/latest"

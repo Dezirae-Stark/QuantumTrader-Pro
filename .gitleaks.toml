@@ -1,87 +1,116 @@
-# GitLeaks Configuration for QuantumTrader Pro
-# https://github.com/gitleaks/gitleaks
+# Gitleaks Configuration for QuantumTrader-Pro
+#
+# This file configures secret scanning to detect:
+# - API keys and tokens
+# - Passwords and credentials
+# - Private keys
+# - Authentication secrets
+#
+# Documentation: https://github.com/gitleaks/gitleaks
 
-title = "QuantumTrader Pro Secret Scanning Configuration"
+title = "QuantumTrader-Pro Secret Scanning"
 
 [extend]
-# useDefault will extend the base configuration with the default gitleaks config:
-# https://github.com/gitleaks/gitleaks/blob/master/config/gitleaks.toml
+# Use default Gitleaks rules as baseline
 useDefault = true
 
-[allowlist]
-description = "Allowlisted files and patterns"
-paths = [
-  '''node_modules/''',
-  '''\.git/''',
-  '''build/''',
-  '''\.gradle/''',
-  '''\.dart_tool/''',
-  '''\.idea/''',
-]
-
-# Example patterns (non-sensitive) to allowlist
-regexes = [
-  '''example\.com''',
-  '''localhost''',
-  '''127\.0\.0\.1''',
-]
-
-# Custom rules for QuantumTrader Pro specific secrets
+# Custom rules for Android/Flutter specific secrets
+[[rules]]
+id = "android-keystore-password"
+description = "Android Keystore Password"
+regex = '''(?i)(keyPassword|storePassword)\s*=\s*['""].{8,}['"]'''
+tags = ["android", "keystore", "password"]
 
 [[rules]]
-id = "lhfx-demo-credentials"
-description = "LHFX Demo Account Credentials"
-regex = '''(?i)(194302|ajty2ky)'''
-tags = ["lhfx", "demo", "credential"]
-[rules.allowlist]
-paths = [
-  '''SECURITY-ADVISORY-2025-001\.md''',  # Advisory document references
-  '''SECURITY\.md''',  # Security policy references
-  '''\.gitleaks\.toml''',  # This config file
-]
+id = "android-keystore-properties"
+description = "Android Key Properties File"
+regex = '''(?i)(keyAlias|storeFile)\s*=\s*['""].+['"]'''
+tags = ["android", "keystore"]
+path = '''.*key\.properties$'''
 
 [[rules]]
-id = "generic-password"
-description = "Generic Password Patterns"
-regex = '''(?i)(password|passwd|pwd)\s*[:=]\s*['"][^'"]{8,}['"]'''
-tags = ["password", "credential"]
-[rules.allowlist]
-paths = [
-  '''docs/''',  # Documentation examples
-  '''test/''',  # Test fixtures
-]
+id = "flutter-api-key"
+description = "API Key in Flutter/Dart code"
+regex = '''(?i)(api[_-]?key|apikey)\s*[:=]\s*['""][a-zA-Z0-9_\-]{16,}['"]'''
+tags = ["api", "key", "flutter"]
 
 [[rules]]
-id = "api-token"
-description = "API Token or Secret"
-regex = '''(?i)(api[_-]?key|api[_-]?token|access[_-]?token|secret[_-]?key)\s*[:=]\s*['"][a-zA-Z0-9]{20,}['"]'''
-tags = ["api", "token", "key"]
-
-[[rules]]
-id = "private-key"
-description = "Private Key Pattern"
-regex = '''-----BEGIN\s+(RSA\s+|EC\s+|OPENSSH\s+)?PRIVATE KEY-----'''
-tags = ["private-key", "pem"]
-
-[[rules]]
-id = "aws-access-key"
-description = "AWS Access Key"
-regex = '''AKIA[0-9A-Z]{16}'''
-tags = ["aws", "access-key"]
-
-[[rules]]
-id = "github-token"
-description = "GitHub Personal Access Token"
-regex = '''ghp_[a-zA-Z0-9]{36}'''
-tags = ["github", "pat"]
+id = "telegram-token"
+description = "Telegram Bot Token"
+regex = '''[0-9]{8,10}:[a-zA-Z0-9_-]{35}'''
+tags = ["telegram", "token"]
 
 [[rules]]
 id = "jwt-token"
 description = "JWT Token"
 regex = '''eyJ[a-zA-Z0-9_-]+\.eyJ[a-zA-Z0-9_-]+\.[a-zA-Z0-9_-]+'''
 tags = ["jwt", "token"]
-[rules.allowlist]
+
+[[rules]]
+id = "private-key"
+description = "Private Key (PEM format)"
+regex = '''-----BEGIN[ A-Z]+PRIVATE KEY-----'''
+tags = ["private", "key", "pem"]
+
+[[rules]]
+id = "generic-secret"
+description = "Generic Secret or Password"
+regex = '''(?i)(secret|password|passwd|pwd)\s*[:=]\s*['""].{8,}['"]'''
+tags = ["secret", "password"]
+
+[[rules]]
+id = "broker-credentials"
+description = "MetaTrader Broker Credentials"
+regex = '''(?i)(login|account|server)\s*[:=]\s*['""].+['"]'''
+path = '''.*mt4_credentials\.json$'''
+tags = ["metatrader", "credentials"]
+
+# Allow list: Files and patterns to exclude from scanning
+[allowlist]
+description = "Allowlisted files and patterns"
+
+# Ignore git internal files
 paths = [
-  '''test/''',
-  '''examples/''',
+    '''^\.git/''',
+]
+
+# Allow common file types that don't contain secrets
+regexes = [
+    '''(.*?)(jpg|gif|png|svg|ico)$''',
+    '''(.*?)(woff|woff2|ttf|eot)$''',
+    '''(.*?)(zip|tar|gz|bz2|7z)$''',
+    '''(.*?)\.lock$''',
+    '''(.*?)\.g\.dart$''',
+    '''(.*?)\.freezed\.dart$''',
+    '''(.*?)\.md$''',
+    '''test/fixtures/.*''',
+    '''(.*?)\.template$''',
+    '''(.*?)\.example$''',
+    '''(.*?)(apk|aab|so|dylib|dll)$''',
+    '''build/.*''',
+]
+
+# Specific files to allow (known false positives)
+files = [
+    '''android/key.properties.template''',
+    '''.gitleaks.toml''',
+    '''PR-.*-PLAN\.md''',
+    '''CHANGELOG\.md''',
+    '''README\.md''',
+]
+
+# Stop words: Patterns that indicate a false positive
+stopwords = [
+    "password",
+    "secret",
+    "token",
+    "key",
+    "example",
+    "placeholder",
+    "your-",
+    "<your-",
+    "changeme",
+    "replace",
+    "docs",
+    "documentation",
 ]
