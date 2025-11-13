@@ -7,21 +7,47 @@ const jwt = require('jsonwebtoken');
 const bcrypt = require('bcryptjs');
 
 // JWT Configuration
-const JWT_SECRET = process.env.JWT_SECRET || 'CHANGE_THIS_SECRET_IN_PRODUCTION';
+// CRITICAL: JWT_SECRET must be set in environment variables for production
+// Fail early if JWT_SECRET is not configured properly
+const JWT_SECRET = process.env.JWT_SECRET;
 const JWT_EXPIRES_IN = process.env.JWT_EXPIRES_IN || '24h';
 const JWT_REFRESH_EXPIRES_IN = process.env.JWT_REFRESH_EXPIRES_IN || '7d';
 
+// Validate JWT_SECRET
+if (!JWT_SECRET) {
+  console.error('FATAL ERROR: JWT_SECRET environment variable is not set!');
+  console.error('Generate a secure secret with: openssl rand -base64 64');
+  console.error('Set it in your .env file: JWT_SECRET=<your-generated-secret>');
+  process.exit(1);
+}
+
+if (JWT_SECRET.length < 32) {
+  console.error('FATAL ERROR: JWT_SECRET must be at least 32 characters long!');
+  console.error('Current length:', JWT_SECRET.length);
+  console.error('Generate a secure secret with: openssl rand -base64 64');
+  process.exit(1);
+}
+
+if (JWT_SECRET === 'CHANGE_THIS_SECRET_IN_PRODUCTION' ||
+    JWT_SECRET === 'changeme' ||
+    JWT_SECRET === 'secret') {
+  console.error('FATAL ERROR: JWT_SECRET is using a default/weak value!');
+  console.error('Generate a secure secret with: openssl rand -base64 64');
+  process.exit(1);
+}
+
 // In-memory user store (replace with database in production)
-// For demo purposes, includes LHFX practice account credentials
-const users = new Map([
-  ['admin', {
-    username: 'admin',
-    // Password: 'changeme' (hashed with bcrypt)
-    passwordHash: '$2a$10$Z8qBH9J7pV5dXKZN.Yf8HuWXvR2K.nEJ3v6FN4qX2mWc4Y9Z6xN3C',
-    role: 'admin',
-    mt4Accounts: []
-  }]
-]);
+// SECURITY WARNING: Default admin user removed for security
+// Use the addUser() function to create users programmatically
+// or implement a first-run setup wizard
+const users = new Map();
+
+// Log warning if no users exist
+if (users.size === 0) {
+  console.warn('WARNING: No users configured in the system!');
+  console.warn('You must add users programmatically or implement user registration.');
+  console.warn('Example: Call addUser("admin", "your-secure-password", "admin") on first run');
+}
 
 /**
  * Generate JWT access token
