@@ -125,7 +125,9 @@ celerybeat.pid
 # SageMath parsed files
 *.sage.py
 
-# Environments
+# Environment Configuration Files
+# CRITICAL: .env files contain broker credentials and API keys
+# NEVER commit these files to version control!
 .env
 .venv
 env/
@@ -133,6 +135,16 @@ venv/
 ENV/
 env.bak/
 venv.bak/
+
+# Broker-specific .env files (explicitly exclude from all directories)
+**/.env
+**/.env.*
+bridge/.env
+bridge/.env.*
+backtest/.env
+backtest/.env.*
+ml/.env
+ml/.env.*
 
 # Spyder project settings
 .spyderproject
@@ -211,9 +223,19 @@ build/
 .idea/
 
 # API Keys and Secrets
+# NEVER commit credentials or API keys to version control
 secrets.json
 telegram_token.txt
 mt4_credentials.json
+broker_credentials.json
+*_credentials.json
+*.key
+*.pem
+!ssl_examples/*.pem  # Allow example SSL files in docs
+
+# Deprecated files (kept for reference, not committed)
+*.deprecated
+*_deprecated.*
 
 # Machine Learning Models (large files)
 *.tflite
