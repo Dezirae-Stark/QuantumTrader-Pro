@@ -1,0 +1,11 @@
+# Broker Catalog Signing Tools - Python Requirements
+# Install with: pip install -r requirements.txt
+
+# Ed25519 cryptography
+PyNaCl>=1.5.0
+
+# JSON schema validation
+jsonschema>=4.17.0
+
+# Command-line interface
+click>=8.1.0

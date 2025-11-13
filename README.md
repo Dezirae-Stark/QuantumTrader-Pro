@@ -112,7 +112,8 @@ Achieve 94%+ win rates through applied physics and advanced mathematics:
 
 ### Prerequisites
 - Android device running Android 7.0 (API 24) or higher
-- MT4 account and platform access
+- MT4/MT5 account from **your preferred broker** (any broker supporting MT4/MT5)
+- MT4/MT5 platform installed on desktop for Expert Advisor integration
 - (Optional) Telegram bot token for remote control
 
 ### Option 1: Download Pre-built APK
@@ -199,6 +200,20 @@ See **[QUANTUM_SYSTEM_GUIDE.md](QUANTUM_SYSTEM_GUIDE.md)** for complete document
 
 ### Initial Setup
 
+#### 1. Broker Configuration (Desktop)
+
+**QuantumTrader Pro is broker-agnostic** and works with any MT4/MT5 broker. Configure your broker credentials via:
+- Desktop bridge server `.env` file (see [Desktop Suite](#-desktop-trading-suite))
+- Expert Advisor input parameters when adding to MT4/MT5 chart
+- See `bridge/.env.example` and `backtest/.env.example` for configuration templates
+
+**Finding Your Broker Server:**
+1. Open MT4/MT5 terminal
+2. File → Open an Account
+3. Find your broker and note the server name (e.g., "YourBroker-Live" or "YourBroker-Demo")
+
+#### 2. Mobile App Setup
+
 1. **Launch the app** and navigate to Settings
 2. **Configure MT4 API endpoint**:
    - Enter your bridge server URL (e.g., `http://192.168.1.100:8080`)
@@ -207,6 +222,46 @@ See **[QUANTUM_SYSTEM_GUIDE.md](QUANTUM_SYSTEM_GUIDE.md)** for complete document
    - Enter your Telegram bot token
    - Add your chat ID
    - Save settings
+
+#### 3. Dynamic Broker Catalogs (PR-3) 🆕
+
+**Broker-agnostic broker selection** with cryptographic verification:
+
+✅ **Secure Catalog Loading**
+- Broker catalogs downloaded from GitHub with Ed25519 signature verification
+- Catalogs include MT4/MT5 server details, features, and trading conditions
+- Cryptographic signatures ensure catalogs haven't been tampered with
+- Offline access via Hive cache (7-day expiry)
+
+✅ **Cache-First Strategy**
+- Fast offline access to broker information
+- Automatic fallback when network unavailable
+- Periodic updates for latest broker information
+
+✅ **Features**
+- Browse available MT4/MT5 brokers
+- View broker features (spreads, leverage, instruments)
+- See trading conditions and account types
+- One-tap server configuration
+
+**For Developers:**
+```dart
+// Initialize catalog service
+final catalogService = CatalogService();
+await catalogService.initialize();
+
+// Load all broker catalogs
+final catalogs = await catalogService.loadAllCatalogs();
+
+// Display in UI
+for (final catalog in catalogs) {
+  print('${catalog.catalogName}: MT4=${catalog.platforms.mt4.available}');
+}
+```
+
+See `lib/services/catalog/README.md` for complete integration guide.
+
+**Security:** All catalogs are verified with Ed25519 signatures before loading. Invalid signatures are rejected.
 
 ### Trading Dashboard
 
@@ -226,6 +281,14 @@ See **[QUANTUM_SYSTEM_GUIDE.md](QUANTUM_SYSTEM_GUIDE.md)** for complete document
 
 The mobile app connects to a desktop trading infrastructure for complete functionality.
 
+### 🔧 Broker-Agnostic Architecture
+
+**All desktop components work with ANY MT4/MT5 broker:**
+- Configuration via `.env` files (no hardcoded broker credentials)
+- Expert Advisors use input parameters (configure when adding to chart)
+- Secure credential management (`.env` files are gitignored)
+- See `bridge/.env.example` and `backtest/.env.example` for templates
+
 ### Required Desktop Components
 
 The desktop suite (on the **`desktop` branch**) includes:
@@ -234,7 +297,7 @@ The desktop suite (on the **`desktop` branch**) includes:
 - 🤖 **ML Prediction Engine** (Python) - Quantum mechanics-based market analysis
 - 📊 **MT4/MT5 Expert Advisors** - Automated trading with quantum algorithms
 - 📈 **Custom Indicators** - Trend analysis and signal visualization
-- 🔄 **Backtesting Framework** - Historical data testing
+- 🔄 **Backtesting Framework** - Historical data testing with any broker
 
 ### Quick Desktop Setup
 
@@ -242,11 +305,18 @@ The desktop suite (on the **`desktop` branch**) includes:
 # Clone repository and switch to desktop branch
 git checkout desktop
 
+# Configure your broker credentials
+cp bridge/.env.example bridge/.env
+cp backtest/.env.example backtest/.env
+# Edit .env files with your MT4/MT5 broker details
+
 # Follow the comprehensive installation guide
 # See: https://github.com/Dezirae-Stark/QuantumTrader-Pro/tree/desktop
 ```
 
 **Complete Documentation:** [Desktop Suite README](https://github.com/Dezirae-Stark/QuantumTrader-Pro/tree/desktop#readme)
+
+**Important:** Never commit `.env` files to version control! All `.env` files are gitignored by default.
 
 ### Bridge Server Connection
 

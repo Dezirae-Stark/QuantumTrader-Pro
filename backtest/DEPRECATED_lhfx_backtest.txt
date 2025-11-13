@@ -1,0 +1,44 @@
+=================================================================
+⚠️  DEPRECATED: lhfx_backtest.py
+=================================================================
+
+This file (lhfx_backtest.py) has been DEPRECATED and replaced with
+the broker-agnostic mt_backtest.py script.
+
+WHY WAS THIS DEPRECATED?
+-------------------------
+- Hardcoded broker credentials (security risk)
+- Broker-specific implementation (not flexible)
+- No environment-based configuration
+- Violates principle of broker neutrality
+
+MIGRATION GUIDE
+---------------
+
+Step 1: Create .env file
+  cp .env.example .env
+
+Step 2: Configure your broker credentials
+  Edit .env and set:
+    MT_LOGIN=YOUR_ACCOUNT_NUMBER
+    MT_PASSWORD=YOUR_PASSWORD
+    MT_SERVER=YOUR_BROKER_SERVER
+
+Step 3: Use the new script
+  python3 mt_backtest.py
+
+BENEFITS OF NEW APPROACH
+-------------------------
+✅ Works with ANY MT4/MT5 broker
+✅ Secure credential management via .env
+✅ No hardcoded values
+✅ Configurable via environment variables
+✅ Better security practices
+✅ Easier to customize
+
+The old lhfx_backtest.py file has been preserved for reference
+but should NOT be used in new projects.
+
+For full documentation, see: backtest/README.md
+
+=================================================================

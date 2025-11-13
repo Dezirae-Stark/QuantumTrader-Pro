@@ -1,0 +1,12 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://raw.githubusercontent.com/Dezirae-Stark/QuantumTrader-Pro/main/broker-catalogs/schema/signature.schema.json",
+  "title": "Catalog Signature",
+  "description": "Schema for Ed25519 signature files (.sig)",
+  "type": "string",
+  "description": "Base64-encoded Ed25519 signature (64 bytes = 88 characters base64)",
+  "pattern": "^[A-Za-z0-9+/]{86}==$",
+  "examples": [
+    "4KpZ3xQFqZvJ8y7V2wN9xRtE5sD8aG3hN6jK1mP4qL7vB9cF2rT8yU6nW3zX5A=="
+  ]
+}

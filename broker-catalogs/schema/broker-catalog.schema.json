@@ -1,0 +1,255 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://raw.githubusercontent.com/Dezirae-Stark/QuantumTrader-Pro/main/broker-catalogs/schema/broker-catalog.schema.json",
+  "title": "Broker Catalog",
+  "description": "Schema for QuantumTrader Pro broker catalog files",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "catalog_id",
+    "catalog_name",
+    "last_updated",
+    "platforms"
+  ],
+  "properties": {
+    "schema_version": {
+      "type": "string",
+      "description": "Schema version for compatibility checking",
+      "pattern": "^\\d+\\.\\d+\\.\\d+$",
+      "examples": ["1.0.0"]
+    },
+    "catalog_id": {
+      "type": "string",
+      "description": "Unique identifier for this broker catalog",
+      "pattern": "^[a-z0-9-]+$",
+      "examples": ["sample-broker-1", "global-fx-brokers"]
+    },
+    "catalog_name": {
+      "type": "string",
+      "description": "Human-readable name of the broker",
+      "minLength": 1,
+      "maxLength": 100,
+      "examples": ["Sample Broker", "Global FX Brokers"]
+    },
+    "last_updated": {
+      "type": "string",
+      "description": "ISO 8601 timestamp of last catalog update",
+      "format": "date-time",
+      "examples": ["2025-11-12T00:00:00Z"]
+    },
+    "metadata": {
+      "type": "object",
+      "description": "Additional broker metadata",
+      "properties": {
+        "official_website": {
+          "type": "string",
+          "format": "uri",
+          "description": "Official broker website URL",
+          "examples": ["https://broker-website.com"]
+        },
+        "support_email": {
+          "type": "string",
+          "format": "email",
+          "description": "Support email address",
+          "examples": ["support@broker.com"]
+        },
+        "support_phone": {
+          "type": "string",
+          "description": "Support phone number",
+          "examples": ["+1-800-BROKER", "+44-20-1234-5678"]
+        },
+        "country": {
+          "type": "string",
+          "description": "Country where broker is headquartered (ISO 3166-1 alpha-2)",
+          "pattern": "^[A-Z]{2}$",
+          "examples": ["US", "UK", "AU"]
+        },
+        "regulatory_bodies": {
+          "type": "array",
+          "description": "List of regulatory bodies overseeing this broker",
+          "items": {
+            "type": "string"
+          },
+          "examples": [["NFA", "CFTC"], ["FCA"], ["ASIC"]]
+        },
+        "license_numbers": {
+          "type": "array",
+          "description": "License/registration numbers",
+          "items": {
+            "type": "string"
+          },
+          "examples": [["NFA ID: 0123456", "FCA Ref: 123456"]]
+        }
+      }
+    },
+    "platforms": {
+      "type": "object",
+      "description": "Trading platform availability and server information",
+      "required": ["mt4", "mt5"],
+      "properties": {
+        "mt4": {
+          "$ref": "#/definitions/platform_config"
+        },
+        "mt5": {
+          "$ref": "#/definitions/platform_config"
+        }
+      }
+    },
+    "features": {
+      "type": "object",
+      "description": "Broker features and trading conditions",
+      "properties": {
+        "min_deposit": {
+          "type": "number",
+          "minimum": 0,
+          "description": "Minimum deposit amount in USD",
+          "examples": [100, 500, 1000]
+        },
+        "max_leverage": {
+          "type": "integer",
+          "minimum": 1,
+          "description": "Maximum leverage ratio (e.g., 500 for 1:500)",
+          "examples": [30, 100, 500]
+        },
+        "currencies": {
+          "type": "array",
+          "description": "Supported base currencies",
+          "items": {
+            "type": "string",
+            "pattern": "^[A-Z]{3}$"
+          },
+          "examples": [["USD", "EUR", "GBP"]]
+        },
+        "instruments": {
+          "type": "array",
+          "description": "Tradeable instrument types",
+          "items": {
+            "type": "string",
+            "enum": ["forex", "commodities", "indices", "stocks", "crypto", "cfd"]
+          },
+          "examples": [["forex", "commodities", "indices"]]
+        },
+        "spreads": {
+          "type": "object",
+          "properties": {
+            "typical": {
+              "type": "string",
+              "description": "Typical spread description",
+              "examples": ["From 0.1 pips", "Variable 1-2 pips"]
+            },
+            "variable": {
+              "type": "boolean",
+              "description": "Whether spreads are variable or fixed"
+            }
+          }
+        }
+      }
+    },
+    "trading_conditions": {
+      "type": "object",
+      "description": "Specific trading conditions and policies",
+      "properties": {
+        "commission": {
+          "type": "string",
+          "description": "Commission structure",
+          "examples": ["No commission", "$3 per lot per side"]
+        },
+        "swap_free": {
+          "type": "boolean",
+          "description": "Whether swap-free (Islamic) accounts are available"
+        },
+        "micro_lots": {
+          "type": "boolean",
+          "description": "Whether micro lots (0.01) are supported"
+        },
+        "hedging_allowed": {
+          "type": "boolean",
+          "description": "Whether hedging is allowed"
+        },
+        "scalping_allowed": {
+          "type": "boolean",
+          "description": "Whether scalping is allowed"
+        },
+        "ea_allowed": {
+          "type": "boolean",
+          "description": "Whether Expert Advisors (automated trading) are allowed"
+        }
+      }
+    },
+    "account_types": {
+      "type": "array",
+      "description": "Available account types",
+      "items": {
+        "type": "object",
+        "required": ["name"],
+        "properties": {
+          "name": {
+            "type": "string",
+            "description": "Account type name",
+            "examples": ["Standard", "ECN", "Pro", "VIP"]
+          },
+          "min_deposit": {
+            "type": "number",
+            "minimum": 0,
+            "description": "Minimum deposit for this account type"
+          },
+          "spreads": {
+            "type": "string",
+            "description": "Spread information for this account type"
+          },
+          "commission": {
+            "type": "string",
+            "description": "Commission structure for this account type"
+          }
+        }
+      }
+    },
+    "contact": {
+      "type": "object",
+      "description": "Contact information",
+      "properties": {
+        "email": {
+          "type": "string",
+          "format": "email"
+        },
+        "phone": {
+          "type": "string"
+        },
+        "live_chat": {
+          "type": "string",
+          "format": "uri"
+        }
+      }
+    },
+    "disclaimer": {
+      "type": "string",
+      "description": "Risk disclaimer text",
+      "examples": ["CFDs are complex instruments and come with a high risk of losing money rapidly due to leverage."]
+    }
+  },
+  "definitions": {
+    "platform_config": {
+      "type": "object",
+      "required": ["available"],
+      "properties": {
+        "available": {
+          "type": "boolean",
+          "description": "Whether this platform is offered by the broker"
+        },
+        "demo_server": {
+          "type": "string",
+          "description": "Demo/practice server name",
+          "examples": ["BrokerName-Demo", "BrokerName-MT5-Demo"]
+        },
+        "live_servers": {
+          "type": "array",
+          "description": "List of live server names",
+          "items": {
+            "type": "string"
+          },
+          "examples": [["BrokerName-Live1", "BrokerName-Live2"]]
+        }
+      }
+    }
+  }
+}
