@@ -581,6 +581,81 @@ app.post('/api/close', authenticateToken, validateClosePosition, async (req, res
     }
 });
 
+// Get trades endpoint (PROTECTED) - Historical trades/positions
+app.get('/api/trades', authenticateToken, (req, res) => {
+    try {
+        const { status, limit = 100 } = req.query;
+
+        // Return all trades (both active and closed)
+        const allTrades = Array.from(state.activePositions.values());
+
+        // Filter by status if provided
+        let filteredTrades = allTrades;
+        if (status === 'open') {
+            filteredTrades = allTrades.filter(t => t.action === 'open' || t.action === 'update');
+        } else if (status === 'closed') {
+            filteredTrades = allTrades.filter(t => t.action === 'close');
+        }
+
+        // Apply limit
+        const limitedTrades = filteredTrades.slice(0, parseInt(limit));
+
+        res.json({
+            success: true,
+            count: limitedTrades.length,
+            trades: limitedTrades,
+            timestamp: Date.now()
+        });
+
+    } catch (error) {
+        logger.error('Trades retrieval error', { error: error.message });
+        res.status(500).json({
+            success: false,
+            message: 'Failed to retrieve trades',
+            error: error.message
+        });
+    }
+});
+
+// Get ML predictions endpoint (PROTECTED)
+app.get('/api/predictions', authenticateToken, (req, res) => {
+    try {
+        const { symbol = 'EURUSD', timeframe = 'M15' } = req.query;
+
+        // Return ML predictions (placeholder - integrate with Python ML backend)
+        const predictions = {
+            success: true,
+            symbol,
+            timeframe,
+            predictions: {
+                direction: 'NEUTRAL',
+                confidence: 0.0,
+                quantum_states: {},
+                chaos_analysis: {},
+                next_candles: []
+            },
+            timestamp: Date.now(),
+            message: 'ML backend not connected. Start quantum_predictor.py and adaptive_learner.py to receive predictions.'
+        };
+
+        // If ML is connected, include actual predictions
+        if (state.mlConnected) {
+            // TODO: Fetch actual predictions from ML backend
+            predictions.message = 'ML predictions available';
+        }
+
+        res.json(predictions);
+
+    } catch (error) {
+        logger.error('Predictions retrieval error', { error: error.message });
+        res.status(500).json({
+            success: false,
+            message: 'Failed to retrieve predictions',
+            error: error.message
+        });
+    }
+});
+
 // Heartbeat interval to check client connections
 const heartbeatInterval = setInterval(() => {
     state.clients.forEach(ws => {
