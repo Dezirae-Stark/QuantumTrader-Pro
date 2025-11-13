@@ -1,0 +1,66 @@
+[
+  {
+    "name": "LHFX",
+    "server": "lhfx-live",
+    "platform": "MT4",
+    "webTerminalUrl": "https://trade.mql5.com/trade?servers=LHFX-Live",
+    "description": "LHFX Live Trading Server",
+    "demo": false
+  },
+  {
+    "name": "LHFX Demo",
+    "server": "lhfx-demo",
+    "platform": "MT4",
+    "webTerminalUrl": "https://trade.mql5.com/trade?servers=LHFX-Demo",
+    "description": "LHFX Practice Account Server",
+    "demo": true
+  },
+  {
+    "name": "OANDA",
+    "server": "oanda-live",
+    "platform": "MT5",
+    "webTerminalUrl": "https://trade.mql5.com/trade?servers=OANDA-Live",
+    "description": "OANDA Live Trading",
+    "demo": false
+  },
+  {
+    "name": "OANDA Demo",
+    "server": "oanda-demo",
+    "platform": "MT5",
+    "webTerminalUrl": "https://trade.mql5.com/trade?servers=OANDA-Demo",
+    "description": "OANDA Practice Account",
+    "demo": true
+  },
+  {
+    "name": "ICMarkets",
+    "server": "icmarkets-live",
+    "platform": "MT4",
+    "webTerminalUrl": "https://trade.mql5.com/trade?servers=ICMarkets-Live",
+    "description": "IC Markets Live Trading",
+    "demo": false
+  },
+  {
+    "name": "ICMarkets Demo",
+    "server": "icmarkets-demo",
+    "platform": "MT4",
+    "webTerminalUrl": "https://trade.mql5.com/trade?servers=ICMarkets-Demo",
+    "description": "IC Markets Practice Account",
+    "demo": true
+  },
+  {
+    "name": "Pepperstone",
+    "server": "pepperstone-live",
+    "platform": "MT5",
+    "webTerminalUrl": "https://trade.mql5.com/trade?servers=Pepperstone-Live",
+    "description": "Pepperstone Live Trading",
+    "demo": false
+  },
+  {
+    "name": "XM Global",
+    "server": "xm-live",
+    "platform": "MT4",
+    "webTerminalUrl": "https://trade.mql5.com/trade?servers=XMGlobal-Live",
+    "description": "XM Global Live Trading",
+    "demo": false
+  }
+]

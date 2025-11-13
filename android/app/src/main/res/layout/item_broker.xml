@@ -1,0 +1,136 @@
+<?xml version="1.0" encoding="utf-8"?>
+<com.google.android.material.card.MaterialCardView
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/brokerCard"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_marginStart="16dp"
+    android:layout_marginEnd="16dp"
+    android:layout_marginTop="4dp"
+    android:layout_marginBottom="4dp"
+    android:clickable="true"
+    android:focusable="true"
+    android:foreground="?attr/selectableItemBackground"
+    app:cardCornerRadius="8dp"
+    app:cardElevation="2dp"
+    app:strokeWidth="0dp">
+
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:padding="16dp">
+
+        <!-- Broker Icon/Logo Placeholder -->
+        <ImageView
+            android:id="@+id/brokerIcon"
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+            android:background="?attr/colorPrimary"
+            android:src="@android:drawable/ic_menu_compass"
+            android:padding="8dp"
+            android:tint="@android:color/white"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            tools:ignore="UseAppTint" />
+
+        <!-- Broker Name -->
+        <TextView
+            android:id="@+id/brokerName"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="16dp"
+            android:layout_marginEnd="8dp"
+            android:textSize="16sp"
+            android:textStyle="bold"
+            android:textColor="?android:attr/textColorPrimary"
+            android:maxLines="1"
+            android:ellipsize="end"
+            app:layout_constraintTop_toTopOf="@id/brokerIcon"
+            app:layout_constraintStart_toEndOf="@id/brokerIcon"
+            app:layout_constraintEnd_toStartOf="@id/platformBadge"
+            tools:text="LHFX" />
+
+        <!-- Subtitle (Platform • Server) -->
+        <TextView
+            android:id="@+id/brokerSubtitle"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="4dp"
+            android:textSize="14sp"
+            android:textColor="?android:attr/textColorSecondary"
+            android:maxLines="1"
+            android:ellipsize="end"
+            app:layout_constraintTop_toBottomOf="@id/brokerName"
+            app:layout_constraintStart_toStartOf="@id/brokerName"
+            app:layout_constraintEnd_toEndOf="@id/brokerName"
+            tools:text="MT4 • lhfx-live" />
+
+        <!-- Description (Optional) -->
+        <TextView
+            android:id="@+id/brokerDescription"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:textSize="12sp"
+            android:textColor="?android:attr/textColorSecondary"
+            android:maxLines="2"
+            android:ellipsize="end"
+            android:visibility="gone"
+            app:layout_constraintTop_toBottomOf="@id/brokerSubtitle"
+            app:layout_constraintStart_toStartOf="@id/brokerName"
+            app:layout_constraintEnd_toEndOf="parent"
+            tools:text="LHFX Live Trading Server"
+            tools:visibility="visible" />
+
+        <!-- Platform Badge -->
+        <com.google.android.material.chip.Chip
+            android:id="@+id/platformBadge"
+            style="@style/Widget.MaterialComponents.Chip.Choice"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:clickable="false"
+            android:focusable="false"
+            android:textSize="11sp"
+            app:chipMinHeight="24dp"
+            app:chipStartPadding="8dp"
+            app:chipEndPadding="8dp"
+            app:layout_constraintTop_toTopOf="@id/brokerIcon"
+            app:layout_constraintEnd_toEndOf="parent"
+            tools:text="MT4" />
+
+        <!-- Demo Badge -->
+        <com.google.android.material.chip.Chip
+            android:id="@+id/demoBadge"
+            style="@style/Widget.MaterialComponents.Chip.Choice"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="DEMO"
+            android:clickable="false"
+            android:focusable="false"
+            android:textSize="11sp"
+            android:visibility="gone"
+            app:chipMinHeight="24dp"
+            app:chipStartPadding="8dp"
+            app:chipEndPadding="8dp"
+            app:chipBackgroundColor="?attr/colorSecondary"
+            app:layout_constraintTop_toBottomOf="@id/platformBadge"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintBottom_toBottomOf="@id/brokerIcon"
+            tools:visibility="visible" />
+
+        <!-- Chevron Icon -->
+        <ImageView
+            android:id="@+id/chevronIcon"
+            android:layout_width="24dp"
+            android:layout_height="24dp"
+            android:src="@android:drawable/ic_menu_more"
+            android:alpha="0.5"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/brokerIcon" />
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
+
+</com.google.android.material.card.MaterialCardView>

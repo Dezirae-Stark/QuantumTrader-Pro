@@ -1,0 +1,194 @@
+name: Publish Broker Catalog
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'brokers.json'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: "pages"
+  cancel-in-progress: false
+
+jobs:
+  validate-and-sign:
+    runs-on: ubuntu-latest
+    environment: broker-pages
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js for validation
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install validation tools
+        run: |
+          npm install -g ajv-cli
+          sudo apt-get update && sudo apt-get install -y jq minisign
+
+      - name: Validate JSON syntax
+        run: |
+          echo "Validating brokers.json syntax..."
+          jq empty brokers.json || (echo "❌ Invalid JSON syntax" && exit 1)
+          echo "✅ JSON syntax valid"
+
+      - name: Validate against schema
+        run: |
+          echo "Validating against brokers.schema.json..."
+          if [ -f brokers.schema.json ]; then
+            ajv validate -s brokers.schema.json -d brokers.json
+          else
+            echo "⚠️  Schema file not found, skipping schema validation"
+          fi
+
+      - name: Validate broker entries
+        run: |
+          echo "Validating broker entries..."
+
+          # Check that all required fields exist
+          BROKERS_COUNT=$(jq '. | length' brokers.json)
+          echo "Found $BROKERS_COUNT broker(s)"
+
+          if [ "$BROKERS_COUNT" -eq 0 ]; then
+            echo "❌ Broker list is empty!"
+            exit 1
+          fi
+
+          # Validate each broker
+          jq -c '.[]' brokers.json | while read broker; do
+            NAME=$(echo "$broker" | jq -r '.name')
+            SERVER=$(echo "$broker" | jq -r '.server')
+            PLATFORM=$(echo "$broker" | jq -r '.platform')
+            URL=$(echo "$broker" | jq -r '.webTerminalUrl')
+
+            echo "Checking: $NAME ($PLATFORM)"
+
+            # Check required fields
+            if [ -z "$NAME" ] || [ "$NAME" = "null" ]; then
+              echo "❌ Missing name field"
+              exit 1
+            fi
+
+            if [ -z "$SERVER" ] || [ "$SERVER" = "null" ]; then
+              echo "❌ Missing server field for $NAME"
+              exit 1
+            fi
+
+            if [ "$PLATFORM" != "MT4" ] && [ "$PLATFORM" != "MT5" ]; then
+              echo "❌ Invalid platform for $NAME: $PLATFORM (must be MT4 or MT5)"
+              exit 1
+            fi
+
+            if ! echo "$URL" | grep -q "^https://"; then
+              echo "❌ WebTerminal URL must use HTTPS for $NAME"
+              exit 1
+            fi
+          done
+
+          echo "✅ All broker entries valid"
+
+      - name: Check for secrets in JSON
+        run: |
+          echo "Scanning for potential secrets..."
+
+          # Check for common secret patterns
+          if grep -iE "(password|api[_-]?key|secret|token|private[_-]?key)" brokers.json; then
+            echo "❌ Potential secrets found in brokers.json!"
+            echo "Broker list must only contain public connection information."
+            exit 1
+          fi
+
+          echo "✅ No secrets detected"
+
+      - name: Sign broker catalog
+        env:
+          BROKER_SIGNING_PRIVATE_KEY: ${{ secrets.BROKER_SIGNING_PRIVATE_KEY }}
+          BROKER_SIGNING_PASSWORD: ${{ secrets.BROKER_SIGNING_PASSWORD }}
+        run: |
+          echo "Signing brokers.json with Ed25519..."
+
+          # Save private key to temp file
+          echo "$BROKER_SIGNING_PRIVATE_KEY" > /tmp/broker_signing.key
+          chmod 600 /tmp/broker_signing.key
+
+          # Sign the file
+          if [ -n "$BROKER_SIGNING_PASSWORD" ]; then
+            echo "$BROKER_SIGNING_PASSWORD" | minisign -S \
+              -s /tmp/broker_signing.key \
+              -m brokers.json \
+              -t "QuantumTrader-Pro broker catalog $(date -u +%Y-%m-%d)"
+          else
+            minisign -S \
+              -s /tmp/broker_signing.key \
+              -m brokers.json \
+              -t "QuantumTrader-Pro broker catalog $(date -u +%Y-%m-%d)"
+          fi
+
+          # Cleanup
+          rm -f /tmp/broker_signing.key
+
+          # Verify signature was created
+          if [ ! -f brokers.json.sig ]; then
+            echo "❌ Signature file was not created!"
+            exit 1
+          fi
+
+          echo "✅ Broker catalog signed successfully"
+          echo "Signature file: brokers.json.sig"
+
+      - name: Generate catalog metadata
+        run: |
+          echo "Generating metadata..."
+
+          BROKERS_COUNT=$(jq '. | length' brokers.json)
+          SHA256=$(sha256sum brokers.json | awk '{print $1}')
+          TIMESTAMP=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
+
+          cat > catalog_metadata.json <<EOF
+          {
+            "version": "1.0",
+            "brokers_count": $BROKERS_COUNT,
+            "sha256": "$SHA256",
+            "updated_at": "$TIMESTAMP",
+            "signed": true
+          }
+          EOF
+
+          echo "✅ Metadata generated"
+          cat catalog_metadata.json
+
+      - name: Setup Pages
+        uses: actions/configure-pages@v4
+
+      - name: Upload artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: '.'
+
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
+
+      - name: Summary
+        run: |
+          echo "## 🚀 Broker Catalog Published" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "✅ Validated, signed, and deployed successfully" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "- **Brokers:** $(jq '. | length' brokers.json)" >> $GITHUB_STEP_SUMMARY
+          echo "- **SHA-256:** \`$(sha256sum brokers.json | awk '{print $1}')\`" >> $GITHUB_STEP_SUMMARY
+          echo "- **Timestamp:** $(date -u)" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "📍 **URLs:**" >> $GITHUB_STEP_SUMMARY
+          echo "- Catalog: \`https://dezirae-stark.github.io/QuantumTrader-Pro-data/brokers.json\`" >> $GITHUB_STEP_SUMMARY
+          echo "- Signature: \`https://dezirae-stark.github.io/QuantumTrader-Pro-data/brokers.json.sig\`" >> $GITHUB_STEP_SUMMARY
+          echo "- Metadata: \`https://dezirae-stark.github.io/QuantumTrader-Pro-data/catalog_metadata.json\`" >> $GITHUB_STEP_SUMMARY

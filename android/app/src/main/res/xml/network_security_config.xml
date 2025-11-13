@@ -39,6 +39,19 @@
     </domain-config>
 
     <!--
+        GitHub Pages Configuration (Broker Catalog Source)
+
+        Allows HTTPS connections to fetch the dynamic broker catalog.
+        This domain is trusted for broker list updates with signature verification.
+    -->
+    <domain-config cleartextTrafficPermitted="false">
+        <domain includeSubdomains="true">github.io</domain>
+        <trust-anchors>
+            <certificates src="system" />
+        </trust-anchors>
+    </domain-config>
+
+    <!--
         Certificate Pinning Configuration (Optional but Recommended)
 
         Pins SSL certificates for specific API endpoints to prevent MITM attacks.

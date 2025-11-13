@@ -106,6 +106,32 @@ Achieve 94%+ win rates through applied physics and advanced mathematics:
 - **Historical Logs**: Complete trade history
 - **ML Predictions**: Highlight predictive trade zones
 
+### 🏦 Broker Selection & Connection
+
+QuantumTrader Pro v2.1.0+ features a **dynamic, cryptographically-signed broker catalog**:
+
+- **📋 Multi-Broker Support**: Connect to LHFX, OANDA, ICMarkets, Pepperstone, XM Global, and more
+- **🔄 Auto-Updating**: Broker list updates weekly in the background
+- **🔒 Cryptographically Verified**: Ed25519 signatures ensure catalog authenticity
+- **📶 Offline-Ready**: Embedded fallback list works without internet
+- **🔍 Smart Search**: Filter by platform (MT4/MT5), search by name, demo vs live
+- **🌐 WebTerminal Integration**: Direct login to MetaQuotes WebTerminal
+- **🔐 Privacy-First**: No credentials stored - all auth handled by MetaQuotes
+
+**Key Features:**
+- Search and filter brokers by name, platform, or account type
+- One-tap connection to your broker's WebTerminal
+- Automatic signature verification for security
+- Graceful offline fallback with cached or embedded catalog
+- Manual refresh option in Settings
+- Support for both live and demo accounts
+
+**Add Your Broker**: Submit a PR to [QuantumTrader-Pro-data](https://github.com/Dezirae-Stark/QuantumTrader-Pro-data)
+
+📖 **User Guide**: [docs/user/broker-setup.md](docs/user/broker-setup.md)
+👨‍💻 **Developer Guide**: [docs/dev/broker-catalog.md](docs/dev/broker-catalog.md)
+🔒 **Security Details**: [docs/security/broker-signing.md](docs/security/broker-signing.md)
+
 ---
 
 ## 🚀 Installation

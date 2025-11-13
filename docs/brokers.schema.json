@@ -1,0 +1,54 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://dezirae-stark.github.io/QuantumTrader-Pro-data/brokers.schema.json",
+  "title": "QuantumTrader Pro Broker Catalog Schema",
+  "description": "JSON schema for broker configuration catalog used by QuantumTrader Pro",
+  "type": "array",
+  "minItems": 1,
+  "items": {
+    "type": "object",
+    "required": ["name", "server", "platform", "webTerminalUrl"],
+    "additionalProperties": false,
+    "properties": {
+      "name": {
+        "type": "string",
+        "minLength": 1,
+        "maxLength": 100,
+        "description": "Display name of the broker (e.g., 'LHFX', 'OANDA')"
+      },
+      "server": {
+        "type": "string",
+        "minLength": 1,
+        "maxLength": 200,
+        "description": "Server identifier for MT4/MT5 connection (e.g., 'lhfx-live', 'oanda-demo')"
+      },
+      "platform": {
+        "type": "string",
+        "enum": ["MT4", "MT5"],
+        "description": "Trading platform type - MetaTrader 4 or MetaTrader 5"
+      },
+      "webTerminalUrl": {
+        "type": "string",
+        "pattern": "^https://",
+        "minLength": 10,
+        "maxLength": 500,
+        "description": "HTTPS URL to the broker's MetaQuotes WebTerminal (must use HTTPS)"
+      },
+      "logo": {
+        "type": "string",
+        "pattern": "^https://",
+        "maxLength": 500,
+        "description": "Optional HTTPS URL to broker logo image"
+      },
+      "description": {
+        "type": "string",
+        "maxLength": 500,
+        "description": "Optional brief description of the broker"
+      },
+      "demo": {
+        "type": "boolean",
+        "description": "Whether this is a demo/practice account server (default: false)"
+      }
+    }
+  }
+}
