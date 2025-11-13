@@ -1,0 +1,40 @@
+# Android Keystore Configuration Template
+#
+# INSTRUCTIONS:
+# 1. Copy this file to 'key.properties' in the same directory:
+#    cp key.properties.template key.properties
+#
+# 2. Fill in your keystore details below
+#
+# 3. NEVER commit key.properties to git!
+#    (Already in .gitignore)
+#
+# SECURITY WARNING:
+# - Use strong, unique passwords (32+ characters recommended)
+# - Store keystore file in secure location
+# - Keep backup of keystore (encrypted)
+# - Never share passwords or keystore file
+
+# Your keystore password
+storePassword=<your-store-password-here>
+
+# Your key password (can be same as store password)
+keyPassword=<your-key-password-here>
+
+# Your key alias (identifier for the key in keystore)
+keyAlias=<your-key-alias-here>
+
+# Path to keystore file (relative to android/ directory)
+# Default: upload-keystore.jks
+storeFile=upload-keystore.jks
+
+# EXAMPLE (DO NOT USE THESE VALUES):
+# storePassword=MySecurePassword123!@#$%^&*()
+# keyPassword=MySecurePassword123!@#$%^&*()
+# keyAlias=quantumtrader
+# storeFile=upload-keystore.jks
+
+# For CI/CD (GitHub Actions):
+# - Encode keystore to base64: base64 -w 0 upload-keystore.jks
+# - Add to GitHub Secrets: KEYSTORE_BASE64
+# - Add passwords to GitHub Secrets: KEY_PASSWORD, STORE_PASSWORD, KEY_ALIAS
