@@ -223,6 +223,46 @@ See **[QUANTUM_SYSTEM_GUIDE.md](QUANTUM_SYSTEM_GUIDE.md)** for complete document
    - Add your chat ID
    - Save settings
 
+#### 3. Dynamic Broker Catalogs (PR-3) 🆕
+
+**Broker-agnostic broker selection** with cryptographic verification:
+
+✅ **Secure Catalog Loading**
+- Broker catalogs downloaded from GitHub with Ed25519 signature verification
+- Catalogs include MT4/MT5 server details, features, and trading conditions
+- Cryptographic signatures ensure catalogs haven't been tampered with
+- Offline access via Hive cache (7-day expiry)
+
+✅ **Cache-First Strategy**
+- Fast offline access to broker information
+- Automatic fallback when network unavailable
+- Periodic updates for latest broker information
+
+✅ **Features**
+- Browse available MT4/MT5 brokers
+- View broker features (spreads, leverage, instruments)
+- See trading conditions and account types
+- One-tap server configuration
+
+**For Developers:**
+```dart
+// Initialize catalog service
+final catalogService = CatalogService();
+await catalogService.initialize();
+
+// Load all broker catalogs
+final catalogs = await catalogService.loadAllCatalogs();
+
+// Display in UI
+for (final catalog in catalogs) {
+  print('${catalog.catalogName}: MT4=${catalog.platforms.mt4.available}');
+}
+```
+
+See `lib/services/catalog/README.md` for complete integration guide.
+
+**Security:** All catalogs are verified with Ed25519 signatures before loading. Invalid signatures are rejected.
+
 ### Trading Dashboard
 
 - **View Signals**: See real-time trading signals from MT4
