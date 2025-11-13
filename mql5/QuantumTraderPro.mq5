@@ -17,7 +17,7 @@ input group "=== Bridge Server Settings ==="
 input string BridgeURL = "http://localhost:8080";  // Bridge Server URL
 
 input group "=== Account Settings ==="
-input int    AccountLogin = 194302;                 // LHFX Account Login
+input long   AccountLogin = 194302;                 // LHFX Account Login (supports up to 19 digits)
 input string AccountPassword = "";                  // Account Password (encrypted)
 input string AccountServer = "LHFXDemo-Server";     // Demo Server
 
