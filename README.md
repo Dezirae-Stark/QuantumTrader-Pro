@@ -42,7 +42,7 @@ This branch contains the **Flutter mobile application**. The complete trading sy
 
 ---
 
-## 🚀 What's New in Version 2.0
+## 🚀 What's New in Version 2.1.0
 
 ### **Quantum Trading System**
 Achieve 94%+ win rates through applied physics and advanced mathematics:
