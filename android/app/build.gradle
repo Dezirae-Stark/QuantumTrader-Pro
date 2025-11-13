@@ -12,12 +12,20 @@ if (localPropertiesFile.exists()) {
     }
 }
 
-def flutterVersionCode = localProperties.getProperty('flutter.versionCode')
+// Load version from version.properties (central version management)
+def versionPropsFile = rootProject.file('../../version.properties')
+def versionProps = new Properties()
+if (versionPropsFile.exists()) {
+    versionProps.load(new FileInputStream(versionPropsFile))
+}
+
+// Use version from version.properties, fall back to local.properties if not found
+def flutterVersionCode = versionProps['VERSION_CODE'] ?: localProperties.getProperty('flutter.versionCode')
 if (flutterVersionCode == null) {
     flutterVersionCode = '1'
 }
 
-def flutterVersionName = localProperties.getProperty('flutter.versionName')
+def flutterVersionName = versionProps['VERSION_NAME'] ?: localProperties.getProperty('flutter.versionName')
 if (flutterVersionName == null) {
     flutterVersionName = '1.0'
 }
