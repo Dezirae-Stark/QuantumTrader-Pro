@@ -31,7 +31,9 @@ const {
   apiLimiter,
   authLimiter,
   tradeLimiter,
-  healthCheckLimiter
+  healthCheckLimiter,
+  mt4Limiter,
+  createSmartLimiter
 } = require('./middleware/rateLimit');
 const {
   validateLogin,
@@ -373,11 +375,9 @@ app.post('/api/auth/refresh', authLimiter, validateToken, refreshTokenHandler);
 // API Endpoints (Protected)
 // ============================================
 
-// Apply general rate limiting to all API endpoints
-app.use('/api', apiLimiter);
-
-// Health check endpoint (less restrictive)
-app.get('/api/health', healthCheckLimiter, (req, res) => {
+// Health check endpoint (BEFORE general rate limiter)
+// Uses lenient rate limiting for MT4/MT5 polling
+app.get('/api/health', createSmartLimiter(healthCheckLimiter), (req, res) => {
     const health = {
         status: 'healthy',
         uptime: process.uptime(),
@@ -392,6 +392,46 @@ app.get('/api/health', healthCheckLimiter, (req, res) => {
     res.json(health);
     logger.debug('Health check requested', health);
 });
+
+// ML registration endpoint (for ML engine to register as connected)
+app.post('/api/ml/register', createSmartLimiter(mt4Limiter), (req, res) => {
+    const { status, version, capabilities } = req.body;
+
+    state.mlConnected = status === 'online';
+
+    logger.info('ML engine registered', {
+        mlConnected: state.mlConnected,
+        version,
+        capabilities
+    });
+
+    broadcastSystemStatus();
+
+    res.json({
+        success: true,
+        message: 'ML engine registered successfully',
+        bridgeStatus: {
+            lhfxConnected: state.lhfxConnected,
+            mlConnected: state.mlConnected
+        },
+        timestamp: Date.now()
+    });
+});
+
+// ML heartbeat endpoint (for ML engine to send periodic health checks)
+app.post('/api/ml/heartbeat', createSmartLimiter(mt4Limiter), (req, res) => {
+    state.mlConnected = true;
+    state.lastHeartbeat = Date.now();
+
+    res.json({
+        success: true,
+        message: 'ML heartbeat received',
+        timestamp: Date.now()
+    });
+});
+
+// Apply general rate limiting to remaining API endpoints
+app.use('/api', createSmartLimiter(apiLimiter));
 
 // LHFX connection endpoint (PROTECTED)
 app.post('/api/connect', authenticateToken, validateConnection, async (req, res) => {
