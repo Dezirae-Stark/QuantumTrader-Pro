@@ -1,0 +1,69 @@
+{
+  "schema_version": "1.0.0",
+  "catalog_id": "sample-broker-1",
+  "catalog_name": "Sample Broker One",
+  "last_updated": "2025-11-12T00:00:00Z",
+  "metadata": {
+    "official_website": "https://example-broker-one.com",
+    "support_email": "support@example-broker-one.com",
+    "support_phone": "+1-800-SAMPLE1",
+    "country": "US",
+    "regulatory_bodies": ["NFA", "CFTC"],
+    "license_numbers": ["NFA ID: SAMPLE001"]
+  },
+  "platforms": {
+    "mt4": {
+      "available": true,
+      "demo_server": "SampleBrokerOne-Demo",
+      "live_servers": [
+        "SampleBrokerOne-Live1",
+        "SampleBrokerOne-Live2"
+      ]
+    },
+    "mt5": {
+      "available": true,
+      "demo_server": "SampleBrokerOne-MT5-Demo",
+      "live_servers": [
+        "SampleBrokerOne-MT5-Live"
+      ]
+    }
+  },
+  "features": {
+    "min_deposit": 100.0,
+    "max_leverage": 500,
+    "currencies": ["USD", "EUR", "GBP"],
+    "instruments": ["forex", "commodities", "indices"],
+    "spreads": {
+      "typical": "From 0.1 pips",
+      "variable": true
+    }
+  },
+  "trading_conditions": {
+    "commission": "No commission on standard accounts",
+    "swap_free": false,
+    "micro_lots": true,
+    "hedging_allowed": true,
+    "scalping_allowed": true,
+    "ea_allowed": true
+  },
+  "account_types": [
+    {
+      "name": "Standard",
+      "min_deposit": 100,
+      "spreads": "Variable from 1.0 pips",
+      "commission": "None"
+    },
+    {
+      "name": "ECN",
+      "min_deposit": 500,
+      "spreads": "Variable from 0.1 pips",
+      "commission": "$3 per lot per side"
+    }
+  ],
+  "contact": {
+    "email": "support@example-broker-one.com",
+    "phone": "+1-800-SAMPLE1",
+    "live_chat": "https://example-broker-one.com/chat"
+  },
+  "disclaimer": "CFDs are complex instruments and come with a high risk of losing money rapidly due to leverage. You should consider whether you understand how CFDs work and whether you can afford to take the high risk of losing your money."
+}

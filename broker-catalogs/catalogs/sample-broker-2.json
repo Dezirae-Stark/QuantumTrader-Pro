@@ -1,0 +1,75 @@
+{
+  "schema_version": "1.0.0",
+  "catalog_id": "sample-broker-2",
+  "catalog_name": "Sample Broker Two",
+  "last_updated": "2025-11-12T00:00:00Z",
+  "metadata": {
+    "official_website": "https://example-broker-two.com",
+    "support_email": "help@example-broker-two.com",
+    "support_phone": "+44-20-SAMPLE2",
+    "country": "UK",
+    "regulatory_bodies": ["FCA"],
+    "license_numbers": ["FCA Ref: SAMPLE002"]
+  },
+  "platforms": {
+    "mt4": {
+      "available": true,
+      "demo_server": "SampleBrokerTwo-Demo4",
+      "live_servers": [
+        "SampleBrokerTwo-Live"
+      ]
+    },
+    "mt5": {
+      "available": true,
+      "demo_server": "SampleBrokerTwo-Demo5",
+      "live_servers": [
+        "SampleBrokerTwo-Live5-UK",
+        "SampleBrokerTwo-Live5-EU"
+      ]
+    }
+  },
+  "features": {
+    "min_deposit": 250.0,
+    "max_leverage": 30,
+    "currencies": ["USD", "EUR", "GBP", "AUD"],
+    "instruments": ["forex", "commodities", "indices", "stocks", "crypto"],
+    "spreads": {
+      "typical": "Variable 1-2 pips",
+      "variable": true
+    }
+  },
+  "trading_conditions": {
+    "commission": "$5 per lot on ECN accounts",
+    "swap_free": true,
+    "micro_lots": true,
+    "hedging_allowed": true,
+    "scalping_allowed": true,
+    "ea_allowed": true
+  },
+  "account_types": [
+    {
+      "name": "Basic",
+      "min_deposit": 250,
+      "spreads": "Variable from 1.5 pips",
+      "commission": "None"
+    },
+    {
+      "name": "Pro",
+      "min_deposit": 1000,
+      "spreads": "Variable from 0.5 pips",
+      "commission": "$5 per lot per side"
+    },
+    {
+      "name": "VIP",
+      "min_deposit": 10000,
+      "spreads": "Variable from 0.2 pips",
+      "commission": "$3 per lot per side"
+    }
+  ],
+  "contact": {
+    "email": "help@example-broker-two.com",
+    "phone": "+44-20-SAMPLE2",
+    "live_chat": "https://example-broker-two.com/support"
+  },
+  "disclaimer": "Trading on margin involves significant risk and is not suitable for all investors. Past performance is not indicative of future results."
+}

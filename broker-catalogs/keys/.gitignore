@@ -1,0 +1,29 @@
+# CRITICAL: Never commit private keys!
+# ONLY public.key should be committed!
+
+# Private key file (various possible names)
+private.key
+*.private.key
+*_private.key
+signing.key
+
+# PEM/P8 files (except public.key)
+*.pem
+*.p8
+
+# Private key backups
+*.bak
+*.backup
+
+# Encrypted private keys (still shouldn't be committed)
+*.encrypted
+*.enc
+
+# Key generation artifacts
+*.tmp
+*.temp
+
+# Allow public.key specifically
+!public.key
+
+# Note: The pattern above allows public.key while blocking all other key files

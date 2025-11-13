@@ -1,0 +1,21 @@
+{
+  "schema_version": "1.0.0",
+  "last_updated": "2025-11-12T00:00:00Z",
+  "total_catalogs": 2,
+  "catalogs": [
+    {
+      "id": "sample-broker-1",
+      "name": "Sample Broker One",
+      "file": "sample-broker-1.json",
+      "signature": "sample-broker-1.json.sig",
+      "last_updated": "2025-11-12T00:00:00Z"
+    },
+    {
+      "id": "sample-broker-2",
+      "name": "Sample Broker Two",
+      "file": "sample-broker-2.json",
+      "signature": "sample-broker-2.json.sig",
+      "last_updated": "2025-11-12T00:00:00Z"
+    }
+  ]
+}
