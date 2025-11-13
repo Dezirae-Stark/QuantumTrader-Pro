@@ -12,7 +12,7 @@
 
 //--- Input Parameters
 input string BridgeURL = "http://localhost:8080";  // Bridge Server URL
-input long   AccountLogin = 194302;                 // LHFX Account Login (supports up to 19 digits)
+input long   AccountLogin = 0;                      // Account Login (configure with your account number)
 input string AccountPassword = "";                  // Account Password (encrypted)
 input string AccountServer = "LHFXDemo-Server";     // Demo Server
 input double RiskPercent = 2.0;                     // Risk % per trade

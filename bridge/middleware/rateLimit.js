@@ -150,11 +150,75 @@ const healthCheckLimiter = rateLimit({
   }
 });
 
+/**
+ * MT4/MT5 EA rate limiter (very lenient)
+ * Limits: 1000 requests per 15 minutes per IP
+ * MT4/MT5 EAs poll frequently (every 5 seconds), so need higher limits
+ */
+const mt4Limiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 1000, // Max 1000 requests per 15 minutes (~ 66 req/min)
+  skipSuccessfulRequests: true, // Don't count successful requests
+  message: {
+    success: false,
+    message: 'MT4/MT5 rate limit exceeded',
+    code: 'MT4_RATE_LIMIT_EXCEEDED'
+  },
+  handler: (req, res) => {
+    console.warn(`[RATE_LIMIT] IP ${req.ip} exceeded MT4/MT5 rate limit`);
+    res.status(429).json({
+      success: false,
+      message: 'Too many requests from MT4/MT5 EA, please increase polling interval',
+      code: 'MT4_RATE_LIMIT_EXCEEDED',
+      retryAfter: req.rateLimit.resetTime,
+      recommendation: 'Increase PollingIntervalSeconds to 10 or higher'
+    });
+  }
+});
+
+/**
+ * IP Whitelist checker
+ * Allows certain IPs to bypass rate limiting (for trusted MT4/ML servers)
+ */
+const whitelistedIPs = process.env.RATE_LIMIT_WHITELIST
+  ? process.env.RATE_LIMIT_WHITELIST.split(',').map(ip => ip.trim())
+  : [];
+
+function isWhitelisted(req) {
+  if (whitelistedIPs.length === 0) return false;
+
+  const clientIP = req.ip || req.connection.remoteAddress;
+  const isWhite = whitelistedIPs.some(whiteIP =>
+    clientIP.includes(whiteIP) || clientIP === whiteIP
+  );
+
+  if (isWhite) {
+    console.log(`[RATE_LIMIT] Whitelisted IP: ${clientIP}`);
+  }
+
+  return isWhite;
+}
+
+/**
+ * Smart rate limiter that skips whitelisted IPs
+ */
+function createSmartLimiter(baseLimiter) {
+  return (req, res, next) => {
+    if (isWhitelisted(req)) {
+      return next();
+    }
+    return baseLimiter(req, res, next);
+  };
+}
+
 module.exports = {
   apiLimiter,
   authLimiter,
   tradeLimiter,
   wsConnectionLimiter,
   strictLimiter,
-  healthCheckLimiter
+  healthCheckLimiter,
+  mt4Limiter,
+  createSmartLimiter,
+  isWhitelisted
 };

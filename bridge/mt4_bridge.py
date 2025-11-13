@@ -150,8 +150,20 @@ if __name__ == '__main__':
     elif os.path.exists('predictions/predictions.csv'):
         load_predictions_from_csv()
 
+    # Determine debug mode from environment
+    debug_mode = os.getenv('FLASK_DEBUG', 'False').lower() in ('true', '1', 'yes')
+
+    # Security warning for production
+    if debug_mode:
+        print("⚠️  WARNING: Debug mode is ENABLED!")
+        print("⚠️  This exposes stack traces and allows code execution!")
+        print("⚠️  NEVER run with debug=True in production!")
+        print("⚠️  Set FLASK_DEBUG=False or use a production WSGI server (gunicorn/uwsgi)")
+        print()
+
     print("🚀 MT4 Bridge API Server Starting...")
     print("📡 Serving on http://localhost:8080")
+    print("🔧 Debug mode:", "ENABLED (⚠️ INSECURE)" if debug_mode else "DISABLED")
     print("🔗 Endpoints:")
     print("   GET  /api/health       - Health check")
     print("   GET  /api/signals      - Trading signals")
@@ -159,5 +171,10 @@ if __name__ == '__main__':
     print("   GET  /api/predictions  - ML predictions")
     print("   POST /api/order        - Create order")
     print("   POST /api/close/<id>   - Close position")
+    print()
+    print("📝 PRODUCTION DEPLOYMENT:")
+    print("   For production, use: gunicorn -w 4 -b 0.0.0.0:8080 mt4_bridge:app")
+    print("   Never use Flask dev server (app.run) in production!")
+    print()
 
-    app.run(host='0.0.0.0', port=8080, debug=True)
+    app.run(host='0.0.0.0', port=8080, debug=debug_mode)
