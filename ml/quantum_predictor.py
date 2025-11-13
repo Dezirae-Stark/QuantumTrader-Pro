@@ -21,6 +21,7 @@ import argparse
 import logging
 import os
 import time
+import requests
 from pathlib import Path
 from datetime import datetime
 warnings.filterwarnings('ignore')
@@ -502,12 +503,58 @@ def setup_logging(daemon_mode=False):
     return logging.getLogger(__name__)
 
 
+def register_with_bridge(bridge_url, logger):
+    """
+    Register ML engine with the bridge server
+    """
+    try:
+        response = requests.post(
+            f"{bridge_url}/api/ml/register",
+            json={
+                "status": "online",
+                "version": "2.1.0",
+                "capabilities": ["quantum_prediction", "chaos_analysis", "superposition"]
+            },
+            timeout=5
+        )
+
+        if response.status_code == 200:
+            logger.info(f"✅ Successfully registered with bridge at {bridge_url}")
+            logger.info(f"   Bridge status: {response.json()}")
+            return True
+        else:
+            logger.warning(f"⚠️ Bridge registration returned status {response.status_code}")
+            return False
+    except requests.exceptions.RequestException as e:
+        logger.warning(f"⚠️ Could not register with bridge: {e}")
+        logger.info("   ML engine will continue without bridge connection")
+        return False
+
+
+def send_heartbeat(bridge_url, logger):
+    """
+    Send heartbeat to bridge server to maintain connection status
+    """
+    try:
+        response = requests.post(
+            f"{bridge_url}/api/ml/heartbeat",
+            json={"timestamp": datetime.now().isoformat()},
+            timeout=2
+        )
+        return response.status_code == 200
+    except:
+        return False
+
+
 def run_daemon_mode():
     """
     Run predictor in daemon mode (continuous operation)
     """
     logger = setup_logging(daemon_mode=True)
     logger.info("🔬 Quantum Predictor starting in daemon mode...")
+
+    # Bridge server configuration
+    bridge_url = os.getenv('BRIDGE_URL', 'http://localhost:8080')
 
     # Initialize predictors
     quantum = QuantumMarketPredictor()
@@ -516,8 +563,14 @@ def run_daemon_mode():
     logger.info("Predictors initialized successfully")
     logger.info("Expected win rate: 90-95%")
 
+    # Register with bridge server
+    logger.info(f"Attempting to register with bridge server at {bridge_url}")
+    bridge_connected = register_with_bridge(bridge_url, logger)
+
     # Main daemon loop
     prediction_interval = 60  # Run predictions every 60 seconds
+    heartbeat_interval = 30  # Send heartbeat every 30 seconds
+    last_heartbeat = time.time()
 
     try:
         while True:
@@ -548,6 +601,16 @@ def run_daemon_mode():
                 logger.info(f"  Chaos analysis: fractal_dim={attractor['fractal_dimension']:.2f}, "
                            f"predictability={attractor['predictability']}")
 
+                # Send heartbeat to bridge if connected
+                if bridge_connected and (time.time() - last_heartbeat) >= heartbeat_interval:
+                    if send_heartbeat(bridge_url, logger):
+                        logger.debug("Heartbeat sent to bridge")
+                        last_heartbeat = time.time()
+                    else:
+                        logger.warning("Failed to send heartbeat to bridge")
+                        # Try to re-register
+                        bridge_connected = register_with_bridge(bridge_url, logger)
+
                 # Sleep until next prediction
                 time.sleep(prediction_interval)
 
@@ -570,8 +633,14 @@ if __name__ == '__main__':
                        help='Run in daemon mode (continuous operation)')
     parser.add_argument('--interval', type=int, default=60,
                        help='Prediction interval in seconds (daemon mode only)')
+    parser.add_argument('--bridge-url', type=str, default='http://localhost:8080',
+                       help='Bridge server URL (default: http://localhost:8080)')
 
     args = parser.parse_args()
+
+    # Set bridge URL from command line argument
+    if args.bridge_url:
+        os.environ['BRIDGE_URL'] = args.bridge_url
 
     if args.daemon:
         # Run in daemon mode

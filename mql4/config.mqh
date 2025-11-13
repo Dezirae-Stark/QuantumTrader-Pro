@@ -5,8 +5,9 @@
 #property copyright "QuantumTrader Pro"
 #property strict
 
-//--- LHFX Demo Account Configuration
-#define LHFX_LOGIN           194302
+//--- Default Server Configuration
+//--- NOTE: Account credentials should NEVER be hardcoded
+//--- Configure account details via EA input parameters only
 #define LHFX_SERVER          "LHFXDemo-Server"
 #define DEFAULT_BRIDGE_URL   "http://localhost:8080"
 
