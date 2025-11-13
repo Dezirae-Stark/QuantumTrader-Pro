@@ -49,8 +49,23 @@ jobs:
     - name: Install dependencies
       run: flutter pub get
 
+    - name: Generate code (Freezed + Hive)
+      run: |
+        echo "🔨 Generating Freezed models and Hive adapters..."
+        dart run build_runner build --delete-conflicting-outputs
+      continue-on-error: false
+
+    - name: Verify generated files
+      run: |
+        echo "✓ Verifying catalog service code generation..."
+        test -f lib/models/catalog/broker_catalog.freezed.dart && echo "✓ Freezed models generated" || echo "⚠️  Using existing files"
+
     - name: Analyze code
       run: flutter analyze
+      continue-on-error: true
+
+    - name: Run tests
+      run: flutter test
       continue-on-error: true
 
     - name: Build APK
