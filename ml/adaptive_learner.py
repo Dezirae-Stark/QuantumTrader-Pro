@@ -19,6 +19,7 @@ from sklearn.preprocessing import StandardScaler
 from collections import deque
 import pickle
 import json
+import os
 from datetime import datetime, timedelta
 
 
@@ -197,6 +198,9 @@ class AdaptiveLearningSystem:
         """
         Save entire learning system state
         """
+        # Create directory if it doesn't exist
+        os.makedirs(os.path.dirname(filepath), exist_ok=True)
+
         state = {
             'memory': self.memory,
             'ensemble': self.model_ensemble,

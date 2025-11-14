@@ -17,7 +17,22 @@ from scipy.integrate import odeint
 from scipy.stats import norm
 from sklearn.preprocessing import MinMaxScaler
 import warnings
+import logging
+import os
 warnings.filterwarnings('ignore')
+
+# Configure logging
+log_dir = 'ml/logs'
+os.makedirs(log_dir, exist_ok=True)
+logging.basicConfig(
+    level=logging.INFO,
+    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
+    handlers=[
+        logging.FileHandler(os.path.join(log_dir, 'predictor.log')),
+        logging.StreamHandler()
+    ]
+)
+logger = logging.getLogger(__name__)
 
 
 class QuantumMarketPredictor:
@@ -240,15 +255,18 @@ class QuantumMarketPredictor:
 
         Returns probability distribution of price levels
         """
+        logger.info(f"Starting prediction for {n_candles} candles")
 
         # Get quantum probability density
         prob_density, psi = self.schrodinger_market_equation(price_data)
 
         # Current price
         current_price = price_data.iloc[-1]
+        logger.info(f"Current price: {current_price:.4f}")
 
         # Volatility forecast
         volatility = self.heisenberg_uncertainty_volatility(price_data).iloc[-1]
+        logger.info(f"Volatility forecast: {volatility:.4f}")
 
         # Superposition states
         states = self.quantum_superposition_prediction(price_data)
@@ -289,6 +307,7 @@ class QuantumMarketPredictor:
                 'confidence': 1.0 / (1.0 + uncertainty)  # Higher when less uncertain
             })
 
+        logger.info(f"Completed predictions for {n_candles} candles with bullish_prob={bullish_prob:.2f}, bearish_prob={bearish_prob:.2f}")
         return predictions
 
     def _calculate_rsi(self, price_data, period=14):
