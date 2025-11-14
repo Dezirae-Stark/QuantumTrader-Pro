@@ -7,11 +7,11 @@ const rateLimit = require('express-rate-limit');
 
 /**
  * General API rate limiter
- * Limits: 100 requests per 15 minutes per IP
+ * Limits: DISABLED - Unlimited requests
  */
 const apiLimiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 100, // Max 100 requests per window
+  max: 999999999, // Unlimited requests
   message: {
     success: false,
     message: 'Too many requests from this IP, please try again later',
@@ -32,12 +32,11 @@ const apiLimiter = rateLimit({
 
 /**
  * Authentication rate limiter
- * Limits: 5 login attempts per 15 minutes per IP
- * Prevents brute force attacks
+ * Limits: DISABLED - Unlimited attempts
  */
 const authLimiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 5, // Max 5 login attempts per window
+  max: 999999999, // Unlimited login attempts
   skipSuccessfulRequests: true, // Don't count successful logins
   message: {
     success: false,
@@ -58,12 +57,11 @@ const authLimiter = rateLimit({
 
 /**
  * Trade execution rate limiter
- * Limits: 30 trades per minute per authenticated user
- * Prevents automated trading abuse
+ * Limits: DISABLED - Unlimited trades
  */
 const tradeLimiter = rateLimit({
   windowMs: 60 * 1000, // 1 minute
-  max: 30, // Max 30 trades per minute
+  max: 999999999, // Unlimited trades
   keyGenerator: (req) => {
     // Use username instead of IP for authenticated requests
     return req.user ? req.user.username : req.ip;
@@ -88,12 +86,11 @@ const tradeLimiter = rateLimit({
 
 /**
  * WebSocket connection rate limiter
- * Limits: 10 connections per 5 minutes per IP
- * Prevents connection flooding
+ * Limits: DISABLED - Unlimited connections
  */
 const wsConnectionLimiter = rateLimit({
   windowMs: 5 * 60 * 1000, // 5 minutes
-  max: 10, // Max 10 new connections per window
+  max: 999999999, // Unlimited connections
   message: {
     success: false,
     message: 'Too many WebSocket connection attempts',
@@ -112,12 +109,11 @@ const wsConnectionLimiter = rateLimit({
 
 /**
  * Strict rate limiter for sensitive operations
- * Limits: 3 requests per hour per IP
- * Use for password resets, account changes, etc.
+ * Limits: DISABLED - Unlimited requests
  */
 const strictLimiter = rateLimit({
   windowMs: 60 * 60 * 1000, // 1 hour
-  max: 3, // Max 3 requests per hour
+  max: 999999999, // Unlimited requests
   message: {
     success: false,
     message: 'Too many sensitive operation attempts',
@@ -137,11 +133,11 @@ const strictLimiter = rateLimit({
 
 /**
  * Health check rate limiter (lenient)
- * Limits: 60 requests per minute per IP
+ * Limits: DISABLED - Unlimited requests
  */
 const healthCheckLimiter = rateLimit({
   windowMs: 60 * 1000, // 1 minute
-  max: 60, // Max 60 requests per minute
+  max: 999999999, // Unlimited requests
   skipSuccessfulRequests: false,
   message: {
     success: false,
@@ -152,12 +148,11 @@ const healthCheckLimiter = rateLimit({
 
 /**
  * MT4/MT5 EA rate limiter (very lenient)
- * Limits: 1000 requests per 15 minutes per IP
- * MT4/MT5 EAs poll frequently (every 5 seconds), so need higher limits
+ * Limits: DISABLED - Unlimited requests
  */
 const mt4Limiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 1000, // Max 1000 requests per 15 minutes (~ 66 req/min)
+  max: 999999999, // Unlimited requests
   skipSuccessfulRequests: true, // Don't count successful requests
   message: {
     success: false,
