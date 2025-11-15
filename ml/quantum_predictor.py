@@ -553,6 +553,13 @@ def run_daemon_mode():
     logger = setup_logging(daemon_mode=True)
     logger.info("🔬 Quantum Predictor starting in daemon mode...")
 
+    # Trading configuration
+    symbol = os.getenv('TRADING_SYMBOL', 'EURUSD')
+    timeframe = os.getenv('TRADING_TIMEFRAME', 'H1')
+    logger.info(f"📊 Trading Configuration:")
+    logger.info(f"   Symbol: {symbol}")
+    logger.info(f"   Timeframe: {timeframe}")
+
     # Bridge server configuration
     bridge_url = os.getenv('BRIDGE_URL', 'http://localhost:8080')
 
@@ -568,9 +575,11 @@ def run_daemon_mode():
     bridge_connected = register_with_bridge(bridge_url, logger)
 
     # Main daemon loop
-    prediction_interval = 60  # Run predictions every 60 seconds
+    prediction_interval = int(os.getenv('PREDICTION_INTERVAL', '60'))  # Run predictions based on config
     heartbeat_interval = 30  # Send heartbeat every 30 seconds
     last_heartbeat = time.time()
+
+    logger.info(f"⏱️  Prediction interval: {prediction_interval} seconds")
 
     try:
         while True:
@@ -635,12 +644,21 @@ if __name__ == '__main__':
                        help='Prediction interval in seconds (daemon mode only)')
     parser.add_argument('--bridge-url', type=str, default='http://localhost:8080',
                        help='Bridge server URL (default: http://localhost:8080)')
+    parser.add_argument('--symbol', type=str, default='EURUSD',
+                       help='Trading symbol/instrument (e.g., XAUUSD, EURUSD, GBPUSD)')
+    parser.add_argument('--timeframe', type=str, default='H1',
+                       help='Trading timeframe (e.g., M1, M5, M15, M30, H1, H4, D1)')
 
     args = parser.parse_args()
 
-    # Set bridge URL from command line argument
+    # Set configuration from command line arguments
     if args.bridge_url:
         os.environ['BRIDGE_URL'] = args.bridge_url
+
+    # Set trading parameters
+    os.environ['TRADING_SYMBOL'] = args.symbol
+    os.environ['TRADING_TIMEFRAME'] = args.timeframe
+    os.environ['PREDICTION_INTERVAL'] = str(args.interval)
 
     if args.daemon:
         # Run in daemon mode
