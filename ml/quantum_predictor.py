@@ -463,6 +463,54 @@ class ChaosTheoryAnalyzer:
         return expected_move
 
 
+def get_realistic_base_price(symbol):
+    """
+    Get realistic base price for different trading symbols
+    This is used for synthetic data generation until real market data integration is complete
+    """
+    # Common forex and commodity symbols with realistic price ranges
+    symbol_prices = {
+        # Forex majors (vs USD)
+        'EURUSD': 1.0800,
+        'GBPUSD': 1.2700,
+        'USDJPY': 149.50,
+        'USDCHF': 0.8900,
+        'AUDUSD': 0.6500,
+        'NZDUSD': 0.6000,
+        'USDCAD': 1.3600,
+
+        # Forex crosses
+        'EURJPY': 161.00,
+        'GBPJPY': 190.00,
+        'EURGBP': 0.8500,
+        'EURAUD': 1.6600,
+        'EURCAD': 1.4700,
+
+        # Commodities
+        'XAUUSD': 2050.00,  # Gold
+        'XAGUSD': 24.50,     # Silver
+        'XTIUSD': 75.00,     # Crude Oil (WTI)
+        'XBRUSD': 80.00,     # Crude Oil (Brent)
+
+        # Indices
+        'US30': 38000.00,    # Dow Jones
+        'NAS100': 16000.00,  # NASDAQ
+        'SPX500': 4800.00,   # S&P 500
+        'UK100': 7600.00,    # FTSE 100
+        'GER40': 17000.00,   # DAX
+        'FRA40': 7500.00,    # CAC 40
+
+        # Crypto (if supported)
+        'BTCUSD': 42000.00,  # Bitcoin
+        'ETHUSD': 2200.00,   # Ethereum
+    }
+
+    # Default to a reasonable forex-like price if symbol not found
+    base_price = symbol_prices.get(symbol.upper(), 1.0000)
+
+    return base_price
+
+
 def setup_logging(daemon_mode=False):
     """
     Setup logging configuration
@@ -581,14 +629,44 @@ def run_daemon_mode():
 
     logger.info(f"⏱️  Prediction interval: {prediction_interval} seconds")
 
+    # Get realistic base price for the symbol
+    base_price = get_realistic_base_price(symbol)
+    logger.warning(f"⚠️  Using synthetic data for {symbol} with base price ${base_price:.2f}")
+    logger.warning(f"⚠️  For real market data, integrate with a data provider API or LHFX feed")
+
     try:
         while True:
             try:
-                # Generate sample data (replace with real market data)
+                # Generate synthetic data with realistic price levels
+                # TODO: Replace with real market data from LHFX bridge or data provider
                 np.random.seed(int(time.time()))
-                dates = pd.date_range(datetime.now(), periods=500, freq='1H')
+
+                # Determine appropriate timeframe frequency
+                timeframe_freq_map = {
+                    'M1': '1min', 'M5': '5min', 'M15': '15min', 'M30': '30min',
+                    'H1': '1H', 'H4': '4H', 'D1': '1D', 'W1': '1W', 'MN': '1M'
+                }
+                freq = timeframe_freq_map.get(timeframe, '1H')
+
+                dates = pd.date_range(datetime.now(), periods=500, freq=freq)
+
+                # Calculate appropriate volatility based on symbol type
+                if symbol.startswith('XAU'):  # Gold
+                    volatility = 2.0  # Gold moves in dollars
+                elif symbol.startswith('XAG'):  # Silver
+                    volatility = 0.1
+                elif symbol.startswith('XTI') or symbol.startswith('XBR'):  # Oil
+                    volatility = 0.5
+                elif 'JPY' in symbol:  # JPY pairs
+                    volatility = 0.15
+                elif symbol.startswith('US30') or symbol.startswith('NAS') or symbol.startswith('SPX'):  # Indices
+                    volatility = base_price * 0.001  # 0.1% moves
+                else:  # Regular forex
+                    volatility = 0.001  # Pips
+
+                # Generate price series with realistic movements
                 price = pd.Series(
-                    100 + np.cumsum(np.random.randn(500) * 0.1),
+                    base_price + np.cumsum(np.random.randn(500) * volatility),
                     index=dates
                 )
 
@@ -598,7 +676,7 @@ def run_daemon_mode():
                 attractor = chaos.detect_strange_attractor(price)
 
                 # Log results
-                logger.info(f"Prediction cycle complete:")
+                logger.info(f"Prediction cycle complete for {symbol} ({timeframe}):")
                 logger.info(f"  Next candle: ${predictions[0]['predicted_price']:.4f} "
                            f"(confidence: {predictions[0]['confidence']:.1%})")
 
