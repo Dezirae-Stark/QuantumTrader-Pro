@@ -1,38 +1,52 @@
-# Machine Learning & Advanced Features Requirements
+# Core Requirements for Quantum Predictor
+# These are the minimal dependencies actually used by quantum_predictor.py
 
-# Core ML libraries
-tensorflow>=2.15.0
-torch>=2.1.0
-scikit-learn>=1.3.0
-xgboost>=2.0.0
-
-# Technical analysis
-ta>=0.11.0
-pandas-ta>=0.3.14b0
-
-# Data processing
-pandas>=2.1.0
+# Data processing (REQUIRED)
 numpy>=1.24.0
+pandas>=2.1.0
 
-# Backtesting
-backtrader>=1.9.78
-zipline-reloaded>=3.0.0
-
-# Hyperparameter optimization
-optuna>=3.5.0
+# Scientific computing (REQUIRED)
 scipy>=1.11.0
+scikit-learn>=1.3.0
 
-# Visualization
-matplotlib>=3.8.0
-plotly>=5.18.0
-seaborn>=0.13.0
-
-# API & Web
-Flask>=3.0.0
-flask-cors>=4.0.0
+# API communication (REQUIRED)
 requests>=2.31.0
 
-# Utilities
+# Utilities (REQUIRED)
 python-dateutil>=2.8.2
-pytz>=2023.3
-joblib>=1.3.0
+
+# ============================================
+# Optional Dependencies (for future features)
+# ============================================
+# Uncomment these if you need advanced features
+
+# Deep Learning (for neural network predictions)
+# tensorflow>=2.15.0
+# torch>=2.1.0
+
+# Advanced ML models
+# xgboost>=2.0.0
+
+# Technical analysis libraries
+# ta>=0.11.0
+# pandas-ta; python_version>='3.12'  # Only works on Python 3.12+
+
+# Backtesting frameworks
+# backtrader>=1.9.78
+# zipline-reloaded>=3.0.0
+
+# Hyperparameter optimization
+# optuna>=3.5.0
+
+# Visualization
+# matplotlib>=3.8.0
+# plotly>=5.18.0
+# seaborn>=0.13.0
+
+# Web server (if running Flask API)
+# Flask>=3.0.0
+# flask-cors>=4.0.0
+
+# Additional utilities
+# pytz>=2023.3
+# joblib>=1.3.0
