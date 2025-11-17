@@ -25,9 +25,10 @@ echo "🔄 Activating virtual environment..."
 source venv/bin/activate || source venv/Scripts/activate 2>/dev/null
 
 # Install dependencies
-echo "📥 Installing ML dependencies..."
+echo "📥 Installing ML dependencies (core only: numpy, pandas, scipy, scikit-learn, requests)..."
 pip install --quiet --upgrade pip
 pip install --quiet -r ml/requirements.txt
+echo "✅ Installed $(pip list | wc -l) packages"
 
 # Run syntax checks
 echo ""
