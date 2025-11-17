@@ -683,7 +683,9 @@ def run_daemon_mode():
                 # Log dominant states
                 dominant_states = {k: v for k, v in states.items() if v['probability'] > 0.15}
                 if dominant_states:
-                    logger.info(f"  Dominant states: {', '.join([f'{k}: {v['probability']:.1%}' for k, v in dominant_states.items()])}")
+                    # Python 3.10 compatible: avoid nested quotes in f-strings
+                    state_strs = [f"{k}: {v['probability']:.1%}" for k, v in dominant_states.items()]
+                    logger.info(f"  Dominant states: {', '.join(state_strs)}")
 
                 logger.info(f"  Chaos analysis: fractal_dim={attractor['fractal_dimension']:.2f}, "
                            f"predictability={attractor['predictability']}")
