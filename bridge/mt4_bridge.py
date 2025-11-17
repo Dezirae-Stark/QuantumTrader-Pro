@@ -18,6 +18,8 @@ CORS(app)
 signals_data = []
 trades_data = []
 predictions_data = {}
+market_data = {}  # Store real-time market data from EA
+account_data = {}
 
 def load_predictions_from_csv(filepath='predictions/predictions.csv'):
     """Load predictions from CSV file"""
@@ -121,6 +123,78 @@ def get_predictions():
         'timestamp': datetime.utcnow().isoformat()
     })
 
+@app.route('/api/market', methods=['POST'])
+def receive_market_data():
+    """Receive real-time market data from EA"""
+    global market_data
+
+    data = request.json
+    if not data or 'symbol' not in data:
+        return jsonify({'error': 'Missing symbol'}), 400
+
+    symbol = data['symbol']
+
+    # Store market data
+    if symbol not in market_data:
+        market_data[symbol] = []
+
+    # Keep last 500 candles per symbol
+    market_data[symbol].append({
+        'symbol': symbol,
+        'bid': data.get('bid', 0),
+        'ask': data.get('ask', 0),
+        'spread': data.get('spread', 0),
+        'timestamp': data.get('timestamp', int(datetime.utcnow().timestamp()))
+    })
+
+    # Limit history to 500 candles
+    if len(market_data[symbol]) > 500:
+        market_data[symbol] = market_data[symbol][-500:]
+
+    # Save to file for ML predictor
+    os.makedirs('bridge/data', exist_ok=True)
+    with open(f'bridge/data/{symbol}_market.json', 'w') as f:
+        json.dump(market_data[symbol], f, indent=2)
+
+    return jsonify({'status': 'ok', 'symbol': symbol, 'datapoints': len(market_data[symbol])}), 200
+
+@app.route('/api/account', methods=['POST'])
+def receive_account_data():
+    """Receive account data from EA"""
+    global account_data
+
+    data = request.json
+    if not data:
+        return jsonify({'error': 'No data provided'}), 400
+
+    account_data = data
+    account_data['last_update'] = datetime.utcnow().isoformat()
+
+    # Save to file
+    os.makedirs('bridge/data', exist_ok=True)
+    with open('bridge/data/account.json', 'w') as f:
+        json.dump(account_data, f, indent=2)
+
+    return jsonify({'status': 'ok'}), 200
+
+@app.route('/api/positions', methods=['POST'])
+def receive_positions():
+    """Receive open positions from EA"""
+    global trades_data
+
+    data = request.json
+    if not data:
+        return jsonify({'error': 'No data provided'}), 400
+
+    trades_data = data.get('positions', [])
+
+    # Save to file
+    os.makedirs('predictions', exist_ok=True)
+    with open('predictions/trades.json', 'w') as f:
+        json.dump(trades_data, f, indent=2)
+
+    return jsonify({'status': 'ok', 'positions': len(trades_data)}), 200
+
 @app.route('/api/order', methods=['POST'])
 def create_order():
     """Create a new trading order"""
@@ -183,6 +257,9 @@ if __name__ == '__main__':
     print("   GET  /api/signals      - Trading signals")
     print("   GET  /api/trades       - Open trades")
     print("   GET  /api/predictions  - ML predictions")
+    print("   POST /api/market       - Receive market data from EA")
+    print("   POST /api/account      - Receive account data from EA")
+    print("   POST /api/positions    - Receive open positions from EA")
     print("   POST /api/order        - Create order")
     print("   POST /api/close/<id>   - Close position")
 

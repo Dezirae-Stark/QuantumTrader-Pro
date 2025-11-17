@@ -220,43 +220,181 @@ void FetchAndProcessSignals()
 }
 
 //+------------------------------------------------------------------+
+//| Extract JSON field value (simple parser)                         |
+//+------------------------------------------------------------------+
+double ExtractJSONDouble(string json, string field)
+{
+   string searchStr = "\"" + field + "\":";
+   int pos = StringFind(json, searchStr);
+
+   if(pos < 0)
+      return 0.0;
+
+   int startPos = pos + StringLen(searchStr);
+   string remaining = StringSubstr(json, startPos);
+
+   // Find the end (comma or closing brace)
+   int endPos = StringFind(remaining, ",");
+   if(endPos < 0)
+      endPos = StringFind(remaining, "}");
+
+   if(endPos < 0)
+      return 0.0;
+
+   string valueStr = StringSubstr(remaining, 0, endPos);
+   return StringToDouble(valueStr);
+}
+
+//+------------------------------------------------------------------+
+//| Extract JSON string field value                                  |
+//+------------------------------------------------------------------+
+string ExtractJSONString(string json, string field)
+{
+   string searchStr = "\"" + field + "\":\"";
+   int pos = StringFind(json, searchStr);
+
+   if(pos < 0)
+      return "";
+
+   int startPos = pos + StringLen(searchStr);
+   int endPos = StringFind(json, "\"", startPos);
+
+   if(endPos < 0)
+      return "";
+
+   return StringSubstr(json, startPos, endPos - startPos);
+}
+
+//+------------------------------------------------------------------+
 //| Process signals from JSON response                               |
 //+------------------------------------------------------------------+
 void ProcessSignalsJSON(string json)
 {
-   //--- Simplified JSON parsing - extract signal data
-   //--- In production, use a proper JSON library
+   //--- Parse JSON response
+   //--- Expected format: {"signals": [{"symbol":"EURUSD", "type":"BUY", "confidence":85.5, ...}]}
 
-   if(StringFind(json, "\"type\":\"BUY\"") >= 0)
+   // Check if this is a signals array response
+   if(StringFind(json, "\"signals\"") < 0)
+      return;
+
+   // Extract current symbol from signals array
+   string currentSymbol = Symbol();
+   int symbolPos = StringFind(json, "\"symbol\":\"" + currentSymbol + "\"");
+
+   if(symbolPos < 0)
    {
-      Print("BUY signal received from bridge");
+      Print("No signals for current symbol: ", currentSymbol);
+      return;
+   }
 
-      //--- Extract values (simplified)
-      double price = 0, sl = 0, tp = 0;
-      int confidence = 0;
+   // Find the signal object for this symbol
+   // Search backwards to find the opening brace of this signal
+   int signalStart = symbolPos;
+   while(signalStart > 0 && StringGetChar(json, signalStart) != '{')
+      signalStart--;
 
-      //--- Execute trade if confidence > 70%
-      if(confidence > 70)
+   // Search forwards to find the closing brace
+   int signalEnd = symbolPos;
+   int braceCount = 1;
+   signalEnd = signalStart + 1;
+
+   while(signalEnd < StringLen(json) && braceCount > 0)
+   {
+      int ch = StringGetChar(json, signalEnd);
+      if(ch == '{') braceCount++;
+      if(ch == '}') braceCount--;
+      signalEnd++;
+   }
+
+   // Extract the signal object
+   string signal = StringSubstr(json, signalStart, signalEnd - signalStart);
+
+   // Extract signal fields
+   string signalType = ExtractJSONString(signal, "type");
+   double confidence = ExtractJSONDouble(signal, "confidence");
+   string action = ExtractJSONString(signal, "action");
+
+   Print("Signal parsed: Type=", signalType, " Action=", action, " Confidence=", confidence, "%");
+
+   //--- Process BUY signals
+   if(signalType == "BUY" && action == "BUY" && confidence >= 70)
+   {
+      Print("✅ BUY signal confirmed! Confidence: ", confidence, "%");
+
+      // Extract prediction data
+      double nextPrice = ExtractJSONDouble(signal, "next_price");
+      double upperBound = ExtractJSONDouble(signal, "upper_bound");
+      double lowerBound = ExtractJSONDouble(signal, "lower_bound");
+
+      // Calculate SL and TP
+      double currentPrice = MarketInfo(currentSymbol, MODE_ASK);
+      double sl = lowerBound > 0 ? lowerBound : currentPrice - 50 * Point;
+      double tp = upperBound > 0 ? upperBound : currentPrice + 100 * Point;
+
+      // Check if we already have an open position
+      bool hasPosition = false;
+      for(int i = 0; i < OrdersTotal(); i++)
       {
-         ExecuteBuyOrder(Symbol(), CalculateLotSize(), sl, tp);
+         if(OrderSelect(i, SELECT_BY_POS, MODE_TRADES))
+         {
+            if(OrderMagicNumber() == MagicNumber && OrderSymbol() == currentSymbol && OrderType() == OP_BUY)
+            {
+               hasPosition = true;
+               break;
+            }
+         }
+      }
+
+      if(!hasPosition)
+      {
+         ExecuteBuyOrder(currentSymbol, CalculateLotSize(), sl, tp);
+      }
+      else
+      {
+         Print("Already have open BUY position for ", currentSymbol);
       }
    }
-   else if(StringFind(json, "\"type\":\"SELL\"") >= 0)
+   //--- Process SELL signals
+   else if(signalType == "SELL" && action == "SELL" && confidence >= 70)
    {
-      Print("SELL signal received from bridge");
+      Print("✅ SELL signal confirmed! Confidence: ", confidence, "%");
 
-      double price = 0, sl = 0, tp = 0;
-      int confidence = 0;
+      // Extract prediction data
+      double nextPrice = ExtractJSONDouble(signal, "next_price");
+      double upperBound = ExtractJSONDouble(signal, "upper_bound");
+      double lowerBound = ExtractJSONDouble(signal, "lower_bound");
 
-      if(confidence > 70)
+      // Calculate SL and TP
+      double currentPrice = MarketInfo(currentSymbol, MODE_BID);
+      double sl = upperBound > 0 ? upperBound : currentPrice + 50 * Point;
+      double tp = lowerBound > 0 ? lowerBound : currentPrice - 100 * Point;
+
+      // Check if we already have an open position
+      bool hasPosition = false;
+      for(int i = 0; i < OrdersTotal(); i++)
       {
-         ExecuteSellOrder(Symbol(), CalculateLotSize(), sl, tp);
+         if(OrderSelect(i, SELECT_BY_POS, MODE_TRADES))
+         {
+            if(OrderMagicNumber() == MagicNumber && OrderSymbol() == currentSymbol && OrderType() == OP_SELL)
+            {
+               hasPosition = true;
+               break;
+            }
+         }
+      }
+
+      if(!hasPosition)
+      {
+         ExecuteSellOrder(currentSymbol, CalculateLotSize(), sl, tp);
+      }
+      else
+      {
+         Print("Already have open SELL position for ", currentSymbol);
       }
    }
-   else if(StringFind(json, "\"type\":\"CLOSE\"") >= 0)
+   else if(confidence < 70)
    {
-      Print("CLOSE signal received - closing all positions");
-      CloseAllPositions();
+      Print("Signal confidence too low: ", confidence, "% (minimum: 70%)");
    }
 }
 
