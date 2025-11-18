@@ -518,3 +518,51 @@ if __name__ == '__main__':
 
     print("\n✅ Quantum prediction system ready!")
     print("💡 Expected win rate with quantum methods: 90-95%")
+
+
+def get_realistic_base_price(symbol):
+    """
+    Get realistic base price for different trading symbols
+    This is used for synthetic data generation until real market data integration is complete
+    """
+    # Common forex and commodity symbols with realistic price ranges
+    symbol_prices = {
+        # Forex majors (vs USD)
+        'EURUSD': 1.0800,
+        'GBPUSD': 1.2700,
+        'USDJPY': 149.50,
+        'USDCHF': 0.8900,
+        'AUDUSD': 0.6500,
+        'NZDUSD': 0.6000,
+        'USDCAD': 1.3600,
+
+        # Forex crosses
+        'EURJPY': 161.00,
+        'GBPJPY': 190.00,
+        'EURGBP': 0.8500,
+        'EURAUD': 1.6600,
+        'EURCAD': 1.4700,
+
+        # Commodities
+        'XAUUSD': 2050.00,  # Gold
+        'XAGUSD': 24.50,     # Silver
+        'XTIUSD': 75.00,     # Crude Oil (WTI)
+        'XBRUSD': 80.00,     # Crude Oil (Brent)
+
+        # Indices
+        'US30': 38000.00,    # Dow Jones
+        'NAS100': 16000.00,  # NASDAQ
+        'SPX500': 4800.00,   # S&P 500
+        'UK100': 7600.00,    # FTSE 100
+        'GER40': 17000.00,   # DAX
+        'FRA40': 7500.00,    # CAC 40
+
+        # Crypto (if supported)
+        'BTCUSD': 42000.00,  # Bitcoin
+        'ETHUSD': 2200.00,   # Ethereum
+    }
+
+    # Default to a reasonable forex-like price if symbol not found
+    base_price = symbol_prices.get(symbol.upper(), 1.0000)
+
+    return base_price
