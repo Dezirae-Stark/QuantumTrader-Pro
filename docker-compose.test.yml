@@ -1,0 +1,42 @@
+version: '3.8'
+
+services:
+  # Bridge Server
+  bridge:
+    build:
+      context: ./bridge
+      dockerfile: Dockerfile
+    ports:
+      - "8080:8080"
+    environment:
+      - NODE_ENV=development
+      - PORT=8080
+      - JWT_SECRET=test-secret-key-change-in-production
+      - JWT_REFRESH_SECRET=test-refresh-secret-key
+    networks:
+      - quantum-trader
+
+  # ML Quantum Predictor
+  ml-engine:
+    build:
+      context: .
+      dockerfile: Dockerfile.ml
+    depends_on:
+      - bridge
+    environment:
+      - TRADING_SYMBOL=XAUUSD
+      - TRADING_TIMEFRAME=M1
+      - BRIDGE_URL=http://bridge:8080
+      - PREDICTION_INTERVAL=60
+    volumes:
+      - ./ml:/app/ml
+      - ml-logs:/app/ml/logs
+    networks:
+      - quantum-trader
+
+networks:
+  quantum-trader:
+    driver: bridge
+
+volumes:
+  ml-logs:
