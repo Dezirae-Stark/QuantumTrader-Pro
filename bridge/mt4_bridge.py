@@ -18,6 +18,8 @@ CORS(app)
 signals_data = []
 trades_data = []
 predictions_data = {}
+market_data = {}  # Store real-time market data from EA
+account_data = {}
 
 def load_predictions_from_csv(filepath='predictions/predictions.csv'):
     """Load predictions from CSV file"""
@@ -55,6 +57,22 @@ def load_predictions_from_json(filepath='predictions/signal_output.json'):
             predictions_data = data
     except FileNotFoundError:
         print(f"JSON file not found: {filepath}")
+    except json.JSONDecodeError:
+        print(f"Invalid JSON in file: {filepath}")
+
+def load_trades_from_json(filepath='predictions/trades.json'):
+    """Load active trades from JSON file"""
+    global trades_data
+
+    try:
+        with open(filepath, 'r') as f:
+            trades_data = json.load(f)
+    except FileNotFoundError:
+        print(f"Trades file not found: {filepath}")
+        trades_data = []
+    except json.JSONDecodeError:
+        print(f"Invalid JSON in trades file: {filepath}")
+        trades_data = []
 
 @app.route('/api/health', methods=['GET'])
 def health_check():
@@ -69,35 +87,113 @@ def get_signals():
 @app.route('/api/trades', methods=['GET'])
 def get_trades():
     """Get open trades"""
-    # Sample open trades
-    sample_trades = [
-        {
-            'symbol': 'EURUSD',
-            'type': 'buy',
-            'entry_price': 1.0850,
-            'current_price': 1.0875,
-            'volume': 0.5,
-            'profit_loss': 125.00,
-            'open_time': '2025-11-07T18:30:00Z',
-            'predicted_window': 5
-        },
-        {
-            'symbol': 'GBPUSD',
-            'type': 'sell',
-            'entry_price': 1.2720,
-            'current_price': 1.2695,
-            'volume': 0.3,
-            'profit_loss': 75.00,
-            'open_time': '2025-11-07T19:15:00Z',
-            'predicted_window': 6
-        }
-    ]
-    return jsonify(sample_trades)
+    # Reload trades data to get latest updates
+    if os.path.exists('predictions/trades.json'):
+        load_trades_from_json()
+
+    # Return real trades data or empty list if none available
+    if trades_data:
+        return jsonify(trades_data)
+
+    # Return empty list with message if no trades
+    return jsonify({
+        'trades': [],
+        'message': 'No active trades',
+        'timestamp': datetime.utcnow().isoformat()
+    })
 
 @app.route('/api/predictions', methods=['GET'])
 def get_predictions():
     """Get ML predictions"""
-    return jsonify(predictions_data)
+    # Reload predictions to get latest updates
+    if os.path.exists('predictions/signal_output.json'):
+        load_predictions_from_json()
+    elif os.path.exists('predictions/predictions.csv'):
+        load_predictions_from_csv()
+
+    # Return predictions or empty response with message
+    if predictions_data:
+        return jsonify(predictions_data)
+
+    # Return empty response if no predictions available
+    return jsonify({
+        'predictions': [],
+        'signals': [],
+        'message': 'No predictions available',
+        'timestamp': datetime.utcnow().isoformat()
+    })
+
+@app.route('/api/market', methods=['POST'])
+def receive_market_data():
+    """Receive real-time market data from EA"""
+    global market_data
+
+    data = request.json
+    if not data or 'symbol' not in data:
+        return jsonify({'error': 'Missing symbol'}), 400
+
+    symbol = data['symbol']
+
+    # Store market data
+    if symbol not in market_data:
+        market_data[symbol] = []
+
+    # Keep last 500 candles per symbol
+    market_data[symbol].append({
+        'symbol': symbol,
+        'bid': data.get('bid', 0),
+        'ask': data.get('ask', 0),
+        'spread': data.get('spread', 0),
+        'timestamp': data.get('timestamp', int(datetime.utcnow().timestamp()))
+    })
+
+    # Limit history to 500 candles
+    if len(market_data[symbol]) > 500:
+        market_data[symbol] = market_data[symbol][-500:]
+
+    # Save to file for ML predictor
+    os.makedirs('bridge/data', exist_ok=True)
+    with open(f'bridge/data/{symbol}_market.json', 'w') as f:
+        json.dump(market_data[symbol], f, indent=2)
+
+    return jsonify({'status': 'ok', 'symbol': symbol, 'datapoints': len(market_data[symbol])}), 200
+
+@app.route('/api/account', methods=['POST'])
+def receive_account_data():
+    """Receive account data from EA"""
+    global account_data
+
+    data = request.json
+    if not data:
+        return jsonify({'error': 'No data provided'}), 400
+
+    account_data = data
+    account_data['last_update'] = datetime.utcnow().isoformat()
+
+    # Save to file
+    os.makedirs('bridge/data', exist_ok=True)
+    with open('bridge/data/account.json', 'w') as f:
+        json.dump(account_data, f, indent=2)
+
+    return jsonify({'status': 'ok'}), 200
+
+@app.route('/api/positions', methods=['POST'])
+def receive_positions():
+    """Receive open positions from EA"""
+    global trades_data
+
+    data = request.json
+    if not data:
+        return jsonify({'error': 'No data provided'}), 400
+
+    trades_data = data.get('positions', [])
+
+    # Save to file
+    os.makedirs('predictions', exist_ok=True)
+    with open('predictions/trades.json', 'w') as f:
+        json.dump(trades_data, f, indent=2)
+
+    return jsonify({'status': 'ok', 'positions': len(trades_data)}), 200
 
 @app.route('/api/order', methods=['POST'])
 def create_order():
@@ -134,37 +230,37 @@ def close_position(position_id):
     return jsonify(response)
 
 if __name__ == '__main__':
+    # Create predictions directory if it doesn't exist
+    os.makedirs('predictions', exist_ok=True)
+
     # Load initial data
+    print("📂 Loading initial data...")
     if os.path.exists('predictions/signal_output.json'):
         load_predictions_from_json()
+        print("   ✓ Loaded predictions from JSON")
     elif os.path.exists('predictions/predictions.csv'):
         load_predictions_from_csv()
+        print("   ✓ Loaded predictions from CSV")
+    else:
+        print("   ⚠ No prediction files found")
 
-    # Determine debug mode from environment
-    debug_mode = os.getenv('FLASK_DEBUG', 'False').lower() in ('true', '1', 'yes')
+    if os.path.exists('predictions/trades.json'):
+        load_trades_from_json()
+        print(f"   ✓ Loaded {len(trades_data)} active trades")
+    else:
+        print("   ⚠ No trades file found")
 
-    # Security warning for production
-    if debug_mode:
-        print("⚠️  WARNING: Debug mode is ENABLED!")
-        print("⚠️  This exposes stack traces and allows code execution!")
-        print("⚠️  NEVER run with debug=True in production!")
-        print("⚠️  Set FLASK_DEBUG=False or use a production WSGI server (gunicorn/uwsgi)")
-        print()
-
-    print("🚀 MT4 Bridge API Server Starting...")
+    print("\n🚀 MT4 Bridge API Server Starting...")
     print("📡 Serving on http://localhost:8080")
-    print("🔧 Debug mode:", "ENABLED (⚠️ INSECURE)" if debug_mode else "DISABLED")
     print("🔗 Endpoints:")
     print("   GET  /api/health       - Health check")
     print("   GET  /api/signals      - Trading signals")
     print("   GET  /api/trades       - Open trades")
     print("   GET  /api/predictions  - ML predictions")
+    print("   POST /api/market       - Receive market data from EA")
+    print("   POST /api/account      - Receive account data from EA")
+    print("   POST /api/positions    - Receive open positions from EA")
     print("   POST /api/order        - Create order")
     print("   POST /api/close/<id>   - Close position")
-    print()
-    print("📝 PRODUCTION DEPLOYMENT:")
-    print("   For production, use: gunicorn -w 4 -b 0.0.0.0:8080 mt4_bridge:app")
-    print("   Never use Flask dev server (app.run) in production!")
-    print()
 
-    app.run(host='0.0.0.0', port=8080, debug=debug_mode)
+    app.run(host='0.0.0.0', port=8080, debug=True)
