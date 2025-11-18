@@ -314,11 +314,14 @@ void ProcessTradingSignals()
    }
 
    //--- Extract the complete signal JSON object
+   //--- Declare character variable once for reuse
+   int ch = 0;
+
    //--- Step 1: Find the opening brace before symbolPos
    int signalStart = symbolPos;
    while(signalStart > 0)
    {
-      int ch = StringGetChar(response, signalStart);
+      ch = StringGetChar(response, signalStart);
       if(ch == '{')
          break;
       signalStart--;
@@ -331,7 +334,7 @@ void ProcessTradingSignals()
 
    while(signalEnd < responseLen && braceCount > 0)
    {
-      int ch = StringGetChar(response, signalEnd);
+      ch = StringGetChar(response, signalEnd);
       if(ch == '{')
          braceCount++;
       if(ch == '}')
