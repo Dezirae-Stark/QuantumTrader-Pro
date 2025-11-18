@@ -240,6 +240,40 @@ void SendPositionData()
 }
 
 //+------------------------------------------------------------------+
+//| Extract JSON double value (simple parser)                        |
+//+------------------------------------------------------------------+
+double ExtractJSONDouble(string json, string field)
+{
+   string searchStr = "\"" + field + "\":";
+   int pos = StringFind(json, searchStr);
+   if(pos < 0) return 0.0;
+
+   int startPos = pos + StringLen(searchStr);
+   string remaining = StringSubstr(json, startPos);
+   int endPos = StringFind(remaining, ",");
+   if(endPos < 0) endPos = StringFind(remaining, "}");
+   if(endPos < 0) return 0.0;
+
+   return StringToDouble(StringSubstr(remaining, 0, endPos));
+}
+
+//+------------------------------------------------------------------+
+//| Extract JSON string value                                        |
+//+------------------------------------------------------------------+
+string ExtractJSONString(string json, string field)
+{
+   string searchStr = "\"" + field + "\":\"";
+   int pos = StringFind(json, searchStr);
+   if(pos < 0) return "";
+
+   int startPos = pos + StringLen(searchStr);
+   int endPos = StringFind(json, "\"", startPos);
+   if(endPos < 0) return "";
+
+   return StringSubstr(json, startPos, endPos - startPos);
+}
+
+//+------------------------------------------------------------------+
 //| Process trading signals from bridge                              |
 //+------------------------------------------------------------------+
 void ProcessTradingSignals()
@@ -247,42 +281,80 @@ void ProcessTradingSignals()
    string url = BridgeURL + "/api/signals?symbol=" + _Symbol;
    string response = SendHTTPRequest(url, "GET", "");
 
-   if(response == "")
-      return;
+   if(response == "") return;
+   if(StringFind(response, "\"signals\"") < 0) return;
 
-   //--- Parse JSON response (simplified)
-   //--- In production, use proper JSON parsing library
-   if(StringFind(response, "\"action\":\"BUY\"") >= 0)
+   //--- Find signal for current symbol
+   int symbolPos = StringFind(response, "\"symbol\":\"" + _Symbol + "\"");
+   if(symbolPos < 0) {
+      Print("No signals for ", _Symbol);
+      return;
+   }
+
+   //--- Extract signal object
+   int signalStart = symbolPos;
+   while(signalStart > 0 && StringGetChar(response, signalStart) != '{') signalStart--;
+
+   int signalEnd = signalStart + 1, braceCount = 1;
+   while(signalEnd < StringLen(response) && braceCount > 0) {
+      int ch = StringGetChar(response, signalEnd);
+      if(ch == '{') braceCount++;
+      if(ch == '}') braceCount--;
+      signalEnd++;
+   }
+
+   string signal = StringSubstr(response, signalStart, signalEnd - signalStart);
+
+   //--- Parse signal
+   string signalType = ExtractJSONString(signal, "type");
+   string action = ExtractJSONString(signal, "action");
+   double confidence = ExtractJSONDouble(signal, "confidence");
+
+   Print("Signal: ", signalType, " Action: ", action, " Confidence: ", confidence, "%");
+
+   //--- Extract prediction bounds
+   double upperBound = ExtractJSONDouble(signal, "upper_bound");
+   double lowerBound = ExtractJSONDouble(signal, "lower_bound");
+
+   //--- BUY signal
+   if(signalType == "BUY" && action == "BUY" && confidence >= 70)
    {
       if(!HasOpenPosition(POSITION_TYPE_BUY))
       {
+         Print("✅ BUY confirmed! Confidence: ", confidence, "%");
          double lots = CalculateLotSize();
-         double sl = CalculateStopLoss(true);
-         double tp = CalculateTakeProfit(true);
+         double sl = lowerBound > 0 ? lowerBound : CalculateStopLoss(true);
+         double tp = upperBound > 0 ? upperBound : CalculateTakeProfit(true);
 
          if(trade.Buy(lots, _Symbol, 0, sl, tp, "Quantum Signal"))
          {
-            Print("BUY order opened: Ticket #", trade.ResultOrder());
+            Print("BUY opened: Ticket #", trade.ResultOrder());
             if(SendTelegramAlerts)
-               SendTelegramNotification("📈 BUY Signal Executed on " + _Symbol);
+               SendTelegramNotification("📈 BUY on " + _Symbol + " (" + DoubleToString(confidence,1) + "%)");
          }
       }
    }
-   else if(StringFind(response, "\"action\":\"SELL\"") >= 0)
+   //--- SELL signal
+   else if(signalType == "SELL" && action == "SELL" && confidence >= 70)
    {
       if(!HasOpenPosition(POSITION_TYPE_SELL))
       {
+         Print("✅ SELL confirmed! Confidence: ", confidence, "%");
          double lots = CalculateLotSize();
-         double sl = CalculateStopLoss(false);
-         double tp = CalculateTakeProfit(false);
+         double sl = upperBound > 0 ? upperBound : CalculateStopLoss(false);
+         double tp = lowerBound > 0 ? lowerBound : CalculateTakeProfit(false);
 
          if(trade.Sell(lots, _Symbol, 0, sl, tp, "Quantum Signal"))
          {
-            Print("SELL order opened: Ticket #", trade.ResultOrder());
+            Print("SELL opened: Ticket #", trade.ResultOrder());
             if(SendTelegramAlerts)
-               SendTelegramNotification("📉 SELL Signal Executed on " + _Symbol);
+               SendTelegramNotification("📉 SELL on " + _Symbol + " (" + DoubleToString(confidence,1) + "%)");
          }
       }
+   }
+   else if(confidence < 70)
+   {
+      Print("Confidence too low: ", confidence, "% (need >= 70%)");
    }
 }
 
