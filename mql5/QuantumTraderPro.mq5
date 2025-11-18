@@ -321,7 +321,7 @@ void ProcessTradingSignals()
    int signalStart = symbolPos;
    while(signalStart > 0)
    {
-      ch = StringGetChar(response, signalStart);
+      ch = StringGetCharacter(response, signalStart);
       if(ch == '{')
          break;
       signalStart--;
@@ -334,7 +334,7 @@ void ProcessTradingSignals()
 
    while(signalEnd < responseLen && braceCount > 0)
    {
-      ch = StringGetChar(response, signalEnd);
+      ch = StringGetCharacter(response, signalEnd);
       if(ch == '{')
          braceCount++;
       if(ch == '}')
