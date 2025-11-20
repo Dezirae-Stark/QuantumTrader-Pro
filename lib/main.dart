@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:hive_flutter/hive_flutter.dart';
-import 'screens/dashboard_screen.dart';
+import 'package:google_fonts/google_fonts.dart';
+import 'screens/modern_dashboard_screen.dart';
 import 'screens/portfolio_screen.dart';
 import 'screens/quantum_screen.dart';
 import 'screens/settings_screen.dart';
@@ -36,34 +37,121 @@ class QuantumTraderApp extends StatelessWidget {
       child: MaterialApp(
         title: 'QuantumTrader Pro',
         debugShowCheckedModeBanner: false,
-        theme: ThemeData(
-          primarySwatch: Colors.blue,
-          brightness: Brightness.light,
-          useMaterial3: true,
-          colorScheme: ColorScheme.light(
-            primary: Color(0xFF1E88E5),
-            secondary: Color(0xFF00ACC1),
-            surface: Colors.white,
-            background: Color(0xFFF5F5F5),
-          ),
-          appBarTheme: AppBarTheme(
-            elevation: 0,
-            backgroundColor: Color(0xFF1E88E5),
-            foregroundColor: Colors.white,
-          ),
-        ),
-        darkTheme: ThemeData(
-          brightness: Brightness.dark,
-          useMaterial3: true,
-          colorScheme: ColorScheme.dark(
-            primary: Color(0xFF42A5F5),
-            secondary: Color(0xFF26C6DA),
-            surface: Color(0xFF1E1E1E),
-            background: Color(0xFF121212),
-          ),
-        ),
+        theme: _buildLightTheme(),
+        darkTheme: _buildDarkTheme(),
         themeMode: ThemeMode.light,
         home: const MainNavigator(),
+      ),
+    );
+  }
+
+  ThemeData _buildLightTheme() {
+    return ThemeData(
+      useMaterial3: true,
+      brightness: Brightness.light,
+      colorScheme: const ColorScheme.light(
+        primary: Color(0xFF2196F3),
+        secondary: Color(0xFF00BCD4),
+        tertiary: Color(0xFF4CAF50),
+        surface: Colors.white,
+        background: Color(0xFFF5F7FA),
+        error: Color(0xFFEF5350),
+      ),
+      textTheme: GoogleFonts.interTextTheme(),
+      cardTheme: CardTheme(
+        elevation: 2,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(12),
+        ),
+      ),
+      appBarTheme: const AppBarTheme(
+        elevation: 0,
+        centerTitle: false,
+        iconTheme: IconThemeData(color: Colors.white),
+        titleTextStyle: TextStyle(
+          fontSize: 20,
+          fontWeight: FontWeight.w600,
+          color: Colors.white,
+        ),
+      ),
+      elevatedButtonTheme: ElevatedButtonThemeData(
+        style: ElevatedButton.styleFrom(
+          elevation: 0,
+          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(8),
+          ),
+        ),
+      ),
+      inputDecorationTheme: InputDecorationTheme(
+        filled: true,
+        fillColor: Colors.grey.shade50,
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(8),
+          borderSide: BorderSide(color: Colors.grey.shade300),
+        ),
+        enabledBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(8),
+          borderSide: BorderSide(color: Colors.grey.shade300),
+        ),
+        focusedBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(8),
+          borderSide: const BorderSide(color: Color(0xFF2196F3), width: 2),
+        ),
+      ),
+    );
+  }
+
+  ThemeData _buildDarkTheme() {
+    return ThemeData(
+      useMaterial3: true,
+      brightness: Brightness.dark,
+      colorScheme: const ColorScheme.dark(
+        primary: Color(0xFF64B5F6),
+        secondary: Color(0xFF4DD0E1),
+        tertiary: Color(0xFF81C784),
+        surface: Color(0xFF1E1E1E),
+        background: Color(0xFF121212),
+        error: Color(0xFFEF5350),
+      ),
+      textTheme: GoogleFonts.interTextTheme(ThemeData.dark().textTheme),
+      cardTheme: CardTheme(
+        elevation: 4,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(12),
+        ),
+        color: const Color(0xFF1E1E1E),
+      ),
+      appBarTheme: const AppBarTheme(
+        elevation: 0,
+        centerTitle: false,
+        backgroundColor: Color(0xFF1E1E1E),
+        foregroundColor: Colors.white,
+      ),
+      elevatedButtonTheme: ElevatedButtonThemeData(
+        style: ElevatedButton.styleFrom(
+          elevation: 0,
+          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(8),
+          ),
+        ),
+      ),
+      inputDecorationTheme: InputDecorationTheme(
+        filled: true,
+        fillColor: const Color(0xFF2C2C2C),
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(8),
+          borderSide: const BorderSide(color: Color(0xFF424242)),
+        ),
+        enabledBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(8),
+          borderSide: const BorderSide(color: Color(0xFF424242)),
+        ),
+        focusedBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(8),
+          borderSide: const BorderSide(color: Color(0xFF64B5F6), width: 2),
+        ),
       ),
     );
   }
@@ -80,7 +168,7 @@ class _MainNavigatorState extends State<MainNavigator> {
   int _selectedIndex = 0;
 
   final List<Widget> _screens = [
-    const DashboardScreen(),
+    const ModernDashboardScreen(),
     const PortfolioScreen(),
     const QuantumScreen(),
     const SettingsScreen(),
