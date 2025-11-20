@@ -27,6 +27,7 @@ from backend.validators.json_validator import (
     create_standard_response,
     ValidationError
 )
+from brokers import create_broker_provider, BrokerError
 
 # Configure logging
 logging.basicConfig(
@@ -73,6 +74,25 @@ class PredictorDaemonV2:
         self.fail_on_error = self.config.should_fail_on_data_error()
         self.strict_validation = self.config.is_strict_validation_enabled()
 
+        # Initialize broker provider
+        self.broker = None
+        try:
+            broker_provider = self.config.get_broker_provider()
+            broker_config = self.config.get_broker_config()
+
+            # Add data_dir to broker config for MT4 bridge
+            if broker_provider in ['mt4', 'mt4_bridge']:
+                broker_config['data_dir'] = str(self.bridge_data_dir)
+
+            self.broker = create_broker_provider(broker_provider, broker_config)
+            self.broker.connect()
+            logger.info(f"✅ Connected to broker: {broker_provider}")
+        except Exception as e:
+            logger.warning(f"⚠️  Broker connection failed: {e}")
+            if not self.use_synthetic and self.fail_on_error:
+                raise
+            logger.info("Continuing with file-based data fallback")
+
         logger.info("=" * 70)
         logger.info("🚀 Quantum Predictor Daemon V2 Initialized")
         logger.info("=" * 70)
@@ -101,33 +121,52 @@ class PredictorDaemonV2:
         Returns:
             pandas.Series of prices, or None if unavailable
         """
-        # Try loading from broker/bridge first
-        market_file = self.bridge_data_dir / f"{symbol}_market.json"
+        # Try loading from broker provider first
+        if self.broker and self.broker.is_connected():
+            try:
+                candles = self.broker.get_ohlc(symbol, 'M5', limit=500)
 
+                if candles and len(candles) >= 50:
+                    # Convert to pandas Series
+                    df = pd.DataFrame([{
+                        'timestamp': c.timestamp,
+                        'price': c.typical_price  # (H+L+C)/3
+                    } for c in candles])
+                    df = df.set_index('timestamp')
+
+                    logger.info(f"✅ {symbol}: Loaded {len(df)} candles from broker")
+                    return df['price']
+                else:
+                    logger.warning(f"{symbol}: Insufficient data from broker ({len(candles) if candles else 0} candles)")
+
+            except BrokerError as e:
+                logger.error(f"Broker error for {symbol}: {e}")
+            except Exception as e:
+                logger.error(f"Error loading {symbol} from broker: {e}")
+
+        # Fallback to file-based data
+        market_file = self.bridge_data_dir / f"{symbol}_market.json"
         if market_file.exists():
             try:
                 with open(market_file, 'r') as f:
                     data = json.load(f)
 
-                if not data or len(data) < 50:
-                    logger.warning(f"{symbol}: Insufficient data ({len(data)} candles)")
-                    return None
+                if data and len(data) >= 50:
+                    # Convert to pandas Series
+                    df = pd.DataFrame(data)
+                    df['timestamp'] = pd.to_datetime(df['timestamp'], unit='s')
+                    df = df.set_index('timestamp')
 
-                # Convert to pandas Series
-                df = pd.DataFrame(data)
-                df['timestamp'] = pd.to_datetime(df['timestamp'], unit='s')
-                df = df.set_index('timestamp')
+                    # Use mid price (bid + ask) / 2
+                    df['price'] = (df['bid'] + df['ask']) / 2.0
 
-                # Use mid price (bid + ask) / 2
-                df['price'] = (df['bid'] + df['ask']) / 2.0
-
-                logger.info(f"✅ {symbol}: Loaded {len(df)} candles from broker")
-                return df['price']
+                    logger.info(f"✅ {symbol}: Loaded {len(df)} candles from file")
+                    return df['price']
 
             except Exception as e:
-                logger.error(f"Error loading {symbol} from broker: {e}")
+                logger.error(f"Error loading {symbol} from file: {e}")
 
-        # Fallback behavior
+        # Final fallback behavior
         if self.use_synthetic:
             logger.warning(f"⚠️  {symbol}: Using SYNTHETIC data (demo/dev mode)")
             return self._generate_synthetic_data(symbol)

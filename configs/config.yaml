@@ -18,10 +18,18 @@ ALLOW_SYNTHETIC_IN_DEMO: true
 # ================================
 # BROKER CONFIGURATION
 # ================================
-BROKER_PROVIDER: generic  # mt4 | mt5 | oanda | binance | lmax | generic
+# Choose your broker provider:
+# - mt4 or mt4_bridge: For MT4 via bridge server (RECOMMENDED for existing setup)
+# - generic: For any broker with REST API
+# - mt5: For MT5 (future)
+# - oanda: For Oanda (future)
+# - binance: For Binance (future)
+
+BROKER_PROVIDER: mt4  # mt4 | mt5 | oanda | binance | generic
+
 BROKER_CONFIG:
   # Connection settings (use environment variables for sensitive data)
-  api_url: ${env:BROKER_API_URL}
+  api_url: ${env:BROKER_API_URL:http://localhost:8080}
   api_key: ${env:BROKER_API_KEY}
   api_secret: ${env:BROKER_API_SECRET}
   server: ${env:BROKER_SERVER}
@@ -35,6 +43,9 @@ BROKER_CONFIG:
   # Data settings
   max_candles: 500
   tick_subscription: true
+
+  # MT4/MT5 specific (auto-set by daemon)
+  data_dir: bridge/data  # Where bridge stores market data files
 
 # Symbol mapping (broker-specific symbol names)
 BROKER_SYMBOL_MAP:
