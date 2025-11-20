@@ -1,20 +1,21 @@
-# 💻 QuantumTrader Pro - Desktop Trading Suite
+# 💻 QuantumTrader Pro - Multi-Platform Trading System
 
 <div align="center">
 
 <img src="assets/icons/app_logo.png" alt="QuantumTrader Pro Logo" width="200"/>
 
 ![Version](https://img.shields.io/badge/version-2.1.0-blue.svg)
-![Platform](https://img.shields.io/badge/platform-Windows%20%7C%20Linux%20%7C%20macOS-green.svg)
+![Platform](https://img.shields.io/badge/platform-Windows%20%7C%20Linux%20%7C%20macOS%20%7C%20Android-green.svg)
 ![License](https://img.shields.io/badge/license-MIT-blue.svg)
-![Win Rate](https://img.shields.io/badge/target%20win%20rate-94.7%25-success.svg)
+![Python](https://img.shields.io/badge/python-3.11%2B-blue.svg)
+![Flutter](https://img.shields.io/badge/flutter-3.0%2B-blue.svg)
 
-**First Sterling QuantumTrader Pro - Desktop Edition**
+**First Sterling QuantumTrader Pro**
 Quantum Mechanics & AI-Powered Trading System
 
 *Built by Dezirae Stark*
 
-[Features](#-features) • [Installation](#-installation) • [Components](#-system-components) • [Documentation](#-documentation) • [Mobile App](#-mobile-app)
+[Quick Start](#-quick-start) • [Architecture](#-architecture) • [Features](#-key-features) • [Documentation](#-documentation) • [Contributing](#-contributing)
 
 </div>
 
@@ -22,23 +23,134 @@ Quantum Mechanics & AI-Powered Trading System
 
 ## 🔬 Overview
 
-**QuantumTrader Pro v2.0 Desktop Suite** is a comprehensive trading infrastructure that combines **MetaTrader 4/5 integration**, **real-time WebSocket bridge**, **machine learning prediction engine**, and **quantum mechanics-based market analysis** to achieve 94%+ win rates.
+**QuantumTrader Pro v2.1** is a comprehensive algorithmic trading platform that combines quantum mechanics principles, machine learning, and multi-broker support into a unified trading system.
 
-### **Desktop Components:**
+### **System Components:**
 
-- 🔗 **WebSocket Bridge Server**: Real-time communication between MT4/MT5 and mobile app
-- 🤖 **ML Prediction Engine**: Python-based quantum predictor with adaptive learning
-- 📊 **MT4/MT5 Expert Advisors**: Automated trading with quantum algorithms
-- 📈 **Technical Indicators**: Custom indicators for trend analysis and ML signals
-- 🔄 **Backtesting Framework**: Historical data testing with credential safety
-- 📡 **API Endpoints**: RESTful API for trade management and signal distribution
-- 🎯 **Dashboard Server**: Real-time monitoring and control interface
+- 📱 **Flutter Desktop/Mobile App**: Modern trading dashboard with real-time charts
+- 🤖 **ML Prediction Engine**: Quantum-inspired prediction with 94%+ accuracy target
+- 🔗 **Multi-Broker Support**: MT4, MT5, Oanda, Binance, and generic REST APIs
+- 🌉 **WebSocket Bridge**: Real-time communication with MetaTrader platforms
+- 📊 **Expert Advisors**: Automated trading with MQL4/MQL5
+- ⚙️ **Configuration System**: YAML-based, environment-driven configuration
+- ✅ **Schema Validation**: JSON schemas for all API responses
 
 ---
 
-## 🚀 What's New in Version 2.0
+## 🚀 Quick Start
 
-### **Quantum Trading System**
+### Prerequisites
+
+- **Python** 3.11+ with pip
+- **Flutter** 3.0+ (for desktop/mobile app)
+- **Node.js** 18+ (for bridge server)
+- **MetaTrader 4/5** (optional, for MT4/MT5 brokers)
+
+### Installation
+
+```bash
+# Clone repository
+git clone https://github.com/Dezirae-Stark/QuantumTrader-Pro.git
+cd QuantumTrader-Pro
+
+# Python dependencies
+pip install -r requirements.txt
+
+# Flutter dependencies
+flutter pub get
+
+# Bridge server dependencies
+cd bridge && npm install && cd ..
+
+# Configure environment
+cp .env.example .env
+# Edit .env with your broker credentials
+```
+
+### Running the System
+
+```bash
+# Terminal 1: Start prediction daemon
+python ml/predictor_daemon_v2.py --symbols EURUSD,GBPUSD --interval 10
+
+# Terminal 2: Start bridge server (if using MT4/MT5)
+cd bridge && node server.js
+
+# Terminal 3: Run Flutter app
+flutter run -d linux  # or windows, macos, android
+```
+
+### Configuration
+
+Edit `configs/config.yaml` to configure:
+- Broker provider (MT4, MT5, Oanda, Binance, Generic)
+- ML engine parameters
+- Risk management settings
+- API endpoints
+
+See **[PROJECT_STRUCTURE.md](PROJECT_STRUCTURE.md)** for detailed configuration guide.
+
+---
+
+## 🏗️ Architecture
+
+QuantumTrader Pro follows a multi-layer architecture:
+
+```
+┌─────────────────┐     ┌─────────────────┐     ┌─────────────────┐
+│  Flutter App    │ ←→  │  Bridge Server  │ ←→  │  MetaTrader     │
+│  (UI/Dashboard) │     │  (WebSocket)    │     │  (MT4/MT5)      │
+└────────┬────────┘     └────────┬────────┘     └─────────────────┘
+         │                       │
+         ↓                       ↓
+┌──────────────────────────────────────────────────────────────────┐
+│                    Python Backend                                 │
+│  ┌──────────────┐  ┌──────────────┐  ┌──────────────┐           │
+│  │ ML Engine    │  │ Brokers      │  │ Validators   │           │
+│  │ (Quantum)    │  │ (Multi)      │  │ (Schemas)    │           │
+│  └──────────────┘  └──────────────┘  └──────────────┘           │
+└──────────────────────────────────────────────────────────────────┘
+```
+
+**For detailed architecture, see [ARCHITECTURE.md](ARCHITECTURE.md)**
+
+---
+
+## ✨ Key Features
+
+### **Phase 1-5 Complete (v2.1.0)**
+
+✅ **JSON Schema Validation**
+- Standardized API responses
+- Automatic validation for all data types
+- Prevents invalid trading signals
+
+✅ **Multi-Broker Support**
+- MT4/MT5 via bridge
+- Oanda, Binance REST APIs
+- Generic REST for any broker
+- Easy provider switching
+
+✅ **Prediction Engine Enhancements**
+- Numeric validation (no negative prices)
+- Outlier detection and removal
+- Symbol-specific price ranges
+- Confidence normalization
+
+✅ **Modern Desktop UI**
+- Flutter Material 3 design
+- Real-time price charts (fl_chart)
+- Broker configuration screen
+- Tab-based navigation
+- Dark/light themes
+
+✅ **Configuration System**
+- YAML-based configuration
+- Environment variable support
+- Production safety checks
+- Broker-agnostic design
+
+### **Quantum Trading System (v2.0)**
 Achieve 94%+ win rates through applied physics and advanced mathematics:
 
 ✅ **Quantum Mechanics Integration**
@@ -699,6 +811,49 @@ This project is licensed under the **MIT License** - see [LICENSE](LICENSE) for 
 - ✅ Commercial use allowed
 - ✅ No warranty provided
 - ✅ Attribution required
+
+---
+
+## 📚 Documentation
+
+### Core Documentation
+- **[ARCHITECTURE.md](ARCHITECTURE.md)** - Detailed system architecture and component design
+- **[PROJECT_STRUCTURE.md](PROJECT_STRUCTURE.md)** - Repository structure and navigation guide
+- **[CONTRIBUTING.md](CONTRIBUTING.md)** - Contribution guidelines and coding standards
+- **[SECURITY.md](SECURITY.md)** - Security policy and vulnerability reporting
+- **[BUILD_GUIDE.md](BUILD_GUIDE.md)** - Complete build instructions for all platforms
+- **[TESTING.md](TESTING.md)** - Testing strategies and test execution
+- **[DESKTOP_SETUP.md](DESKTOP_SETUP.md)** - Desktop app setup and configuration
+- **[IMPLEMENTATION_GUIDE.md](IMPLEMENTATION_GUIDE.md)** - Phase-by-phase implementation guide
+
+### Phase Documentation
+- **Phase 1:** JSON schema validation and config-driven architecture ✅
+- **Phase 2:** Broker-agnostic abstraction layer ✅
+- **Phase 3:** Prediction engine numeric validation ✅
+- **Phase 4:** Additional JSON schemas (orders, account, signals) ✅
+- **Phase 5:** Modern desktop UI/UX with broker selection ✅
+- **Phase 6:** Repository restructuring and documentation ✅ (in progress)
+- **Phase 7:** GitHub Actions CI/CD (planned)
+- **Phase 8:** Environment and secrets management (planned)
+- **Phase 9:** Signed commits with GPG (planned)
+- **Phase 10:** Comprehensive documentation updates (planned)
+
+### API Documentation
+- **Broker Providers:** See `brokers/` for provider interfaces
+- **ML Engine:** See `ml/quantum_predictor.py` for prediction API
+- **JSON Schemas:** See `schemas/` for all API response schemas
+- **Configuration:** See `configs/config.yaml` for all settings
+
+---
+
+## 🤝 Contributing
+
+We welcome contributions! Please see [CONTRIBUTING.md](CONTRIBUTING.md) for:
+- Code of Conduct
+- Development workflow
+- Pull request process
+- Coding standards
+- Testing requirements
 
 ---
 
