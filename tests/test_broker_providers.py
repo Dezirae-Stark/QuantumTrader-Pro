@@ -14,7 +14,6 @@ sys.path.insert(0, str(Path(__file__).parent.parent))
 from brokers import (
     create_broker_provider,
     get_available_brokers,
-    is_broker_available,
     BrokerError,
     OrderSide,
     OrderType

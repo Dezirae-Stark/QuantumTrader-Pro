@@ -20,6 +20,14 @@ paths = [
   '''\.github/WORKFLOW_SECURITY\.md''',  # Workflow security documentation with examples
   '''mql5/README\.md''',  # MQL5 documentation with example auth headers
   '''DESKTOP_SETUP\.md''',  # Desktop setup guide with example auth headers
+  '''README\.md''',  # Main README with example auth headers
+  '''PRODUCTION_READINESS\.md''',  # Production readiness guide with demo credentials
+  '''\.env\.example''',  # Environment variable example file
+  '''bridge/\.env\.example''',  # Bridge environment variable example file
+  '''docs/GITHUB_SECRETS\.md''',  # GitHub secrets documentation with examples
+  '''docs/BACKTESTING\.md''',  # Backtesting documentation with demo credentials
+  '''docs/ENVIRONMENT_SETUP\.md''',  # Environment setup guide with demo credentials
+  '''docs/security/bridge-server-security\.md''',  # Security documentation with example tokens
 ]
 
 # Example patterns (non-sensitive) to allowlist
