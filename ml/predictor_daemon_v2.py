@@ -21,6 +21,7 @@ import pandas as pd
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from ml.quantum_predictor import QuantumMarketPredictor, ChaosTheoryAnalyzer
+from ml.postprocessing import is_valid_price, enforce_price_sanity
 from backend.config_loader import get_config
 from backend.validators.json_validator import (
     validate_prediction_response,
@@ -286,20 +287,16 @@ class PredictorDaemonV2:
             next_price = float(next_candle['predicted_price'])
             current_price = float(price_data.iloc[-1])
 
-            # Sanity check prediction
-            max_move_pct = self.config.get('ML_CONFIG.max_price_move_pct', 10.0) / 100.0
-            if abs(next_price - current_price) / current_price > max_move_pct:
-                logger.warning(
-                    f"{symbol}: Prediction {next_price} too far from current {current_price}, "
-                    f"clamping to {max_move_pct:.1%} max move"
-                )
-                if next_price > current_price:
-                    next_price = current_price * (1 + max_move_pct)
-                else:
-                    next_price = current_price * (1 - max_move_pct)
+            # Enforce price sanity with symbol-specific ranges
+            next_price = enforce_price_sanity(next_price, symbol, fallback_price=current_price)
 
-            # Ensure positive price
-            next_price = max(next_price, current_price * 0.5)
+            # Additional validation
+            if not is_valid_price(next_price):
+                logger.error(
+                    f"{symbol}: CRITICAL - Prediction {next_price} failed final validation, "
+                    f"using current price"
+                )
+                next_price = current_price
 
             # Build prediction object
             prediction = {

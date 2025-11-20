@@ -24,6 +24,7 @@ import time
 import requests
 from pathlib import Path
 from datetime import datetime
+from ml.postprocessing import sanitize_prediction_output, enforce_price_sanity
 warnings.filterwarnings('ignore')
 
 
@@ -295,6 +296,10 @@ class QuantumMarketPredictor:
                 'bearish_probability': bearish_prob,
                 'confidence': 1.0 / (1.0 + uncertainty)  # Higher when less uncertain
             })
+
+        # Sanitize predictions to ensure valid numerics
+        # This prevents negative prices, infinite values, and unrealistic movements
+        predictions = sanitize_prediction_output(predictions, current_price, max_move_pct=0.10)
 
         return predictions
 
