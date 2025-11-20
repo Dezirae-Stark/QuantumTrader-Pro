@@ -19,6 +19,7 @@ from .base_provider import (
 from .factory import (
     create_broker_provider,
     get_available_brokers,
+    is_broker_available,
     register_broker
 )
 
@@ -34,5 +35,6 @@ __all__ = [
     'OrderSide',
     'create_broker_provider',
     'get_available_brokers',
+    'is_broker_available',
     'register_broker'
 ]
