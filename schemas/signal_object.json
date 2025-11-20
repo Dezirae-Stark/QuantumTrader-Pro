@@ -1,0 +1,168 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://quantumtrader.pro/schemas/signal_object.json",
+  "title": "Trading Signal",
+  "description": "Individual trading signal with entry, exit, and risk parameters",
+  "type": "object",
+  "required": [
+    "id",
+    "symbol",
+    "timestamp",
+    "direction",
+    "strength",
+    "confidence",
+    "entry_price"
+  ],
+  "properties": {
+    "id": {
+      "type": "string",
+      "description": "Unique signal identifier",
+      "pattern": "^[A-Z]+-[a-f0-9]{8}$",
+      "examples": ["EURUSD-a1b2c3d4"]
+    },
+    "symbol": {
+      "type": "string",
+      "description": "Trading pair symbol",
+      "pattern": "^[A-Z]{6,}$"
+    },
+    "timestamp": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Signal generation timestamp"
+    },
+    "direction": {
+      "type": "string",
+      "description": "Trade direction",
+      "enum": ["long", "short", "flat"]
+    },
+    "signal_type": {
+      "type": "string",
+      "description": "Signal type for display",
+      "enum": ["BUY", "SELL", "HOLD"]
+    },
+    "strength": {
+      "type": "number",
+      "description": "Signal strength (0-1)",
+      "minimum": 0,
+      "maximum": 1
+    },
+    "confidence": {
+      "type": "number",
+      "description": "Confidence score (0-100)",
+      "minimum": 0,
+      "maximum": 100
+    },
+    "reason": {
+      "type": "string",
+      "description": "Human-readable reason for signal",
+      "minLength": 1,
+      "maxLength": 500
+    },
+    "entry_price": {
+      "type": "number",
+      "description": "Recommended entry price",
+      "exclusiveMinimum": 0
+    },
+    "stop_loss": {
+      "type": ["number", "null"],
+      "description": "Stop loss price",
+      "exclusiveMinimum": 0
+    },
+    "take_profit": {
+      "type": ["number", "null"],
+      "description": "Take profit price",
+      "exclusiveMinimum": 0
+    },
+    "risk_reward_ratio": {
+      "type": ["number", "null"],
+      "description": "Risk/reward ratio (e.g., 1:2 = 2.0)",
+      "minimum": 0
+    },
+    "position_size": {
+      "type": "number",
+      "description": "Recommended position size in lots",
+      "exclusiveMinimum": 0
+    },
+    "risk_amount": {
+      "type": "number",
+      "description": "Risk amount in account currency",
+      "minimum": 0
+    },
+    "timeframe": {
+      "type": "string",
+      "description": "Signal timeframe",
+      "enum": ["M1", "M5", "M15", "M30", "H1", "H4", "D1", "W1", "MN1"]
+    },
+    "expiry": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Signal expiry timestamp (optional)"
+    },
+    "status": {
+      "type": "string",
+      "description": "Signal status",
+      "enum": ["active", "executed", "expired", "cancelled"],
+      "default": "active"
+    },
+    "source": {
+      "type": "string",
+      "description": "Signal source",
+      "enum": ["quantum", "ml", "chaos", "hybrid", "manual"]
+    },
+    "metadata": {
+      "type": "object",
+      "description": "Additional signal metadata",
+      "properties": {
+        "model_version": {
+          "type": "string"
+        },
+        "cycle_id": {
+          "type": "string"
+        },
+        "quantum_state": {
+          "type": "string",
+          "enum": ["strong_bull", "bull", "neutral", "bear", "strong_bear"]
+        },
+        "lyapunov_exponent": {
+          "type": "number"
+        },
+        "fractal_dimension": {
+          "type": "number"
+        }
+      }
+    }
+  },
+  "additionalProperties": false,
+  "allOf": [
+    {
+      "if": {
+        "properties": {
+          "direction": {"const": "long"}
+        }
+      },
+      "then": {
+        "properties": {
+          "stop_loss": {
+            "type": "number",
+            "description": "Stop loss must be below entry for long"
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "direction": {"const": "short"}
+        }
+      },
+      "then": {
+        "properties": {
+          "stop_loss": {
+            "type": "number",
+            "description": "Stop loss must be above entry for short"
+          }
+        }
+      }
+    }
+  ]
+}

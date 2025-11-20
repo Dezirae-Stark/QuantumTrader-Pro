@@ -1,0 +1,208 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://quantumtrader.pro/schemas/account_info.json",
+  "title": "Account Information",
+  "description": "Trading account balance, equity, and position information",
+  "type": "object",
+  "required": [
+    "account_id",
+    "timestamp",
+    "balance",
+    "equity",
+    "currency"
+  ],
+  "properties": {
+    "account_id": {
+      "type": "string",
+      "description": "Broker account ID",
+      "minLength": 1
+    },
+    "account_name": {
+      "type": "string",
+      "description": "Account name or label",
+      "maxLength": 255
+    },
+    "timestamp": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Data timestamp"
+    },
+    "balance": {
+      "type": "number",
+      "description": "Account balance",
+      "minimum": 0
+    },
+    "equity": {
+      "type": "number",
+      "description": "Account equity (balance + floating P&L)",
+      "minimum": 0
+    },
+    "margin": {
+      "type": "number",
+      "description": "Used margin",
+      "minimum": 0
+    },
+    "free_margin": {
+      "type": "number",
+      "description": "Available margin",
+      "minimum": 0
+    },
+    "margin_level": {
+      "type": "number",
+      "description": "Margin level percentage",
+      "minimum": 0
+    },
+    "floating_pl": {
+      "type": "number",
+      "description": "Unrealized profit/loss"
+    },
+    "realized_pl": {
+      "type": "number",
+      "description": "Realized profit/loss for the day"
+    },
+    "currency": {
+      "type": "string",
+      "description": "Account currency",
+      "pattern": "^[A-Z]{3}$",
+      "examples": ["USD", "EUR", "GBP"]
+    },
+    "leverage": {
+      "type": "integer",
+      "description": "Account leverage (e.g., 100 for 1:100)",
+      "minimum": 1,
+      "maximum": 1000
+    },
+    "open_positions": {
+      "type": "integer",
+      "description": "Number of open positions",
+      "minimum": 0
+    },
+    "open_orders": {
+      "type": "integer",
+      "description": "Number of pending orders",
+      "minimum": 0
+    },
+    "total_trades_today": {
+      "type": "integer",
+      "description": "Total trades executed today",
+      "minimum": 0
+    },
+    "total_volume_today": {
+      "type": "number",
+      "description": "Total volume traded today (in lots)",
+      "minimum": 0
+    },
+    "account_type": {
+      "type": "string",
+      "description": "Account type",
+      "enum": ["demo", "live", "contest"]
+    },
+    "broker": {
+      "type": "string",
+      "description": "Broker name",
+      "maxLength": 100
+    },
+    "server": {
+      "type": "string",
+      "description": "Trading server",
+      "maxLength": 100
+    },
+    "positions": {
+      "type": "array",
+      "description": "Open positions",
+      "items": {
+        "type": "object",
+        "required": ["position_id", "symbol", "side", "quantity", "open_price"],
+        "properties": {
+          "position_id": {
+            "type": "string",
+            "description": "Position ID"
+          },
+          "symbol": {
+            "type": "string",
+            "description": "Trading pair",
+            "pattern": "^[A-Z]{6,}$"
+          },
+          "side": {
+            "type": "string",
+            "enum": ["buy", "sell"]
+          },
+          "quantity": {
+            "type": "number",
+            "exclusiveMinimum": 0
+          },
+          "open_price": {
+            "type": "number",
+            "exclusiveMinimum": 0
+          },
+          "current_price": {
+            "type": "number",
+            "exclusiveMinimum": 0
+          },
+          "stop_loss": {
+            "type": "number",
+            "exclusiveMinimum": 0
+          },
+          "take_profit": {
+            "type": "number",
+            "exclusiveMinimum": 0
+          },
+          "profit": {
+            "type": "number"
+          },
+          "commission": {
+            "type": "number"
+          },
+          "swap": {
+            "type": "number"
+          },
+          "open_time": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "magic_number": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "comment": {
+            "type": "string",
+            "maxLength": 255
+          }
+        }
+      }
+    },
+    "risk_metrics": {
+      "type": "object",
+      "description": "Risk management metrics",
+      "properties": {
+        "daily_risk_used_pct": {
+          "type": "number",
+          "description": "Percentage of daily risk limit used",
+          "minimum": 0,
+          "maximum": 100
+        },
+        "max_drawdown_pct": {
+          "type": "number",
+          "description": "Maximum drawdown percentage",
+          "minimum": 0
+        },
+        "sharpe_ratio": {
+          "type": "number",
+          "description": "Sharpe ratio"
+        },
+        "win_rate_pct": {
+          "type": "number",
+          "description": "Win rate percentage",
+          "minimum": 0,
+          "maximum": 100
+        },
+        "profit_factor": {
+          "type": "number",
+          "description": "Profit factor",
+          "minimum": 0
+        }
+      }
+    }
+  },
+  "additionalProperties": false
+}

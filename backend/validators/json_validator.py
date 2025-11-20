@@ -310,3 +310,294 @@ def safe_validate_and_log(response: Dict[str, Any], schema_name: str = "predicti
     except Exception as e:
         logger.error(f"Unexpected validation error: {e}")
         return False
+
+
+# ===================================================================
+# Phase 4: Additional Schema Validators
+# ===================================================================
+
+
+def validate_market_snapshot(snapshot: Dict[str, Any]) -> None:
+    """
+    Validate a market snapshot.
+
+    Args:
+        snapshot: Market snapshot dict
+
+    Raises:
+        ValidationError: If validation fails
+    """
+    _validator.validate(snapshot, "market_snapshot")
+
+    # Additional logic validation
+    bid = snapshot.get('bid')
+    ask = snapshot.get('ask')
+
+    if bid is not None and ask is not None:
+        if ask <= bid:
+            raise ValidationError(
+                message="Ask price must be greater than bid price",
+                field="ask",
+                value=f"bid={bid}, ask={ask}"
+            )
+
+        # Calculate spread and verify
+        expected_spread = ask - bid
+        if 'spread' in snapshot:
+            if abs(snapshot['spread'] - expected_spread) > 0.0001:
+                logger.warning(
+                    f"Spread mismatch: provided={snapshot['spread']}, "
+                    f"calculated={expected_spread:.5f}"
+                )
+
+    # Verify mid price
+    if 'mid' in snapshot and bid is not None and ask is not None:
+        expected_mid = (bid + ask) / 2
+        if abs(snapshot['mid'] - expected_mid) > 0.0001:
+            raise ValidationError(
+                message="Mid price calculation incorrect",
+                field="mid",
+                value=f"provided={snapshot['mid']}, expected={expected_mid:.5f}"
+            )
+
+
+def validate_signal_object(signal: Dict[str, Any]) -> None:
+    """
+    Validate a standalone signal object.
+
+    Args:
+        signal: Signal dict
+
+    Raises:
+        ValidationError: If validation fails
+    """
+    _validator.validate(signal, "signal_object")
+
+    # Additional logic validation
+    direction = signal.get('direction')
+    entry_price = signal.get('entry_price')
+    stop_loss = signal.get('stop_loss')
+    take_profit = signal.get('take_profit')
+
+    # Validate stop loss placement
+    if direction == 'long' and stop_loss is not None and entry_price is not None:
+        if stop_loss >= entry_price:
+            raise ValidationError(
+                message="For long signals, stop loss must be below entry price",
+                field="stop_loss",
+                value=f"entry={entry_price}, sl={stop_loss}"
+            )
+
+    if direction == 'short' and stop_loss is not None and entry_price is not None:
+        if stop_loss <= entry_price:
+            raise ValidationError(
+                message="For short signals, stop loss must be above entry price",
+                field="stop_loss",
+                value=f"entry={entry_price}, sl={stop_loss}"
+            )
+
+    # Validate take profit placement
+    if direction == 'long' and take_profit is not None and entry_price is not None:
+        if take_profit <= entry_price:
+            raise ValidationError(
+                message="For long signals, take profit must be above entry price",
+                field="take_profit",
+                value=f"entry={entry_price}, tp={take_profit}"
+            )
+
+    if direction == 'short' and take_profit is not None and entry_price is not None:
+        if take_profit >= entry_price:
+            raise ValidationError(
+                message="For short signals, take profit must be below entry price",
+                field="take_profit",
+                value=f"entry={entry_price}, tp={take_profit}"
+            )
+
+    # Validate risk/reward ratio
+    if 'risk_reward_ratio' in signal:
+        rr = signal['risk_reward_ratio']
+        if rr is not None and rr <= 0:
+            raise ValidationError(
+                message="Risk/reward ratio must be positive",
+                field="risk_reward_ratio",
+                value=rr
+            )
+
+
+def validate_order_request(order: Dict[str, Any]) -> None:
+    """
+    Validate an order placement request.
+
+    Args:
+        order: Order request dict
+
+    Raises:
+        ValidationError: If validation fails
+    """
+    _validator.validate(order, "order_request")
+
+    # Additional business logic validation
+    order_type = order.get('order_type')
+    side = order.get('side')
+
+    # Ensure price is provided for limit orders
+    if order_type in ['limit', 'stop_limit'] and 'price' not in order:
+        raise ValidationError(
+            message=f"{order_type} orders require a price",
+            field="price"
+        )
+
+    # Ensure stop_price is provided for stop orders
+    if order_type in ['stop', 'stop_limit'] and 'stop_price' not in order:
+        raise ValidationError(
+            message=f"{order_type} orders require a stop_price",
+            field="stop_price"
+        )
+
+    # Validate stop loss/take profit placement
+    entry_price = order.get('price') or order.get('stop_price')
+    stop_loss = order.get('stop_loss')
+    take_profit = order.get('take_profit')
+
+    if entry_price and stop_loss:
+        if side == 'buy' and stop_loss >= entry_price:
+            logger.warning(
+                f"Buy order stop loss {stop_loss} should be below entry {entry_price}"
+            )
+        elif side == 'sell' and stop_loss <= entry_price:
+            logger.warning(
+                f"Sell order stop loss {stop_loss} should be above entry {entry_price}"
+            )
+
+    if entry_price and take_profit:
+        if side == 'buy' and take_profit <= entry_price:
+            logger.warning(
+                f"Buy order take profit {take_profit} should be above entry {entry_price}"
+            )
+        elif side == 'sell' and take_profit >= entry_price:
+            logger.warning(
+                f"Sell order take profit {take_profit} should be below entry {entry_price}"
+            )
+
+
+def validate_order_response(order: Dict[str, Any]) -> None:
+    """
+    Validate an order response from broker.
+
+    Args:
+        order: Order response dict
+
+    Raises:
+        ValidationError: If validation fails
+    """
+    _validator.validate(order, "order_response")
+
+    # Additional validation
+    quantity = order.get('quantity', 0)
+    filled_quantity = order.get('filled_quantity', 0)
+    remaining_quantity = order.get('remaining_quantity', 0)
+
+    # Verify quantity consistency
+    if filled_quantity + remaining_quantity != quantity:
+        expected_remaining = quantity - filled_quantity
+        if abs(remaining_quantity - expected_remaining) > 0.0001:
+            logger.warning(
+                f"Quantity mismatch: filled={filled_quantity}, "
+                f"remaining={remaining_quantity}, total={quantity}"
+            )
+
+    # Verify status consistency
+    status = order.get('status')
+    if status == 'filled' and filled_quantity < quantity:
+        logger.warning(
+            f"Order marked as filled but quantity mismatch: "
+            f"filled={filled_quantity}, total={quantity}"
+        )
+
+    if status == 'pending' and filled_quantity > 0:
+        logger.warning(
+            f"Order marked as pending but has fills: filled={filled_quantity}"
+        )
+
+
+def validate_account_info(account: Dict[str, Any]) -> None:
+    """
+    Validate account information.
+
+    Args:
+        account: Account info dict
+
+    Raises:
+        ValidationError: If validation fails
+    """
+    _validator.validate(account, "account_info")
+
+    # Additional validation
+    balance = account.get('balance')
+    equity = account.get('equity')
+    margin = account.get('margin', 0)
+    free_margin = account.get('free_margin', 0)
+
+    # Verify equity >= balance - used_margin (approximately)
+    if balance is not None and equity is not None:
+        if equity < 0:
+            raise ValidationError(
+                message="Equity cannot be negative",
+                field="equity",
+                value=equity
+            )
+
+    # Verify margin calculations
+    if margin is not None and free_margin is not None and equity is not None:
+        expected_free = equity - margin
+        if abs(free_margin - expected_free) > 1.0:  # Allow small rounding errors
+            logger.warning(
+                f"Free margin mismatch: provided={free_margin}, "
+                f"expected={expected_free:.2f} (equity={equity}, margin={margin})"
+            )
+
+    # Verify margin level
+    if 'margin_level' in account:
+        margin_level = account['margin_level']
+        if margin > 0 and equity is not None:
+            expected_level = (equity / margin) * 100
+            if abs(margin_level - expected_level) > 1.0:
+                logger.warning(
+                    f"Margin level mismatch: provided={margin_level:.2f}%, "
+                    f"expected={expected_level:.2f}%"
+                )
+
+    # Validate positions
+    if 'positions' in account:
+        for i, position in enumerate(account['positions']):
+            try:
+                _validate_position(position, i)
+            except ValidationError as e:
+                raise ValidationError(
+                    message=f"Position {i} validation failed: {e.message}",
+                    field=f"positions[{i}].{e.field}",
+                    value=e.value
+                )
+
+
+def _validate_position(position: Dict[str, Any], index: int) -> None:
+    """Validate a single position within account info"""
+    side = position.get('side')
+    open_price = position.get('open_price')
+    current_price = position.get('current_price')
+    profit = position.get('profit')
+
+    # Verify profit calculation (approximate)
+    if all([side, open_price, current_price, profit]) and 'quantity' in position:
+        quantity = position['quantity']
+        if side == 'buy':
+            expected_profit = (current_price - open_price) * quantity
+        else:  # sell
+            expected_profit = (open_price - current_price) * quantity
+
+        # Allow some tolerance for commission/swap
+        if abs(profit - expected_profit) > abs(expected_profit) * 0.1:
+            logger.warning(
+                f"Position {index} profit mismatch: provided={profit:.2f}, "
+                f"expected≈{expected_profit:.2f}"
+            )

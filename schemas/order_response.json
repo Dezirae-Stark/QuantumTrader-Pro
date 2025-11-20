@@ -1,0 +1,170 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://quantumtrader.pro/schemas/order_response.json",
+  "title": "Order Response",
+  "description": "Response schema for order status and execution details",
+  "type": "object",
+  "required": [
+    "order_id",
+    "symbol",
+    "side",
+    "quantity",
+    "order_type",
+    "status",
+    "timestamp"
+  ],
+  "properties": {
+    "order_id": {
+      "type": "string",
+      "description": "Broker-assigned order ID",
+      "minLength": 1
+    },
+    "client_order_id": {
+      "type": "string",
+      "description": "Client-provided order ID"
+    },
+    "symbol": {
+      "type": "string",
+      "description": "Trading pair symbol",
+      "pattern": "^[A-Z]{6,}$"
+    },
+    "side": {
+      "type": "string",
+      "description": "Order side",
+      "enum": ["buy", "sell"]
+    },
+    "quantity": {
+      "type": "number",
+      "description": "Order quantity in lots",
+      "exclusiveMinimum": 0
+    },
+    "filled_quantity": {
+      "type": "number",
+      "description": "Filled quantity in lots",
+      "minimum": 0
+    },
+    "remaining_quantity": {
+      "type": "number",
+      "description": "Remaining quantity in lots",
+      "minimum": 0
+    },
+    "order_type": {
+      "type": "string",
+      "description": "Order type",
+      "enum": ["market", "limit", "stop", "stop_limit"]
+    },
+    "status": {
+      "type": "string",
+      "description": "Order status",
+      "enum": [
+        "pending",
+        "accepted",
+        "partially_filled",
+        "filled",
+        "cancelled",
+        "rejected",
+        "expired"
+      ]
+    },
+    "price": {
+      "type": "number",
+      "description": "Order price (for limit orders)",
+      "exclusiveMinimum": 0
+    },
+    "stop_price": {
+      "type": "number",
+      "description": "Stop price (for stop orders)",
+      "exclusiveMinimum": 0
+    },
+    "average_fill_price": {
+      "type": "number",
+      "description": "Average execution price",
+      "exclusiveMinimum": 0
+    },
+    "stop_loss": {
+      "type": "number",
+      "description": "Attached stop loss price",
+      "exclusiveMinimum": 0
+    },
+    "take_profit": {
+      "type": "number",
+      "description": "Attached take profit price",
+      "exclusiveMinimum": 0
+    },
+    "time_in_force": {
+      "type": "string",
+      "description": "Time in force",
+      "enum": ["GTC", "IOC", "FOK", "DAY"]
+    },
+    "timestamp": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Order creation timestamp"
+    },
+    "updated_at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Last update timestamp"
+    },
+    "filled_at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Fill timestamp (if filled)"
+    },
+    "commission": {
+      "type": "number",
+      "description": "Commission paid",
+      "minimum": 0
+    },
+    "swap": {
+      "type": "number",
+      "description": "Swap/rollover charged"
+    },
+    "profit": {
+      "type": "number",
+      "description": "Current profit/loss"
+    },
+    "magic_number": {
+      "type": "integer",
+      "description": "EA magic number",
+      "minimum": 0
+    },
+    "comment": {
+      "type": "string",
+      "description": "Order comment",
+      "maxLength": 255
+    },
+    "rejection_reason": {
+      "type": "string",
+      "description": "Rejection reason (if rejected)",
+      "maxLength": 500
+    },
+    "fills": {
+      "type": "array",
+      "description": "Individual fill records",
+      "items": {
+        "type": "object",
+        "required": ["price", "quantity", "timestamp"],
+        "properties": {
+          "price": {
+            "type": "number",
+            "exclusiveMinimum": 0
+          },
+          "quantity": {
+            "type": "number",
+            "exclusiveMinimum": 0
+          },
+          "timestamp": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "commission": {
+            "type": "number",
+            "minimum": 0
+          }
+        }
+      }
+    }
+  },
+  "additionalProperties": false
+}

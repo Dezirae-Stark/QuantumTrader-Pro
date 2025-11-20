@@ -1,0 +1,91 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://quantumtrader.pro/schemas/market_snapshot.json",
+  "title": "Market Snapshot",
+  "description": "Real-time market data snapshot for a trading pair",
+  "type": "object",
+  "required": [
+    "symbol",
+    "timestamp",
+    "bid",
+    "ask",
+    "spread"
+  ],
+  "properties": {
+    "symbol": {
+      "type": "string",
+      "description": "Trading pair symbol",
+      "pattern": "^[A-Z]{6,}$",
+      "examples": ["EURUSD", "GBPUSD", "XAUUSD", "BTCUSD"]
+    },
+    "timestamp": {
+      "type": "string",
+      "format": "date-time",
+      "description": "ISO 8601 timestamp with timezone"
+    },
+    "bid": {
+      "type": "number",
+      "description": "Current bid price (sell price)",
+      "exclusiveMinimum": 0
+    },
+    "ask": {
+      "type": "number",
+      "description": "Current ask price (buy price)",
+      "exclusiveMinimum": 0
+    },
+    "spread": {
+      "type": "number",
+      "description": "Spread in pips (ask - bid)",
+      "minimum": 0
+    },
+    "mid": {
+      "type": "number",
+      "description": "Mid price (bid + ask) / 2",
+      "exclusiveMinimum": 0
+    },
+    "volume": {
+      "type": "number",
+      "description": "Current volume",
+      "minimum": 0
+    },
+    "high": {
+      "type": "number",
+      "description": "Daily high",
+      "exclusiveMinimum": 0
+    },
+    "low": {
+      "type": "number",
+      "description": "Daily low",
+      "exclusiveMinimum": 0
+    },
+    "open": {
+      "type": "number",
+      "description": "Daily open price",
+      "exclusiveMinimum": 0
+    },
+    "close": {
+      "type": "number",
+      "description": "Previous close price",
+      "exclusiveMinimum": 0
+    },
+    "change": {
+      "type": "number",
+      "description": "Price change from open"
+    },
+    "change_pct": {
+      "type": "number",
+      "description": "Percentage change from open"
+    },
+    "last_update": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Last update timestamp"
+    },
+    "source": {
+      "type": "string",
+      "description": "Data source (broker name)",
+      "enum": ["mt4", "mt5", "oanda", "binance", "generic", "synthetic"]
+    }
+  },
+  "additionalProperties": false
+}

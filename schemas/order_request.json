@@ -1,0 +1,168 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://quantumtrader.pro/schemas/order_request.json",
+  "title": "Order Request",
+  "description": "Request schema for placing a new order",
+  "type": "object",
+  "required": [
+    "symbol",
+    "side",
+    "quantity",
+    "order_type"
+  ],
+  "properties": {
+    "symbol": {
+      "type": "string",
+      "description": "Trading pair symbol",
+      "pattern": "^[A-Z]{6,}$",
+      "examples": ["EURUSD", "GBPUSD", "XAUUSD"]
+    },
+    "side": {
+      "type": "string",
+      "description": "Order side",
+      "enum": ["buy", "sell"]
+    },
+    "quantity": {
+      "type": "number",
+      "description": "Order quantity in lots",
+      "exclusiveMinimum": 0,
+      "maximum": 100
+    },
+    "order_type": {
+      "type": "string",
+      "description": "Order type",
+      "enum": ["market", "limit", "stop", "stop_limit"]
+    },
+    "price": {
+      "type": "number",
+      "description": "Limit price (required for limit orders)",
+      "exclusiveMinimum": 0
+    },
+    "stop_price": {
+      "type": "number",
+      "description": "Stop price (required for stop orders)",
+      "exclusiveMinimum": 0
+    },
+    "stop_loss": {
+      "type": "number",
+      "description": "Stop loss price (optional)",
+      "exclusiveMinimum": 0
+    },
+    "take_profit": {
+      "type": "number",
+      "description": "Take profit price (optional)",
+      "exclusiveMinimum": 0
+    },
+    "time_in_force": {
+      "type": "string",
+      "description": "Time in force",
+      "enum": ["GTC", "IOC", "FOK", "DAY"],
+      "default": "GTC"
+    },
+    "slippage": {
+      "type": "number",
+      "description": "Maximum allowed slippage in pips",
+      "minimum": 0,
+      "maximum": 100
+    },
+    "magic_number": {
+      "type": "integer",
+      "description": "EA magic number for order identification",
+      "minimum": 0,
+      "maximum": 2147483647
+    },
+    "comment": {
+      "type": "string",
+      "description": "Order comment",
+      "maxLength": 255
+    },
+    "client_order_id": {
+      "type": "string",
+      "description": "Client-provided order ID",
+      "pattern": "^[a-zA-Z0-9_-]{1,64}$"
+    },
+    "reduce_only": {
+      "type": "boolean",
+      "description": "Reduce only flag (close positions only)",
+      "default": false
+    },
+    "post_only": {
+      "type": "boolean",
+      "description": "Post only flag (maker orders only)",
+      "default": false
+    }
+  },
+  "additionalProperties": false,
+  "allOf": [
+    {
+      "if": {
+        "properties": {
+          "order_type": {"enum": ["limit", "stop_limit"]}
+        }
+      },
+      "then": {
+        "required": ["price"],
+        "properties": {
+          "price": {
+            "type": "number",
+            "exclusiveMinimum": 0
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "order_type": {"enum": ["stop", "stop_limit"]}
+        }
+      },
+      "then": {
+        "required": ["stop_price"],
+        "properties": {
+          "stop_price": {
+            "type": "number",
+            "exclusiveMinimum": 0
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "side": {"const": "buy"}
+        }
+      },
+      "then": {
+        "properties": {
+          "stop_loss": {
+            "type": "number",
+            "description": "Stop loss must be below entry for buy orders"
+          },
+          "take_profit": {
+            "type": "number",
+            "description": "Take profit must be above entry for buy orders"
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "side": {"const": "sell"}
+        }
+      },
+      "then": {
+        "properties": {
+          "stop_loss": {
+            "type": "number",
+            "description": "Stop loss must be above entry for sell orders"
+          },
+          "take_profit": {
+            "type": "number",
+            "description": "Take profit must be below entry for sell orders"
+          }
+        }
+      }
+    }
+  ]
+}
