@@ -69,6 +69,7 @@ cd bridge && npm install && cd ..
 # Configure environment
 cp .env.example .env
 # Edit .env with your broker credentials
+# See docs/ENVIRONMENT_SETUP.md for detailed configuration guide
 ```
 
 ### Running the System
@@ -830,15 +831,21 @@ This project is licensed under the **MIT License** - see [LICENSE](LICENSE) for 
 - **[DESKTOP_SETUP.md](DESKTOP_SETUP.md)** - Desktop app setup and configuration
 - **[IMPLEMENTATION_GUIDE.md](IMPLEMENTATION_GUIDE.md)** - Phase-by-phase implementation guide
 
+### Environment & Security
+- **[docs/ENVIRONMENT_SETUP.md](docs/ENVIRONMENT_SETUP.md)** - Environment configuration for dev, staging, and production
+- **[docs/SECRETS_MANAGEMENT.md](docs/SECRETS_MANAGEMENT.md)** - Comprehensive secrets management guide
+- **[docs/GITHUB_SECRETS.md](docs/GITHUB_SECRETS.md)** - GitHub Secrets setup for CI/CD
+- **[docs/SECURITY.md](docs/SECURITY.md)** - Security best practices and guidelines
+
 ### Phase Documentation
 - **Phase 1:** JSON schema validation and config-driven architecture ✅
 - **Phase 2:** Broker-agnostic abstraction layer ✅
 - **Phase 3:** Prediction engine numeric validation ✅
 - **Phase 4:** Additional JSON schemas (orders, account, signals) ✅
 - **Phase 5:** Modern desktop UI/UX with broker selection ✅
-- **Phase 6:** Repository restructuring and documentation ✅ (in progress)
-- **Phase 7:** GitHub Actions CI/CD (planned)
-- **Phase 8:** Environment and secrets management (planned)
+- **Phase 6:** Repository restructuring and documentation ✅
+- **Phase 7:** GitHub Actions CI/CD ✅
+- **Phase 8:** Environment and secrets management ✅
 - **Phase 9:** Signed commits with GPG (planned)
 - **Phase 10:** Comprehensive documentation updates (planned)
 

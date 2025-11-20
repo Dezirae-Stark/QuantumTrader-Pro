@@ -394,6 +394,13 @@ flutter build apk --release
 
 ## Additional Resources
 
+### Development Documentation
+- **[Environment Setup Guide](docs/ENVIRONMENT_SETUP.md)** - Configure dev, staging, and production environments
+- **[Secrets Management Guide](docs/SECRETS_MANAGEMENT.md)** - Manage API keys and credentials securely
+- **[GitHub Secrets Setup](docs/GITHUB_SECRETS.md)** - Configure secrets for CI/CD
+- **[Security Best Practices](docs/SECURITY.md)** - Security guidelines and best practices
+
+### External Resources
 - **Flutter Documentation**: https://flutter.dev/docs
 - **Android Developer Guide**: https://developer.android.com/studio/build
 - **GitHub Actions Docs**: https://docs.github.com/en/actions
