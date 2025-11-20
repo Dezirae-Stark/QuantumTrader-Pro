@@ -1,0 +1,199 @@
+# QuantumTrader-Pro Configuration
+# Production-ready configuration with broker integration
+
+# ================================
+# ENVIRONMENT SETTINGS
+# ================================
+ENV: production  # production | staging | demo | development
+
+# ================================
+# DATA SOURCE CONFIGURATION
+# ================================
+# CRITICAL: Set to false in production to use real broker data only
+USE_SYNTHETIC_DATA: false
+
+# Synthetic data only allowed when explicitly in demo mode
+ALLOW_SYNTHETIC_IN_DEMO: true
+
+# ================================
+# BROKER CONFIGURATION
+# ================================
+BROKER_PROVIDER: generic  # mt4 | mt5 | oanda | binance | lmax | generic
+BROKER_CONFIG:
+  # Connection settings (use environment variables for sensitive data)
+  api_url: ${env:BROKER_API_URL}
+  api_key: ${env:BROKER_API_KEY}
+  api_secret: ${env:BROKER_API_SECRET}
+  server: ${env:BROKER_SERVER}
+  account: ${env:BROKER_ACCOUNT}
+
+  # Timeouts and retry
+  timeout_seconds: 30
+  max_retries: 3
+  retry_delay_seconds: 5
+
+  # Data settings
+  max_candles: 500
+  tick_subscription: true
+
+# Symbol mapping (broker-specific symbol names)
+BROKER_SYMBOL_MAP:
+  EURUSD: "EURUSD"
+  GBPUSD: "GBPUSD"
+  USDJPY: "USDJPY"
+  AUDUSD: "AUDUSD"
+  USDCAD: "USDCAD"
+  USDCHF: "USDCHF"
+  NZDUSD: "NZDUSD"
+  XAUUSD: "XAUUSD"  # Gold
+  XAGUSD: "XAGUSD"  # Silver
+  BTCUSD: "BTCUSD"  # Bitcoin (if supported)
+  ETHUSD: "ETHUSD"  # Ethereum (if supported)
+
+# ================================
+# ML ENGINE SETTINGS
+# ================================
+ML_CONFIG:
+  model_version: "2.1.0"
+  prediction_window: 8  # Number of candles to predict
+  confidence_threshold: 70.0  # Minimum confidence for signals
+  quantum_confidence_threshold: 70
+  ml_confidence_threshold: 75
+
+  # Prediction sanity checks
+  max_price_move_pct: 10.0  # Maximum allowed price move percentage
+  min_prediction_confidence: 50.0
+
+  # Model paths
+  model_dir: "./ml/models"
+  cache_dir: "./ml/cache"
+
+  # Feature engineering
+  features:
+    trend_indicators: true
+    momentum_indicators: true
+    volatility_indicators: true
+    volume_indicators: true
+    quantum_features: true
+    chaos_features: true
+
+# ================================
+# API SERVER SETTINGS
+# ================================
+API_CONFIG:
+  host: "0.0.0.0"
+  port: 8080
+  cors_origins:
+    - "http://localhost:3000"
+    - "http://localhost:8080"
+
+  # Authentication
+  require_authentication: true
+  jwt_secret: ${env:JWT_SECRET}
+  jwt_expires_hours: 24
+
+  # Rate limiting
+  rate_limit_per_minute: 100
+  auth_rate_limit_per_minute: 5
+  trade_rate_limit_per_minute: 30
+
+  # Validation
+  strict_schema_validation: true
+  log_validation_errors: true
+  return_validation_errors: false  # Don't expose internals to clients
+
+# ================================
+# TRADING SETTINGS
+# ================================
+TRADING_CONFIG:
+  # Risk management
+  max_risk_per_trade_pct: 2.0
+  max_daily_risk_pct: 5.0
+  max_open_positions: 10
+  max_positions_per_pair: 2
+
+  # Order execution
+  max_spread_pips: 3.0
+  min_stop_loss_pips: 20.0
+  slippage_tolerance_pips: 2.0
+
+  # Signal filtering
+  enable_quantum_signals: true
+  enable_ml_signals: true
+  enable_cantilever_hedge: true
+
+  # Position management
+  use_trailing_stop: true
+  trailing_stop_distance_pips: 50.0
+  break_even_pips: 30.0
+
+# ================================
+# LOGGING CONFIGURATION
+# ================================
+LOGGING:
+  level: INFO  # DEBUG | INFO | WARNING | ERROR | CRITICAL
+  format: "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+  log_to_file: true
+  log_file: "./logs/quantumtrader.log"
+  max_file_size_mb: 100
+  backup_count: 10
+  log_to_console: true
+
+# ================================
+# NOTIFICATION SETTINGS
+# ================================
+NOTIFICATIONS:
+  telegram:
+    enabled: false
+    bot_token: ${env:TELEGRAM_BOT_TOKEN}
+    chat_id: ${env:TELEGRAM_CHAT_ID}
+
+  discord:
+    enabled: false
+    webhook_url: ${env:DISCORD_WEBHOOK_URL}
+
+  email:
+    enabled: false
+    smtp_server: ${env:SMTP_SERVER}
+    smtp_port: 587
+    username: ${env:SMTP_USERNAME}
+    password: ${env:SMTP_PASSWORD}
+    from_address: ${env:EMAIL_FROM}
+    to_address: ${env:EMAIL_TO}
+
+# ================================
+# PERFORMANCE & MONITORING
+# ================================
+MONITORING:
+  enable_metrics: true
+  metrics_port: 9090
+  health_check_interval_seconds: 60
+  performance_tracking: true
+
+# ================================
+# DATA FALLBACK BEHAVIOR
+# ================================
+# What to do when real broker data is unavailable
+DATA_FALLBACK:
+  # If true and broker fails, system stops (safe default)
+  fail_on_data_error: true
+
+  # If false and fail_on_data_error is false, can use cached data temporarily
+  allow_cached_data: false
+  cached_data_max_age_seconds: 300
+
+  # Log warnings when data is stale
+  warn_on_stale_data: true
+  stale_data_threshold_seconds: 60
+
+# ================================
+# DEVELOPMENT SETTINGS
+# ================================
+# Only used when ENV = development
+DEVELOPMENT:
+  hot_reload: true
+  debug_mode: true
+  mock_broker: true
+  synthetic_data: true
+  skip_validation: false
+  verbose_logging: true

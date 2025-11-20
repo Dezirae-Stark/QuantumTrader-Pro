@@ -1,0 +1,174 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://quantumtrader.pro/schemas/prediction_response.json",
+  "title": "Prediction Response",
+  "description": "Standard prediction response format for QuantumTrader-Pro API",
+  "type": "object",
+  "required": ["pair", "timeframe", "timestamp", "signals", "prediction", "confidence"],
+  "properties": {
+    "pair": {
+      "type": "string",
+      "description": "Trading pair symbol (e.g., EURUSD, XAUUSD)",
+      "pattern": "^[A-Z]{6,10}$"
+    },
+    "timeframe": {
+      "type": "string",
+      "description": "Chart timeframe",
+      "enum": ["M1", "M5", "M15", "M30", "H1", "H4", "D1", "W1", "MN"]
+    },
+    "timestamp": {
+      "type": "string",
+      "description": "ISO 8601 timestamp",
+      "format": "date-time"
+    },
+    "signals": {
+      "type": "array",
+      "description": "Array of trading signals (MUST be present, may be empty)",
+      "items": {
+        "$ref": "#/definitions/signal"
+      }
+    },
+    "features": {
+      "type": "object",
+      "description": "Calculated technical features",
+      "additionalProperties": {
+        "type": "number"
+      }
+    },
+    "prediction": {
+      "type": "object",
+      "required": ["next_price", "move_pct", "volatility", "state"],
+      "properties": {
+        "next_price": {
+          "type": "number",
+          "description": "Predicted next candle close price",
+          "exclusiveMinimum": 0
+        },
+        "move_pct": {
+          "type": "number",
+          "description": "Predicted percentage move"
+        },
+        "volatility": {
+          "type": "number",
+          "description": "Expected volatility",
+          "minimum": 0
+        },
+        "state": {
+          "type": "string",
+          "enum": ["bull", "bear", "neutral", "volatile", "consolidating"]
+        },
+        "upper_bound": {
+          "type": "number",
+          "description": "Upper prediction bound",
+          "exclusiveMinimum": 0
+        },
+        "lower_bound": {
+          "type": "number",
+          "description": "Lower prediction bound",
+          "exclusiveMinimum": 0
+        }
+      }
+    },
+    "confidence": {
+      "type": "number",
+      "description": "Overall confidence score (0-100)",
+      "minimum": 0,
+      "maximum": 100
+    },
+    "meta": {
+      "type": "object",
+      "properties": {
+        "model_version": {
+          "type": "string",
+          "description": "ML model version"
+        },
+        "cycle_id": {
+          "type": "string",
+          "description": "Prediction cycle UUID"
+        },
+        "data_source": {
+          "type": "string",
+          "enum": ["live", "broker", "synthetic", "demo"],
+          "description": "Source of market data"
+        },
+        "prediction_latency_ms": {
+          "type": "number",
+          "description": "Time taken to generate prediction",
+          "minimum": 0
+        }
+      }
+    },
+    "chaos_analysis": {
+      "type": "object",
+      "properties": {
+        "is_strange_attractor": {
+          "type": "boolean"
+        },
+        "fractal_dimension": {
+          "type": "number",
+          "minimum": 0
+        },
+        "lyapunov_exponent": {
+          "type": "number"
+        },
+        "predictability": {
+          "type": "string",
+          "enum": ["HIGH", "MEDIUM", "LOW", "CHAOTIC"]
+        }
+      }
+    }
+  },
+  "definitions": {
+    "signal": {
+      "type": "object",
+      "required": ["id", "direction", "strength", "confidence", "reason"],
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique signal identifier"
+        },
+        "direction": {
+          "type": "string",
+          "enum": ["long", "short", "flat", "BUY", "SELL", "HOLD"],
+          "description": "Trade direction"
+        },
+        "strength": {
+          "type": "number",
+          "description": "Signal strength (0-1)",
+          "minimum": 0,
+          "maximum": 1
+        },
+        "confidence": {
+          "type": "number",
+          "description": "Signal confidence (0-100)",
+          "minimum": 0,
+          "maximum": 100
+        },
+        "reason": {
+          "type": "string",
+          "description": "Human-readable signal explanation"
+        },
+        "entry_price": {
+          "type": "number",
+          "description": "Suggested entry price",
+          "exclusiveMinimum": 0
+        },
+        "stop_loss": {
+          "type": "number",
+          "description": "Suggested stop loss",
+          "exclusiveMinimum": 0
+        },
+        "take_profit": {
+          "type": "number",
+          "description": "Suggested take profit",
+          "exclusiveMinimum": 0
+        },
+        "risk_reward_ratio": {
+          "type": "number",
+          "description": "Risk/reward ratio",
+          "minimum": 0
+        }
+      }
+    }
+  }
+}
