@@ -26,12 +26,18 @@ class _SettingsScreenState extends State<SettingsScreen> {
   Future<void> _loadSettings() async {
     final box = await Hive.openBox('settings');
     setState(() {
-      _mt4EndpointController.text =
-          box.get('mt4_endpoint', defaultValue: 'http://localhost:8080');
-      _telegramBotTokenController.text =
-          box.get('telegram_bot_token', defaultValue: '');
-      _telegramChatIdController.text =
-          box.get('telegram_chat_id', defaultValue: '');
+      _mt4EndpointController.text = box.get(
+        'mt4_endpoint',
+        defaultValue: 'http://localhost:8080',
+      );
+      _telegramBotTokenController.text = box.get(
+        'telegram_bot_token',
+        defaultValue: '',
+      );
+      _telegramChatIdController.text = box.get(
+        'telegram_chat_id',
+        defaultValue: '',
+      );
     });
   }
 
@@ -43,24 +49,26 @@ class _SettingsScreenState extends State<SettingsScreen> {
     mt4Service.setApiEndpoint(_mt4EndpointController.text);
 
     if (mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('MT4 settings saved')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('MT4 settings saved')));
     }
   }
 
   Future<void> _saveTelegramSettings() async {
-    final telegramService =
-        Provider.of<TelegramService>(context, listen: false);
+    final telegramService = Provider.of<TelegramService>(
+      context,
+      listen: false,
+    );
     telegramService.setCredentials(
       _telegramBotTokenController.text,
       _telegramChatIdController.text,
     );
 
     if (mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Telegram settings saved')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('Telegram settings saved')));
     }
   }
 
@@ -74,9 +82,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text(connected
-              ? 'MT4 connection successful!'
-              : 'MT4 connection failed'),
+          content: Text(
+            connected ? 'MT4 connection successful!' : 'MT4 connection failed',
+          ),
           backgroundColor: connected ? Colors.green : Colors.red,
         ),
       );
@@ -89,9 +97,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
     final appState = Provider.of<AppState>(context);
 
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Settings'),
-      ),
+      appBar: AppBar(title: const Text('Settings')),
       body: ListView(
         padding: const EdgeInsets.all(16),
         children: [
@@ -109,16 +115,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   const SizedBox(height: 12),
                   const Text(
                     'QuantumTrader Pro',
-                    style: TextStyle(
-                      fontSize: 20,
-                      fontWeight: FontWeight.bold,
-                    ),
+                    style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
                   ),
                   const SizedBox(height: 4),
-                  Text(
-                    'Version 1.0.0',
-                    style: theme.textTheme.bodySmall,
-                  ),
+                  Text('Version 1.0.0', style: theme.textTheme.bodySmall),
                   const SizedBox(height: 4),
                   Text(
                     'Built by Dezirae Stark',
@@ -132,10 +132,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
           const SizedBox(height: 24),
 
           // MT4 Connection Settings
-          Text(
-            'MT4 Connection',
-            style: theme.textTheme.titleLarge,
-          ),
+          Text('MT4 Connection', style: theme.textTheme.titleLarge),
           const SizedBox(height: 12),
           Card(
             child: Padding(
@@ -179,10 +176,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
           const SizedBox(height: 24),
 
           // Telegram Settings
-          Text(
-            'Telegram Notifications',
-            style: theme.textTheme.titleLarge,
-          ),
+          Text('Telegram Notifications', style: theme.textTheme.titleLarge),
           const SizedBox(height: 12),
           Card(
             child: Padding(
@@ -226,10 +220,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
           const SizedBox(height: 24),
 
           // Theme Settings
-          Text(
-            'Appearance',
-            style: theme.textTheme.titleLarge,
-          ),
+          Text('Appearance', style: theme.textTheme.titleLarge),
           const SizedBox(height: 12),
           Card(
             child: SwitchListTile(
@@ -254,7 +245,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 ListTile(
                   leading: const Icon(Icons.info_outline),
                   title: const Text('About'),
-                  subtitle: const Text('Advanced MT4 trading with ML integration'),
+                  subtitle: const Text(
+                    'Advanced MT4 trading with ML integration',
+                  ),
                   onTap: () {
                     showAboutDialog(
                       context: context,

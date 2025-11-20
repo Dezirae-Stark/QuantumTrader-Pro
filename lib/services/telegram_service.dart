@@ -75,7 +75,8 @@ class TelegramService {
     required double price,
     String? reason,
   }) async {
-    final message = '''
+    final message =
+        '''
 🚨 *Trade Alert*
 
 Symbol: $symbol
@@ -89,9 +90,13 @@ React with ✅ to approve or ❌ to deny
     return await sendNotification(message, urgent: true);
   }
 
-  Future<bool> sendPnLUpdate(double totalPnL, List<String> topPerformers) async {
+  Future<bool> sendPnLUpdate(
+    double totalPnL,
+    List<String> topPerformers,
+  ) async {
     final emoji = totalPnL >= 0 ? '📈' : '📉';
-    final message = '''
+    final message =
+        '''
 $emoji *P&L Update*
 
 Total P&L: \$${totalPnL.toStringAsFixed(2)}
@@ -108,7 +113,8 @@ ${topPerformers.map((p) => '• $p').join('\n')}
     required String type,
     required double volume,
   }) async {
-    final message = '''
+    final message =
+        '''
 🤔 *Trade Approval Requested*
 
 Symbol: $symbol

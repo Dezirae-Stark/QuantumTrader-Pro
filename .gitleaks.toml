@@ -17,6 +17,9 @@ paths = [
   '''\.gradle/''',
   '''\.dart_tool/''',
   '''\.idea/''',
+  '''\.github/WORKFLOW_SECURITY\.md''',  # Workflow security documentation with examples
+  '''mql5/README\.md''',  # MQL5 documentation with example auth headers
+  '''DESKTOP_SETUP\.md''',  # Desktop setup guide with example auth headers
 ]
 
 # Example patterns (non-sensitive) to allowlist
@@ -24,6 +27,8 @@ regexes = [
   '''example\.com''',
   '''localhost''',
   '''127\.0\.0\.1''',
+  '''example-api-key''',  # Example API keys in documentation
+  '''Bearer\s+your-api-token-here''',  # Example bearer tokens
 ]
 
 # Custom rules for QuantumTrader Pro specific secrets
@@ -38,6 +43,11 @@ paths = [
   '''SECURITY-ADVISORY-2025-001\.md''',  # Advisory document references
   '''SECURITY\.md''',  # Security policy references
   '''\.gitleaks\.toml''',  # This config file
+  '''bridge/README\.md''',  # Bridge documentation with demo credentials
+  '''backtest/README\.md''',  # Backtest documentation with demo credentials
+  '''mql5/README\.md''',  # MQL5 documentation with demo credentials
+  '''lib/screens/account_login_screen\.dart''',  # Login screen with demo hints
+  '''backtest/lhfx_backtest\.py''',  # Backtest script with demo credentials
 ]
 
 [[rules]]
@@ -49,6 +59,7 @@ tags = ["password", "credential"]
 paths = [
   '''docs/''',  # Documentation examples
   '''test/''',  # Test fixtures
+  '''CONTRIBUTING\.md''',  # Contributing guide with examples
 ]
 
 [[rules]]

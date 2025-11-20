@@ -38,7 +38,7 @@ enum OrderStatus {
   filled,
   cancelled,
   rejected,
-  expired
+  expired,
 }
 
 /// Market data candle (OHLC)
@@ -247,11 +247,7 @@ class GenericRESTBrokerService implements BrokerService {
 
   bool _isConnected = false;
 
-  GenericRESTBrokerService({
-    required this.apiUrl,
-    this.apiKey,
-    this.apiSecret,
-  });
+  GenericRESTBrokerService({required this.apiUrl, this.apiKey, this.apiSecret});
 
   @override
   BrokerProvider get provider => BrokerProvider.generic;
@@ -262,10 +258,9 @@ class GenericRESTBrokerService implements BrokerService {
   @override
   Future<bool> connect() async {
     try {
-      final response = await _httpClient.get(
-        Uri.parse('$apiUrl/health'),
-        headers: _getHeaders(),
-      ).timeout(const Duration(seconds: 10));
+      final response = await _httpClient
+          .get(Uri.parse('$apiUrl/health'), headers: _getHeaders())
+          .timeout(const Duration(seconds: 10));
 
       _isConnected = response.statusCode == 200;
       return _isConnected;
@@ -292,19 +287,25 @@ class GenericRESTBrokerService implements BrokerService {
     int limit = 500,
   }) async {
     try {
-      final response = await _httpClient.get(
-        Uri.parse('$apiUrl/api/ohlc').replace(queryParameters: {
-          'symbol': symbol,
-          'timeframe': timeframe,
-          'limit': limit.toString(),
-        }),
-        headers: _getHeaders(),
-      ).timeout(const Duration(seconds: 30));
+      final response = await _httpClient
+          .get(
+            Uri.parse('$apiUrl/api/ohlc').replace(
+              queryParameters: {
+                'symbol': symbol,
+                'timeframe': timeframe,
+                'limit': limit.toString(),
+              },
+            ),
+            headers: _getHeaders(),
+          )
+          .timeout(const Duration(seconds: 30));
 
       if (response.statusCode == 200) {
         final data = json.decode(response.body);
         final candlesData = data['candles'] as List;
-        return candlesData.map((c) => Candle.fromJson(c as Map<String, dynamic>)).toList();
+        return candlesData
+            .map((c) => Candle.fromJson(c as Map<String, dynamic>))
+            .toList();
       }
 
       return [];
@@ -317,10 +318,9 @@ class GenericRESTBrokerService implements BrokerService {
   @override
   Future<AccountInfo?> getAccountInfo() async {
     try {
-      final response = await _httpClient.get(
-        Uri.parse('$apiUrl/api/account'),
-        headers: _getHeaders(),
-      ).timeout(const Duration(seconds: 10));
+      final response = await _httpClient
+          .get(Uri.parse('$apiUrl/api/account'), headers: _getHeaders())
+          .timeout(const Duration(seconds: 10));
 
       if (response.statusCode == 200) {
         final data = json.decode(response.body);
@@ -354,11 +354,13 @@ class GenericRESTBrokerService implements BrokerService {
       if (takeProfit != null) 'take_profit': takeProfit,
     };
 
-    final response = await _httpClient.post(
-      Uri.parse('$apiUrl/api/orders'),
-      headers: {..._getHeaders(), 'Content-Type': 'application/json'},
-      body: json.encode(orderData),
-    ).timeout(const Duration(seconds: 30));
+    final response = await _httpClient
+        .post(
+          Uri.parse('$apiUrl/api/orders'),
+          headers: {..._getHeaders(), 'Content-Type': 'application/json'},
+          body: json.encode(orderData),
+        )
+        .timeout(const Duration(seconds: 30));
 
     if (response.statusCode == 200 || response.statusCode == 201) {
       final data = json.decode(response.body);
@@ -371,15 +373,16 @@ class GenericRESTBrokerService implements BrokerService {
   @override
   Future<List<Order>> getOpenOrders() async {
     try {
-      final response = await _httpClient.get(
-        Uri.parse('$apiUrl/api/orders'),
-        headers: _getHeaders(),
-      ).timeout(const Duration(seconds: 10));
+      final response = await _httpClient
+          .get(Uri.parse('$apiUrl/api/orders'), headers: _getHeaders())
+          .timeout(const Duration(seconds: 10));
 
       if (response.statusCode == 200) {
         final data = json.decode(response.body);
         final ordersData = data['orders'] as List;
-        return ordersData.map((o) => Order.fromJson(o as Map<String, dynamic>)).toList();
+        return ordersData
+            .map((o) => Order.fromJson(o as Map<String, dynamic>))
+            .toList();
       }
 
       return [];
@@ -392,10 +395,12 @@ class GenericRESTBrokerService implements BrokerService {
   @override
   Future<bool> cancelOrder(String orderId) async {
     try {
-      final response = await _httpClient.delete(
-        Uri.parse('$apiUrl/api/orders/$orderId'),
-        headers: _getHeaders(),
-      ).timeout(const Duration(seconds: 10));
+      final response = await _httpClient
+          .delete(
+            Uri.parse('$apiUrl/api/orders/$orderId'),
+            headers: _getHeaders(),
+          )
+          .timeout(const Duration(seconds: 10));
 
       return response.statusCode == 200;
     } catch (e) {

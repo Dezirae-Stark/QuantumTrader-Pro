@@ -37,10 +37,12 @@ class MT4Service {
 
   Future<List<TradeSignal>> fetchSignals() async {
     try {
-      final response = await http.get(
-        Uri.parse('$_apiEndpoint/api/signals'),
-        headers: {'Accept': 'application/json'},
-      ).timeout(const Duration(seconds: 10));
+      final response = await http
+          .get(
+            Uri.parse('$_apiEndpoint/api/signals'),
+            headers: {'Accept': 'application/json'},
+          )
+          .timeout(const Duration(seconds: 10));
 
       if (response.statusCode == 200) {
         final data = json.decode(response.body);
@@ -60,10 +62,12 @@ class MT4Service {
 
   Future<List<OpenTrade>> fetchOpenTrades() async {
     try {
-      final response = await http.get(
-        Uri.parse('$_apiEndpoint/api/trades'),
-        headers: {'Accept': 'application/json'},
-      ).timeout(const Duration(seconds: 10));
+      final response = await http
+          .get(
+            Uri.parse('$_apiEndpoint/api/trades'),
+            headers: {'Accept': 'application/json'},
+          )
+          .timeout(const Duration(seconds: 10));
 
       if (response.statusCode == 200) {
         final data = json.decode(response.body);
@@ -83,10 +87,12 @@ class MT4Service {
 
   Future<Map<String, dynamic>?> fetchPredictions() async {
     try {
-      final response = await http.get(
-        Uri.parse('$_apiEndpoint/api/predictions'),
-        headers: {'Accept': 'application/json'},
-      ).timeout(const Duration(seconds: 10));
+      final response = await http
+          .get(
+            Uri.parse('$_apiEndpoint/api/predictions'),
+            headers: {'Accept': 'application/json'},
+          )
+          .timeout(const Duration(seconds: 10));
 
       if (response.statusCode == 200) {
         return json.decode(response.body);
@@ -105,17 +111,19 @@ class MT4Service {
     double? takeProfit,
   }) async {
     try {
-      final response = await http.post(
-        Uri.parse('$_apiEndpoint/api/order'),
-        headers: {'Content-Type': 'application/json'},
-        body: json.encode({
-          'symbol': symbol,
-          'type': orderType,
-          'volume': volume,
-          'stop_loss': stopLoss,
-          'take_profit': takeProfit,
-        }),
-      ).timeout(const Duration(seconds: 15));
+      final response = await http
+          .post(
+            Uri.parse('$_apiEndpoint/api/order'),
+            headers: {'Content-Type': 'application/json'},
+            body: json.encode({
+              'symbol': symbol,
+              'type': orderType,
+              'volume': volume,
+              'stop_loss': stopLoss,
+              'take_profit': takeProfit,
+            }),
+          )
+          .timeout(const Duration(seconds: 15));
 
       if (response.statusCode == 200 || response.statusCode == 201) {
         _logger.i('Trade order sent successfully');
@@ -129,10 +137,12 @@ class MT4Service {
 
   Future<bool> closePosition(String positionId) async {
     try {
-      final response = await http.post(
-        Uri.parse('$_apiEndpoint/api/close/$positionId'),
-        headers: {'Content-Type': 'application/json'},
-      ).timeout(const Duration(seconds: 15));
+      final response = await http
+          .post(
+            Uri.parse('$_apiEndpoint/api/close/$positionId'),
+            headers: {'Content-Type': 'application/json'},
+          )
+          .timeout(const Duration(seconds: 15));
 
       if (response.statusCode == 200) {
         _logger.i('Position closed successfully');
@@ -146,9 +156,9 @@ class MT4Service {
 
   Future<bool> testConnection() async {
     try {
-      final response = await http.get(
-        Uri.parse('$_apiEndpoint/api/health'),
-      ).timeout(const Duration(seconds: 5));
+      final response = await http
+          .get(Uri.parse('$_apiEndpoint/api/health'))
+          .timeout(const Duration(seconds: 5));
 
       return response.statusCode == 200;
     } catch (e) {
@@ -163,15 +173,17 @@ class MT4Service {
     required String server,
   }) async {
     try {
-      final response = await http.post(
-        Uri.parse('$_apiEndpoint/api/connect'),
-        headers: {'Content-Type': 'application/json'},
-        body: json.encode({
-          'login': login,
-          'password': password,
-          'server': server,
-        }),
-      ).timeout(const Duration(seconds: 10));
+      final response = await http
+          .post(
+            Uri.parse('$_apiEndpoint/api/connect'),
+            headers: {'Content-Type': 'application/json'},
+            body: json.encode({
+              'login': login,
+              'password': password,
+              'server': server,
+            }),
+          )
+          .timeout(const Duration(seconds: 10));
 
       if (response.statusCode == 200) {
         final data = json.decode(response.body);

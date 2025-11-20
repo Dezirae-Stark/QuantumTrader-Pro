@@ -154,7 +154,10 @@ class _AccountLoginScreenState extends State<AccountLoginScreen> {
                 value: _selectedBroker,
                 decoration: InputDecoration(
                   labelText: 'Broker',
-                  prefixIcon: const Icon(Icons.business, color: Color(0xFF00D9FF)),
+                  prefixIcon: const Icon(
+                    Icons.business,
+                    color: Color(0xFF00D9FF),
+                  ),
                   filled: true,
                   fillColor: const Color(0xFF16213E),
                   border: OutlineInputBorder(
@@ -174,7 +177,9 @@ class _AccountLoginScreenState extends State<AccountLoginScreen> {
                 onChanged: (value) {
                   setState(() {
                     _selectedBroker = value!;
-                    final broker = _brokers.firstWhere((b) => b['name'] == value);
+                    final broker = _brokers.firstWhere(
+                      (b) => b['name'] == value,
+                    );
                     if (broker['server']!.isNotEmpty) {
                       _serverController.text = broker['server']!;
                     }
@@ -192,7 +197,10 @@ class _AccountLoginScreenState extends State<AccountLoginScreen> {
                 decoration: InputDecoration(
                   labelText: 'Account Login',
                   hintText: '194302',
-                  prefixIcon: const Icon(Icons.person, color: Color(0xFF00D9FF)),
+                  prefixIcon: const Icon(
+                    Icons.person,
+                    color: Color(0xFF00D9FF),
+                  ),
                   filled: true,
                   fillColor: const Color(0xFF16213E),
                   border: OutlineInputBorder(
@@ -278,7 +286,9 @@ class _AccountLoginScreenState extends State<AccountLoginScreen> {
                         _rememberCredentials = value!;
                       });
                     },
-                    fillColor: MaterialStateProperty.all(const Color(0xFF00D9FF)),
+                    fillColor: MaterialStateProperty.all(
+                      const Color(0xFF00D9FF),
+                    ),
                   ),
                   const Text(
                     'Remember credentials',
@@ -306,7 +316,9 @@ class _AccountLoginScreenState extends State<AccountLoginScreen> {
                         width: 20,
                         child: CircularProgressIndicator(
                           strokeWidth: 2,
-                          valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                          valueColor: AlwaysStoppedAnimation<Color>(
+                            Colors.white,
+                          ),
                         ),
                       )
                     : const Text(
@@ -336,7 +348,11 @@ class _AccountLoginScreenState extends State<AccountLoginScreen> {
                   children: [
                     Row(
                       children: const [
-                        Icon(Icons.info_outline, color: Color(0xFF00D9FF), size: 20),
+                        Icon(
+                          Icons.info_outline,
+                          color: Color(0xFF00D9FF),
+                          size: 20,
+                        ),
                         SizedBox(width: 8),
                         Text(
                           'Demo Account Info',

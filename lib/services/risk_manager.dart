@@ -44,8 +44,10 @@ class RiskManager {
 
     double positionSize = accountBalance * safeFraction;
 
-    _logger.i('Kelly position size: \$${positionSize.toStringAsFixed(2)} '
-        '(${(safeFraction * 100).toStringAsFixed(1)}% of account)');
+    _logger.i(
+      'Kelly position size: \$${positionSize.toStringAsFixed(2)} '
+      '(${(safeFraction * 100).toStringAsFixed(1)}% of account)',
+    );
 
     return positionSize;
   }
@@ -197,7 +199,8 @@ class RiskManager {
 
       if (correlation > 0.7) {
         _logger.w(
-            'High correlation detected: $newSymbol vs ${trade.symbol} ($correlation)');
+          'High correlation detected: $newSymbol vs ${trade.symbol} ($correlation)',
+        );
         return false; // Reject trade due to high correlation
       }
     }

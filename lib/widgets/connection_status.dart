@@ -12,17 +12,9 @@ class ConnectionStatusWidget extends StatelessWidget {
     return Row(
       mainAxisSize: MainAxisSize.min,
       children: [
-        _buildStatusDot(
-          appState.isConnectedToMT4,
-          'MT4',
-          Colors.blue,
-        ),
+        _buildStatusDot(appState.isConnectedToMT4, 'MT4', Colors.blue),
         const SizedBox(width: 8),
-        _buildStatusDot(
-          appState.isTelegramConnected,
-          'TG',
-          Colors.cyan,
-        ),
+        _buildStatusDot(appState.isTelegramConnected, 'TG', Colors.cyan),
       ],
     );
   }

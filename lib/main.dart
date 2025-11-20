@@ -60,9 +60,7 @@ class QuantumTraderApp extends StatelessWidget {
       textTheme: GoogleFonts.interTextTheme(),
       cardTheme: CardTheme(
         elevation: 2,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(12),
-        ),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       ),
       appBarTheme: const AppBarTheme(
         elevation: 0,
@@ -78,9 +76,7 @@ class QuantumTraderApp extends StatelessWidget {
         style: ElevatedButton.styleFrom(
           elevation: 0,
           padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(8),
-          ),
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
         ),
       ),
       inputDecorationTheme: InputDecorationTheme(
@@ -117,9 +113,7 @@ class QuantumTraderApp extends StatelessWidget {
       textTheme: GoogleFonts.interTextTheme(ThemeData.dark().textTheme),
       cardTheme: CardTheme(
         elevation: 4,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(12),
-        ),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
         color: const Color(0xFF1E1E1E),
       ),
       appBarTheme: const AppBarTheme(
@@ -132,9 +126,7 @@ class QuantumTraderApp extends StatelessWidget {
         style: ElevatedButton.styleFrom(
           elevation: 0,
           padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(8),
-          ),
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
         ),
       ),
       inputDecorationTheme: InputDecorationTheme(
@@ -182,7 +174,10 @@ class _MainNavigatorState extends State<MainNavigator> {
 
   Future<void> _initializeServices() async {
     final mt4Service = Provider.of<MT4Service>(context, listen: false);
-    final telegramService = Provider.of<TelegramService>(context, listen: false);
+    final telegramService = Provider.of<TelegramService>(
+      context,
+      listen: false,
+    );
     final mlService = Provider.of<MLService>(context, listen: false);
 
     await mt4Service.initialize();

@@ -2,6 +2,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
 enum TradingMode { conservative, aggressive }
+
 enum TrendDirection { bullish, bearish, neutral }
 
 class AppState extends ChangeNotifier {
@@ -85,7 +86,9 @@ class TradeSignal {
       trend: _parseTrend(json['trend']),
       probability: (json['probability'] ?? 0.0).toDouble(),
       action: json['action'] ?? 'entry',
-      timestamp: DateTime.parse(json['timestamp'] ?? DateTime.now().toIso8601String()),
+      timestamp: DateTime.parse(
+        json['timestamp'] ?? DateTime.now().toIso8601String(),
+      ),
       mlPrediction: json['ml_prediction'],
     );
   }
@@ -139,7 +142,9 @@ class OpenTrade {
       currentPrice: (json['current_price'] ?? 0.0).toDouble(),
       volume: (json['volume'] ?? 0.0).toDouble(),
       profitLoss: (json['profit_loss'] ?? 0.0).toDouble(),
-      openTime: DateTime.parse(json['open_time'] ?? DateTime.now().toIso8601String()),
+      openTime: DateTime.parse(
+        json['open_time'] ?? DateTime.now().toIso8601String(),
+      ),
       predictedWindow: json['predicted_window'],
     );
   }

@@ -25,7 +25,7 @@ class _ModernDashboardScreenState extends State<ModernDashboardScreen>
     'GBPUSD',
     'USDJPY',
     'AUDUSD',
-    'XAUUSD'
+    'XAUUSD',
   ];
 
   final Map<String, List<double>> _priceHistory = {};
@@ -60,7 +60,9 @@ class _ModernDashboardScreenState extends State<ModernDashboardScreen>
         final history = _priceHistory[symbol]!;
         history.removeAt(0);
         final lastPrice = history.last;
-        final change = (lastPrice * 0.001) * (DateTime.now().millisecond % 2 == 0 ? 1 : -1);
+        final change =
+            (lastPrice * 0.001) *
+            (DateTime.now().millisecond % 2 == 0 ? 1 : -1);
         history.add(lastPrice + change);
       }
     });
@@ -129,7 +131,10 @@ class _ModernDashboardScreenState extends State<ModernDashboardScreen>
               tabs: const [
                 Tab(text: 'Overview', icon: Icon(Icons.dashboard, size: 20)),
                 Tab(text: 'Markets', icon: Icon(Icons.trending_up, size: 20)),
-                Tab(text: 'Signals', icon: Icon(Icons.notifications_active, size: 20)),
+                Tab(
+                  text: 'Signals',
+                  icon: Icon(Icons.notifications_active, size: 20),
+                ),
               ],
             ),
           ),
@@ -264,7 +269,10 @@ class _ModernDashboardScreenState extends State<ModernDashboardScreen>
                       children: [
                         Row(
                           children: [
-                            Icon(Icons.analytics, color: theme.colorScheme.primary),
+                            Icon(
+                              Icons.analytics,
+                              color: theme.colorScheme.primary,
+                            ),
                             const SizedBox(width: 12),
                             Text(
                               'Account Performance',
@@ -287,7 +295,10 @@ class _ModernDashboardScreenState extends State<ModernDashboardScreen>
                       height: 200,
                       child: LineChart(
                         LineChartData(
-                          gridData: FlGridData(show: true, drawVerticalLine: false),
+                          gridData: FlGridData(
+                            show: true,
+                            drawVerticalLine: false,
+                          ),
                           titlesData: FlTitlesData(
                             leftTitles: AxisTitles(
                               sideTitles: SideTitles(
@@ -312,15 +323,22 @@ class _ModernDashboardScreenState extends State<ModernDashboardScreen>
                                 },
                               ),
                             ),
-                            rightTitles: AxisTitles(sideTitles: SideTitles(showTitles: false)),
-                            topTitles: AxisTitles(sideTitles: SideTitles(showTitles: false)),
+                            rightTitles: AxisTitles(
+                              sideTitles: SideTitles(showTitles: false),
+                            ),
+                            topTitles: AxisTitles(
+                              sideTitles: SideTitles(showTitles: false),
+                            ),
                           ),
                           borderData: FlBorderData(show: false),
                           lineBarsData: [
                             LineChartBarData(
                               spots: List.generate(
                                 20,
-                                (i) => FlSpot(i.toDouble(), 10000 + (i * 50) + ((i % 3) * 30)),
+                                (i) => FlSpot(
+                                  i.toDouble(),
+                                  10000 + (i * 50) + ((i % 3) * 30),
+                                ),
                               ),
                               isCurved: true,
                               color: theme.colorScheme.primary,
@@ -328,7 +346,9 @@ class _ModernDashboardScreenState extends State<ModernDashboardScreen>
                               dotData: FlDotData(show: false),
                               belowBarData: BarAreaData(
                                 show: true,
-                                color: theme.colorScheme.primary.withOpacity(0.2),
+                                color: theme.colorScheme.primary.withOpacity(
+                                  0.2,
+                                ),
                               ),
                             ),
                           ],
@@ -353,8 +373,10 @@ class _ModernDashboardScreenState extends State<ModernDashboardScreen>
         final symbol = _watchedSymbols[index];
         final priceHistory = _priceHistory[symbol]!;
         final currentPrice = priceHistory.last;
-        final change = priceHistory.last - priceHistory[priceHistory.length - 5];
-        final changePercent = (change / priceHistory[priceHistory.length - 5]) * 100;
+        final change =
+            priceHistory.last - priceHistory[priceHistory.length - 5];
+        final changePercent =
+            (change / priceHistory[priceHistory.length - 5]) * 100;
         final isPositive = change >= 0;
 
         return Card(
@@ -474,10 +496,7 @@ class _ModernDashboardScreenState extends State<ModernDashboardScreen>
                     color: theme.colorScheme.secondary.withOpacity(0.3),
                   ),
                   const SizedBox(height: 16),
-                  Text(
-                    'No Active Signals',
-                    style: theme.textTheme.titleLarge,
-                  ),
+                  Text('No Active Signals', style: theme.textTheme.titleLarge),
                   const SizedBox(height: 8),
                   Text(
                     'Pull down to refresh',
@@ -530,9 +549,7 @@ class _ModernDashboardScreenState extends State<ModernDashboardScreen>
             const SizedBox(height: 12),
             Text(
               label,
-              style: theme.textTheme.bodySmall?.copyWith(
-                color: Colors.grey,
-              ),
+              style: theme.textTheme.bodySmall?.copyWith(color: Colors.grey),
             ),
             const SizedBox(height: 4),
             Text(

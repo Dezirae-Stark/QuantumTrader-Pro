@@ -28,12 +28,18 @@ class _BrokerConfigScreenState extends State<BrokerConfigScreen> {
   Future<void> _loadSettings() async {
     final box = await Hive.openBox('settings');
     setState(() {
-      final providerStr = box.get('broker_provider', defaultValue: 'mt4') as String;
+      final providerStr =
+          box.get('broker_provider', defaultValue: 'mt4') as String;
       _selectedProvider = BrokerProvider.fromString(providerStr);
-      _apiUrlController.text = box.get('broker_api_url', defaultValue: 'http://localhost:8080') as String;
-      _apiKeyController.text = box.get('broker_api_key', defaultValue: '') as String;
-      _apiSecretController.text = box.get('broker_api_secret', defaultValue: '') as String;
-      _accountController.text = box.get('broker_account', defaultValue: '') as String;
+      _apiUrlController.text =
+          box.get('broker_api_url', defaultValue: 'http://localhost:8080')
+              as String;
+      _apiKeyController.text =
+          box.get('broker_api_key', defaultValue: '') as String;
+      _apiSecretController.text =
+          box.get('broker_api_secret', defaultValue: '') as String;
+      _accountController.text =
+          box.get('broker_account', defaultValue: '') as String;
     });
   }
 
@@ -65,8 +71,12 @@ class _BrokerConfigScreenState extends State<BrokerConfigScreen> {
       final brokerService = BrokerServiceFactory.create(
         provider: _selectedProvider,
         apiUrl: _apiUrlController.text,
-        apiKey: _apiKeyController.text.isNotEmpty ? _apiKeyController.text : null,
-        apiSecret: _apiSecretController.text.isNotEmpty ? _apiSecretController.text : null,
+        apiKey: _apiKeyController.text.isNotEmpty
+            ? _apiKeyController.text
+            : null,
+        apiSecret: _apiSecretController.text.isNotEmpty
+            ? _apiSecretController.text
+            : null,
       );
 
       final connected = await brokerService.testConnection();
@@ -80,9 +90,7 @@ class _BrokerConfigScreenState extends State<BrokerConfigScreen> {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(
-              connected
-                ? '✓ Connection successful!'
-                : '✗ Connection failed',
+              connected ? '✓ Connection successful!' : '✗ Connection failed',
             ),
             backgroundColor: connected ? Colors.green : Colors.red,
           ),
@@ -198,7 +206,8 @@ class _BrokerConfigScreenState extends State<BrokerConfigScreen> {
                                 const SizedBox(width: 12),
                                 Expanded(
                                   child: Column(
-                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
                                     children: [
                                       Text(
                                         provider.displayName,
@@ -416,10 +425,7 @@ class _BrokerConfigScreenState extends State<BrokerConfigScreen> {
                 child: Row(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Icon(
-                      Icons.info_outline,
-                      color: Colors.blue.shade700,
-                    ),
+                    Icon(Icons.info_outline, color: Colors.blue.shade700),
                     const SizedBox(width: 12),
                     Expanded(
                       child: Column(

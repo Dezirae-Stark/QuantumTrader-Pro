@@ -48,7 +48,9 @@ class MLService {
     return null;
   }
 
-  Future<Map<String, dynamic>?> loadPredictionFromAsset(String assetPath) async {
+  Future<Map<String, dynamic>?> loadPredictionFromAsset(
+    String assetPath,
+  ) async {
     try {
       final jsonString = await rootBundle.loadString(assetPath);
       final data = json.decode(jsonString);
@@ -104,9 +106,8 @@ class MLService {
     }
 
     // Simulated trend analysis
-    final avgChange = priceHistory
-            .sublist(priceHistory.length - 5)
-            .reduce((a, b) => a + b) /
+    final avgChange =
+        priceHistory.sublist(priceHistory.length - 5).reduce((a, b) => a + b) /
         5;
     final isUptrend = avgChange > 0;
 
@@ -125,7 +126,8 @@ class MLService {
     try {
       return MLPrediction(
         trendProbabilities: List<double>.from(
-            _lastPrediction!['trend_probabilities'] ?? [0.33, 0.33, 0.34]),
+          _lastPrediction!['trend_probabilities'] ?? [0.33, 0.33, 0.34],
+        ),
         entryProbability: _lastPrediction!['entry_probability'] ?? 0.5,
         exitProbability: _lastPrediction!['exit_probability'] ?? 0.5,
         confidenceScore: _lastPrediction!['confidence_score'] ?? 0.5,

@@ -57,24 +57,34 @@ class CantileverHedgeManager {
 
         _logger.i(
           'Cantilever activated! Locking ${(cantileverLockPercent * 100).toStringAsFixed(0)}% '
-          'of profit. New stop: ${stopLossPrice.toStringAsFixed(5)}'
+          'of profit. New stop: ${stopLossPrice.toStringAsFixed(5)}',
         );
       }
     }
 
     // Calculate profit if stopped out now
     double lockedProfitAmount = isBuy
-        ? (stopLossPrice - entryPrice) * trade.volume * 100000 // Simplified
+        ? (stopLossPrice - entryPrice) *
+              trade.volume *
+              100000 // Simplified
         : (entryPrice - stopLossPrice) * trade.volume * 100000;
 
     return CantileverStop(
       stopLossPrice: stopLossPrice,
       lockedProfitAmount: lockedProfitAmount,
-      profitSteps: profitPips > 0 ? (profitPercent / cantileverStepSize).floor() : 0,
+      profitSteps: profitPips > 0
+          ? (profitPercent / cantileverStepSize).floor()
+          : 0,
       isActive: profitPercent > cantileverStepSize,
       nextTriggerPrice: isBuy
-          ? entryPrice + ((profitPercent / cantileverStepSize).ceil() + 1) * cantileverStepSize * entryPrice
-          : entryPrice - ((profitPercent / cantileverStepSize).ceil() + 1) * cantileverStepSize * entryPrice,
+          ? entryPrice +
+                ((profitPercent / cantileverStepSize).ceil() + 1) *
+                    cantileverStepSize *
+                    entryPrice
+          : entryPrice -
+                ((profitPercent / cantileverStepSize).ceil() + 1) *
+                    cantileverStepSize *
+                    entryPrice,
     );
   }
 
@@ -104,7 +114,9 @@ class CantileverHedgeManager {
     _logger.i('Activating counter-hedge recovery system...');
 
     // Determine hedge direction (opposite of original)
-    String hedgeDirection = originalTrade.type.toLowerCase() == 'buy' ? 'sell' : 'buy';
+    String hedgeDirection = originalTrade.type.toLowerCase() == 'buy'
+        ? 'sell'
+        : 'buy';
 
     // Calculate hedge position size
     double hedgeVolume = originalTrade.volume * hedgeMultiplier * userRiskScale;
@@ -112,10 +124,14 @@ class CantileverHedgeManager {
     // Use ML confidence to adjust hedge size
     if (mlConfidence > 0.75) {
       hedgeVolume *= 1.2; // Larger hedge if ML is confident
-      _logger.i('ML high confidence (${mlConfidence.toStringAsFixed(2)}), increasing hedge by 20%');
+      _logger.i(
+        'ML high confidence (${mlConfidence.toStringAsFixed(2)}), increasing hedge by 20%',
+      );
     } else if (mlConfidence < 0.55) {
       hedgeVolume *= 0.8; // Smaller hedge if uncertain
-      _logger.i('ML low confidence (${mlConfidence.toStringAsFixed(2)}), reducing hedge by 20%');
+      _logger.i(
+        'ML low confidence (${mlConfidence.toStringAsFixed(2)}), reducing hedge by 20%',
+      );
     }
 
     // Calculate break-even targets for both positions
@@ -166,8 +182,12 @@ class CantileverHedgeManager {
     // Current P&L of both positions
     bool originalIsBuy = originalTrade.type.toLowerCase() == 'buy';
     double originalPnL = originalIsBuy
-        ? (currentPrice - originalTrade.entryPrice) * originalTrade.volume * 100000
-        : (originalTrade.entryPrice - currentPrice) * originalTrade.volume * 100000;
+        ? (currentPrice - originalTrade.entryPrice) *
+              originalTrade.volume *
+              100000
+        : (originalTrade.entryPrice - currentPrice) *
+              originalTrade.volume *
+              100000;
 
     bool hedgeIsBuy = hedge.hedgeDirection == 'buy';
     double hedgePnL = hedgeIsBuy
@@ -183,93 +203,140 @@ class CantileverHedgeManager {
 
     // Strategy 1: If combined is profitable, close both
     if (totalPnL > hedge.totalLossToRecover * 0.5) {
-      steps.add(LegOutStep(
-        action: 'Close both positions',
-        reason: 'Combined profit exceeds 50% of original loss',
-        timing: 'Immediate',
-        expectedProfit: totalPnL,
-      ));
+      steps.add(
+        LegOutStep(
+          action: 'Close both positions',
+          reason: 'Combined profit exceeds 50% of original loss',
+          timing: 'Immediate',
+          expectedProfit: totalPnL,
+        ),
+      );
       return LegOutPlan(steps: steps, strategy: 'Close both', confidence: 0.95);
     }
 
     // Strategy 2: Close profitable side first, ride the winner
     if (originalPnL > 0 && hedgePnL > originalPnL) {
       // Hedge is more profitable, close original first
-      steps.add(LegOutStep(
-        action: 'Close original position first',
-        reason: 'Original is profitable but hedge is better',
-        timing: 'When original hits +${(originalPnL * 1.2).toStringAsFixed(2)}',
-        expectedProfit: originalPnL,
-      ));
-      steps.add(LegOutStep(
-        action: 'Ride hedge to target: ${hedge.hedgeTargetPrice.toStringAsFixed(5)}',
-        reason: 'ML trend probability: ${mlTrendProbability.toStringAsFixed(2)}',
-        timing: 'Let run with trailing stop',
-        expectedProfit: hedgePnL * 1.5,
-      ));
-      return LegOutPlan(steps: steps, strategy: 'Close original, ride hedge', confidence: mlTrendProbability);
+      steps.add(
+        LegOutStep(
+          action: 'Close original position first',
+          reason: 'Original is profitable but hedge is better',
+          timing:
+              'When original hits +${(originalPnL * 1.2).toStringAsFixed(2)}',
+          expectedProfit: originalPnL,
+        ),
+      );
+      steps.add(
+        LegOutStep(
+          action:
+              'Ride hedge to target: ${hedge.hedgeTargetPrice.toStringAsFixed(5)}',
+          reason:
+              'ML trend probability: ${mlTrendProbability.toStringAsFixed(2)}',
+          timing: 'Let run with trailing stop',
+          expectedProfit: hedgePnL * 1.5,
+        ),
+      );
+      return LegOutPlan(
+        steps: steps,
+        strategy: 'Close original, ride hedge',
+        confidence: mlTrendProbability,
+      );
     } else if (hedgePnL > 0 && originalPnL > hedgePnL) {
       // Original is more profitable, close hedge first
-      steps.add(LegOutStep(
-        action: 'Close hedge position first',
-        reason: 'Hedge is profitable but original is better',
-        timing: 'When hedge hits +${(hedgePnL * 1.2).toStringAsFixed(2)}',
-        expectedProfit: hedgePnL,
-      ));
-      steps.add(LegOutStep(
-        action: 'Ride original to recovery target',
-        reason: 'Original trend resuming',
-        timing: 'Let run with cantilever stop',
-        expectedProfit: originalPnL * 1.5,
-      ));
-      return LegOutPlan(steps: steps, strategy: 'Close hedge, ride original', confidence: 1.0 - mlTrendProbability);
+      steps.add(
+        LegOutStep(
+          action: 'Close hedge position first',
+          reason: 'Hedge is profitable but original is better',
+          timing: 'When hedge hits +${(hedgePnL * 1.2).toStringAsFixed(2)}',
+          expectedProfit: hedgePnL,
+        ),
+      );
+      steps.add(
+        LegOutStep(
+          action: 'Ride original to recovery target',
+          reason: 'Original trend resuming',
+          timing: 'Let run with cantilever stop',
+          expectedProfit: originalPnL * 1.5,
+        ),
+      );
+      return LegOutPlan(
+        steps: steps,
+        strategy: 'Close hedge, ride original',
+        confidence: 1.0 - mlTrendProbability,
+      );
     }
 
     // Strategy 3: Partial close, reduce risk
     if (totalPnL > 0 && totalPnL < hedge.totalLossToRecover * 0.5) {
-      steps.add(LegOutStep(
-        action: 'Partial close 50% of both positions',
-        reason: 'Lock in partial profit, reduce risk',
-        timing: 'Immediate',
-        expectedProfit: totalPnL * 0.5,
-      ));
-      steps.add(LegOutStep(
-        action: 'Trail remaining 50%',
-        reason: 'Let profitable portion run',
-        timing: 'Based on volatility: ${(volatility * 100).toStringAsFixed(2)}%',
-        expectedProfit: totalPnL * 0.75,
-      ));
-      return LegOutPlan(steps: steps, strategy: 'Partial close, trail remainder', confidence: 0.75);
+      steps.add(
+        LegOutStep(
+          action: 'Partial close 50% of both positions',
+          reason: 'Lock in partial profit, reduce risk',
+          timing: 'Immediate',
+          expectedProfit: totalPnL * 0.5,
+        ),
+      );
+      steps.add(
+        LegOutStep(
+          action: 'Trail remaining 50%',
+          reason: 'Let profitable portion run',
+          timing:
+              'Based on volatility: ${(volatility * 100).toStringAsFixed(2)}%',
+          expectedProfit: totalPnL * 0.75,
+        ),
+      );
+      return LegOutPlan(
+        steps: steps,
+        strategy: 'Partial close, trail remainder',
+        confidence: 0.75,
+      );
     }
 
     // Strategy 4: Both negative, wait for reversal
     if (totalPnL < 0) {
-      double requiredMove = (hedge.totalLossToRecover - totalPnL) / (hedge.hedgeVolume * 100000);
+      double requiredMove =
+          (hedge.totalLossToRecover - totalPnL) / (hedge.hedgeVolume * 100000);
 
-      steps.add(LegOutStep(
-        action: 'Hold both positions',
-        reason: 'Waiting for market reversal',
-        timing: 'Until combined P&L > 0 or ${requiredMove.toStringAsFixed(5)} pip move',
-        expectedProfit: 0,
-      ));
-      steps.add(LegOutStep(
-        action: 'Set combined stop loss',
-        reason: 'Prevent catastrophic loss',
-        timing: 'If total loss exceeds ${(hedge.totalLossToRecover * 1.5).toStringAsFixed(2)}',
-        expectedProfit: -hedge.totalLossToRecover * 1.5,
-      ));
-      return LegOutPlan(steps: steps, strategy: 'Wait for reversal', confidence: 0.50);
+      steps.add(
+        LegOutStep(
+          action: 'Hold both positions',
+          reason: 'Waiting for market reversal',
+          timing:
+              'Until combined P&L > 0 or ${requiredMove.toStringAsFixed(5)} pip move',
+          expectedProfit: 0,
+        ),
+      );
+      steps.add(
+        LegOutStep(
+          action: 'Set combined stop loss',
+          reason: 'Prevent catastrophic loss',
+          timing:
+              'If total loss exceeds ${(hedge.totalLossToRecover * 1.5).toStringAsFixed(2)}',
+          expectedProfit: -hedge.totalLossToRecover * 1.5,
+        ),
+      );
+      return LegOutPlan(
+        steps: steps,
+        strategy: 'Wait for reversal',
+        confidence: 0.50,
+      );
     }
 
     // Default: Close both at break-even
-    steps.add(LegOutStep(
-      action: 'Close both at break-even',
-      reason: 'Neutral strategy',
-      timing: 'When combined P&L ≥ 0',
-      expectedProfit: 0,
-    ));
+    steps.add(
+      LegOutStep(
+        action: 'Close both at break-even',
+        reason: 'Neutral strategy',
+        timing: 'When combined P&L ≥ 0',
+        expectedProfit: 0,
+      ),
+    );
 
-    return LegOutPlan(steps: steps, strategy: 'Break-even exit', confidence: 0.60);
+    return LegOutPlan(
+      steps: steps,
+      strategy: 'Break-even exit',
+      confidence: 0.60,
+    );
   }
 
   /// Scale risk based on user settings
@@ -361,7 +428,8 @@ class LegOutPlan {
 
   @override
   String toString() {
-    String output = 'Leg-Out Strategy: $strategy (Confidence: ${(confidence * 100).toStringAsFixed(0)}%)\n';
+    String output =
+        'Leg-Out Strategy: $strategy (Confidence: ${(confidence * 100).toStringAsFixed(0)}%)\n';
     for (int i = 0; i < steps.length; i++) {
       output += 'Step ${i + 1}: ${steps[i]}\n';
     }

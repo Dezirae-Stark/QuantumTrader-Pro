@@ -36,10 +36,7 @@ class _PortfolioScreenState extends State<PortfolioScreen> {
       appBar: AppBar(
         title: const Text('Portfolio'),
         actions: [
-          IconButton(
-            onPressed: _loadTrades,
-            icon: const Icon(Icons.refresh),
-          ),
+          IconButton(onPressed: _loadTrades, icon: const Icon(Icons.refresh)),
         ],
       ),
       body: RefreshIndicator(
@@ -62,10 +59,11 @@ class _PortfolioScreenState extends State<PortfolioScreen> {
                   borderRadius: BorderRadius.circular(16),
                   boxShadow: [
                     BoxShadow(
-                      color: (appState.totalPnL >= 0
-                              ? Color(0xFF4CAF50)
-                              : Color(0xFFF44336))
-                          .withOpacity(0.3),
+                      color:
+                          (appState.totalPnL >= 0
+                                  ? Color(0xFF4CAF50)
+                                  : Color(0xFFF44336))
+                              .withOpacity(0.3),
                       blurRadius: 12,
                       offset: Offset(0, 4),
                     ),
@@ -156,13 +154,10 @@ class _PortfolioScreenState extends State<PortfolioScreen> {
                 : SliverPadding(
                     padding: const EdgeInsets.symmetric(horizontal: 16),
                     sliver: SliverList(
-                      delegate: SliverChildBuilderDelegate(
-                        (context, index) {
-                          final trade = appState.openTrades[index];
-                          return TradeCard(trade: trade);
-                        },
-                        childCount: appState.openTrades.length,
-                      ),
+                      delegate: SliverChildBuilderDelegate((context, index) {
+                        final trade = appState.openTrades[index];
+                        return TradeCard(trade: trade);
+                      }, childCount: appState.openTrades.length),
                     ),
                   ),
 
@@ -311,10 +306,7 @@ class TradeCard extends StatelessWidget {
         const SizedBox(height: 4),
         Text(
           value,
-          style: const TextStyle(
-            fontSize: 14,
-            fontWeight: FontWeight.w600,
-          ),
+          style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w600),
         ),
       ],
     );

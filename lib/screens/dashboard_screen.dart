@@ -49,10 +49,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
             const Text('QuantumTrader Pro'),
           ],
         ),
-        actions: [
-          ConnectionStatusWidget(),
-          const SizedBox(width: 8),
-        ],
+        actions: [ConnectionStatusWidget(), const SizedBox(width: 8)],
       ),
       body: RefreshIndicator(
         onRefresh: _loadSignals,
@@ -117,13 +114,10 @@ class _DashboardScreenState extends State<DashboardScreen> {
                   crossAxisSpacing: 12,
                   mainAxisSpacing: 12,
                 ),
-                delegate: SliverChildBuilderDelegate(
-                  (context, index) {
-                    final symbol = _watchedSymbols[index];
-                    return TrendIndicatorCard(symbol: symbol);
-                  },
-                  childCount: _watchedSymbols.length,
-                ),
+                delegate: SliverChildBuilderDelegate((context, index) {
+                  final symbol = _watchedSymbols[index];
+                  return TrendIndicatorCard(symbol: symbol);
+                }, childCount: _watchedSymbols.length),
               ),
             ),
 
@@ -134,10 +128,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Text(
-                      'Recent Signals',
-                      style: theme.textTheme.titleLarge,
-                    ),
+                    Text('Recent Signals', style: theme.textTheme.titleLarge),
                     TextButton.icon(
                       onPressed: _loadSignals,
                       icon: const Icon(Icons.refresh),
@@ -177,13 +168,10 @@ class _DashboardScreenState extends State<DashboardScreen> {
                 : SliverPadding(
                     padding: const EdgeInsets.symmetric(horizontal: 16.0),
                     sliver: SliverList(
-                      delegate: SliverChildBuilderDelegate(
-                        (context, index) {
-                          final signal = appState.signals[index];
-                          return SignalCard(signal: signal);
-                        },
-                        childCount: appState.signals.length,
-                      ),
+                      delegate: SliverChildBuilderDelegate((context, index) {
+                        final signal = appState.signals[index];
+                        return SignalCard(signal: signal);
+                      }, childCount: appState.signals.length),
                     ),
                   ),
 

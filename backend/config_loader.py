@@ -262,7 +262,6 @@ def get_config(config_file: Optional[str] = None) -> Config:
 
 def reload_config():
     """Reload global configuration"""
-    global _config
     if _config:
         _config.reload()
 

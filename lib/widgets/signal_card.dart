@@ -50,8 +50,8 @@ class SignalCard extends StatelessWidget {
                               signal.trend == TrendDirection.bullish
                                   ? Icons.arrow_upward
                                   : signal.trend == TrendDirection.bearish
-                                      ? Icons.arrow_downward
-                                      : Icons.remove,
+                                  ? Icons.arrow_downward
+                                  : Icons.remove,
                               size: 16,
                               color: signal.getTrendColor(),
                             ),
@@ -116,15 +116,10 @@ class SignalCard extends StatelessWidget {
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      Text(
-                        'Probability',
-                        style: theme.textTheme.bodySmall,
-                      ),
+                      Text('Probability', style: theme.textTheme.bodySmall),
                       Text(
                         '${(signal.probability * 100).toStringAsFixed(1)}%',
-                        style: const TextStyle(
-                          fontWeight: FontWeight.bold,
-                        ),
+                        style: const TextStyle(fontWeight: FontWeight.bold),
                       ),
                     ],
                   ),

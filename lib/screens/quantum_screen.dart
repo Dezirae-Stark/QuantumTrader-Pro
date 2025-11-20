@@ -482,7 +482,9 @@ class _QuantumScreenState extends State<QuantumScreen> {
                 ),
               )
             else
-              ..._quantumPredictions.map((pred) => _buildPredictionRow(pred, theme)),
+              ..._quantumPredictions.map(
+                (pred) => _buildPredictionRow(pred, theme),
+              ),
           ],
         ),
       ),
@@ -585,10 +587,30 @@ class _QuantumScreenState extends State<QuantumScreen> {
               ),
             ),
             const SizedBox(height: 16),
-            _buildPerformanceRow('Win Rate Target', '94.7%', Colors.purple, theme),
-            _buildPerformanceRow('Current Win Rate', '92.3%', Colors.green, theme),
-            _buildPerformanceRow('Trades Analyzed', '1,247', Colors.blue, theme),
-            _buildPerformanceRow('Learning Status', 'Active', Colors.orange, theme),
+            _buildPerformanceRow(
+              'Win Rate Target',
+              '94.7%',
+              Colors.purple,
+              theme,
+            ),
+            _buildPerformanceRow(
+              'Current Win Rate',
+              '92.3%',
+              Colors.green,
+              theme,
+            ),
+            _buildPerformanceRow(
+              'Trades Analyzed',
+              '1,247',
+              Colors.blue,
+              theme,
+            ),
+            _buildPerformanceRow(
+              'Learning Status',
+              'Active',
+              Colors.orange,
+              theme,
+            ),
             const SizedBox(height: 16),
             LinearProgressIndicator(
               value: 0.923 / 0.947, // Current / Target
@@ -608,7 +630,12 @@ class _QuantumScreenState extends State<QuantumScreen> {
     );
   }
 
-  Widget _buildPerformanceRow(String label, String value, Color color, ThemeData theme) {
+  Widget _buildPerformanceRow(
+    String label,
+    String value,
+    Color color,
+    ThemeData theme,
+  ) {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 4),
       child: Row(
@@ -623,10 +650,7 @@ class _QuantumScreenState extends State<QuantumScreen> {
             ),
             child: Text(
               value,
-              style: TextStyle(
-                color: color,
-                fontWeight: FontWeight.bold,
-              ),
+              style: TextStyle(color: color, fontWeight: FontWeight.bold),
             ),
           ),
         ],
@@ -650,10 +674,7 @@ class _QuantumScreenState extends State<QuantumScreen> {
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
             Text(label, style: theme.textTheme.bodyMedium),
-            Text(
-              value,
-              style: const TextStyle(fontWeight: FontWeight.bold),
-            ),
+            Text(value, style: const TextStyle(fontWeight: FontWeight.bold)),
           ],
         ),
         Slider(
