@@ -10,6 +10,10 @@
 ![Python](https://img.shields.io/badge/python-3.11%2B-blue.svg)
 ![Flutter](https://img.shields.io/badge/flutter-3.0%2B-blue.svg)
 
+[![Python Backend CI](https://github.com/Dezirae-Stark/QuantumTrader-Pro/actions/workflows/python-backend-ci.yml/badge.svg)](https://github.com/Dezirae-Stark/QuantumTrader-Pro/actions/workflows/python-backend-ci.yml)
+[![Flutter Desktop Build](https://github.com/Dezirae-Stark/QuantumTrader-Pro/actions/workflows/flutter-desktop-build.yml/badge.svg)](https://github.com/Dezirae-Stark/QuantumTrader-Pro/actions/workflows/flutter-desktop-build.yml)
+[![Code Quality](https://github.com/Dezirae-Stark/QuantumTrader-Pro/actions/workflows/code-quality.yml/badge.svg)](https://github.com/Dezirae-Stark/QuantumTrader-Pro/actions/workflows/code-quality.yml)
+
 **First Sterling QuantumTrader Pro**
 Quantum Mechanics & AI-Powered Trading System
 

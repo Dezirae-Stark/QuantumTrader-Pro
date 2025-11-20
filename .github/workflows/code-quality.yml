@@ -1,0 +1,196 @@
+name: Code Quality
+
+on:
+  push:
+    branches: [ main, desktop, develop ]
+  pull_request:
+    branches: [ main, desktop ]
+
+jobs:
+  flutter-analyze:
+    name: Flutter Analysis
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Setup Flutter
+      uses: subosito/flutter-action@v2
+      with:
+        flutter-version: '3.19.0'
+        channel: 'stable'
+        cache: true
+
+    - name: Get dependencies
+      run: flutter pub get
+
+    - name: Verify formatting
+      run: dart format --output=none --set-exit-if-changed .
+
+    - name: Analyze project source
+      run: flutter analyze --no-fatal-infos
+
+    - name: Check for outdated dependencies
+      run: flutter pub outdated || true
+
+  python-lint:
+    name: Python Linting
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Set up Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: '3.11'
+
+    - name: Install linting tools
+      run: |
+        python -m pip install --upgrade pip
+        pip install flake8 pylint black isort mypy
+
+    - name: Lint with flake8
+      run: |
+        # Stop on syntax errors or undefined names
+        flake8 backend ml brokers --count --select=E9,F63,F7,F82 --show-source --statistics
+        # Treat all errors as warnings
+        flake8 backend ml brokers --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics
+
+    - name: Check code formatting with black
+      run: |
+        black --check backend ml brokers tests || true
+
+    - name: Check import sorting with isort
+      run: |
+        isort --check-only backend ml brokers tests || true
+
+    - name: Lint with pylint
+      run: |
+        pylint backend ml brokers --exit-zero --max-line-length=127 || true
+
+  markdown-lint:
+    name: Markdown Linting
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Lint markdown files
+      uses: articulate/actions-markdownlint@v1
+      with:
+        config: .markdownlint.json
+        files: '**/*.md'
+        ignore: node_modules
+      continue-on-error: true
+
+  yaml-lint:
+    name: YAML Validation
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Install yamllint
+      run: pip install yamllint
+
+    - name: Lint YAML files
+      run: |
+        yamllint -d "{extends: default, rules: {line-length: {max: 120}}}" \
+          configs/*.yaml \
+          .github/workflows/*.yml \
+          || true
+
+  json-validate:
+    name: JSON Schema Validation
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Validate JSON schemas
+      run: |
+        python -c "
+        import json
+        import os
+        from pathlib import Path
+
+        schemas_dir = Path('schemas')
+        errors = []
+        valid_count = 0
+
+        for schema_file in schemas_dir.glob('*.json'):
+            try:
+                with open(schema_file, 'r') as f:
+                    schema = json.load(f)
+
+                # Check required schema fields
+                if '\$schema' not in schema:
+                    errors.append(f'{schema_file.name}: Missing \$schema field')
+
+                if 'type' not in schema:
+                    errors.append(f'{schema_file.name}: Missing type field')
+
+                print(f'✓ {schema_file.name}')
+                valid_count += 1
+            except json.JSONDecodeError as e:
+                errors.append(f'{schema_file.name}: {e}')
+                print(f'✗ {schema_file.name}: {e}')
+            except Exception as e:
+                errors.append(f'{schema_file.name}: Unexpected error: {e}')
+                print(f'✗ {schema_file.name}: {e}')
+
+        print(f'\nValidated {valid_count} schemas')
+
+        if errors:
+            print(f'\nErrors found:')
+            for error in errors:
+                print(f'  - {error}')
+            exit(1)
+        else:
+            print('All schemas valid!')
+        "
+
+  dependency-review:
+    name: Dependency Review
+    runs-on: ubuntu-latest
+    if: github.event_name == 'pull_request'
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Dependency Review
+      uses: actions/dependency-review-action@v4
+      with:
+        fail-on-severity: moderate
+
+  code-quality-status:
+    name: Code Quality Status
+    runs-on: ubuntu-latest
+    needs: [flutter-analyze, python-lint, markdown-lint, yaml-lint, json-validate]
+    if: always()
+
+    steps:
+    - name: Check status
+      run: |
+        echo "Flutter Analysis: ${{ needs.flutter-analyze.result }}"
+        echo "Python Linting: ${{ needs.python-lint.result }}"
+        echo "Markdown Linting: ${{ needs.markdown-lint.result }}"
+        echo "YAML Linting: ${{ needs.yaml-lint.result }}"
+        echo "JSON Validation: ${{ needs.json-validate.result }}"
+
+        if [ "${{ needs.flutter-analyze.result }}" == "success" ] && \
+           [ "${{ needs.python-lint.result }}" == "success" ] && \
+           [ "${{ needs.json-validate.result }}" == "success" ]; then
+          echo "✓ Critical checks passed"
+          exit 0
+        else
+          echo "✗ Some critical checks failed"
+          exit 1
+        fi
