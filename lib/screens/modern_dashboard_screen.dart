@@ -3,7 +3,6 @@ import 'package:provider/provider.dart';
 import 'package:fl_chart/fl_chart.dart';
 import 'dart:async';
 import '../models/app_state.dart';
-import '../services/broker_service.dart';
 import '../widgets/signal_card.dart';
 import '../widgets/connection_status.dart';
 import 'broker_config_screen.dart';
@@ -69,7 +68,6 @@ class _ModernDashboardScreenState extends State<ModernDashboardScreen>
   }
 
   Future<void> _loadSignals() async {
-    final appState = Provider.of<AppState>(context, listen: false);
     // TODO: Fetch from broker service
     // For now, keep existing logic
   }

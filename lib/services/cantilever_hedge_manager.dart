@@ -1,4 +1,3 @@
-import 'dart:math';
 import 'package:logger/logger.dart';
 import '../models/app_state.dart';
 
@@ -135,7 +134,6 @@ class CantileverHedgeManager {
     }
 
     // Calculate break-even targets for both positions
-    double originalEntryPrice = originalTrade.entryPrice;
     double hedgeEntryPrice = currentPrice;
 
     // Both positions need to net zero loss

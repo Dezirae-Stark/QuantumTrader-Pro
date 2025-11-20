@@ -8,11 +8,9 @@ class MT4Service {
   final Logger _logger = Logger();
   Timer? _pollTimer;
   String _apiEndpoint = 'http://localhost:8080'; // Default endpoint
-  bool _isInitialized = false;
 
   Future<void> initialize() async {
     _logger.i('Initializing MT4 Service...');
-    _isInitialized = true;
     startPolling();
   }
 

@@ -250,32 +250,31 @@ Closes #123
 
 ### Commit Signing (Required)
 
-All commits **must be signed** with GPG for security.
+All commits **must be signed** with GPG for security verification.
 
-#### Setup GPG Signing
+#### Quick Setup
 
-1. **Generate GPG key** (if you don't have one):
-   ```bash
-   gpg --full-generate-key
-   # Choose: RSA, 4096 bits, no expiration (or set expiration)
-   ```
+```bash
+# Verify GPG setup
+./scripts/verify_gpg_setup.sh
 
-2. **List your keys**:
-   ```bash
-   gpg --list-secret-keys --keyid-format=long
-   ```
+# Export public key for GitHub
+./scripts/export_gpg_key.sh
+```
 
-3. **Configure Git** to use your key:
+#### Detailed Setup Guide
+
+For comprehensive GPG setup instructions, see **[docs/GPG_SETUP.md](docs/GPG_SETUP.md)**
+
+Quick steps:
+1. Install GPG: `pkg install gnupg` (Termux) or `brew install gnupg` (macOS)
+2. Generate key: `gpg --full-generate-key` (RSA 4096, match Git email)
+3. Configure Git:
    ```bash
    git config --global user.signingkey YOUR_GPG_KEY_ID
    git config --global commit.gpgsign true
    ```
-
-4. **Add GPG key to GitHub**:
-   ```bash
-   gpg --armor --export YOUR_GPG_KEY_ID
-   # Copy output and add to GitHub Settings → SSH and GPG keys
-   ```
+4. Add key to GitHub: https://github.com/settings/keys
 
 #### Troubleshooting GPG Signing
 

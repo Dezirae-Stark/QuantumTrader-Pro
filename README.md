@@ -836,6 +836,7 @@ This project is licensed under the **MIT License** - see [LICENSE](LICENSE) for 
 - **[docs/SECRETS_MANAGEMENT.md](docs/SECRETS_MANAGEMENT.md)** - Comprehensive secrets management guide
 - **[docs/GITHUB_SECRETS.md](docs/GITHUB_SECRETS.md)** - GitHub Secrets setup for CI/CD
 - **[docs/SECURITY.md](docs/SECURITY.md)** - Security best practices and guidelines
+- **[docs/GPG_SETUP.md](docs/GPG_SETUP.md)** - GPG commit signing setup and verification
 
 ### Phase Documentation
 - **Phase 1:** JSON schema validation and config-driven architecture ✅
@@ -846,7 +847,7 @@ This project is licensed under the **MIT License** - see [LICENSE](LICENSE) for 
 - **Phase 6:** Repository restructuring and documentation ✅
 - **Phase 7:** GitHub Actions CI/CD ✅
 - **Phase 8:** Environment and secrets management ✅
-- **Phase 9:** Signed commits with GPG (planned)
+- **Phase 9:** Signed commits with GPG ✅
 - **Phase 10:** Comprehensive documentation updates (planned)
 
 ### API Documentation
