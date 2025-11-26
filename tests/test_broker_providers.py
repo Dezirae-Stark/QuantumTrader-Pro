@@ -122,7 +122,7 @@ def test_tick_dataclass():
 
     assert tick.symbol == 'EURUSD'
     assert tick.mid == 1.0851  # (bid + ask) / 2
-    assert tick.spread == 0.0002  # ask - bid
+    assert pytest.approx(tick.spread) == 0.0002  # ask - bid
 
 
 def test_ohlc_dataclass():
@@ -222,14 +222,15 @@ def test_mt4_symbol_info_gold():
     assert info.pip_size == 0.01
 
 
-@patch('requests.Session.get')
-def test_generic_broker_connect(mock_get):
+@patch('requests.Session.request')
+def test_generic_broker_connect(mock_request):
     """Test generic broker connection"""
     # Mock successful health check
     mock_response = Mock()
     mock_response.status_code = 200
     mock_response.json.return_value = {'status': 'ok'}
-    mock_get.return_value = mock_response
+    mock_response.raise_for_status = Mock()
+    mock_request.return_value = mock_response
 
     config = {
         'api_url': 'http://localhost:8080',
@@ -243,11 +244,11 @@ def test_generic_broker_connect(mock_get):
 
     assert result is True
     assert broker.is_connected()
-    mock_get.assert_called_once()
+    mock_request.assert_called_once_with('GET', 'http://localhost:8080/api/health', timeout=30, verify=True)
 
 
-@patch('requests.Session.get')
-def test_generic_broker_get_live_price(mock_get):
+@patch('requests.Session.request')
+def test_generic_broker_get_live_price(mock_request):
     """Test getting live price from generic broker"""
     # Mock price response
     mock_response = Mock()
@@ -257,7 +258,8 @@ def test_generic_broker_get_live_price(mock_get):
         'ask': 1.0852,
         'timestamp': '2025-11-20T10:00:00Z'
     }
-    mock_get.return_value = mock_response
+    mock_response.raise_for_status = Mock()
+    mock_request.return_value = mock_response
 
     config = {
         'api_url': 'http://localhost:8080',

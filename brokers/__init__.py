@@ -14,7 +14,9 @@ from .base_provider import (
     OHLC,
     Order,
     OrderType,
-    OrderSide
+    OrderSide,
+    OrderStatus,
+    AccountInfo
 )
 from .factory import (
     create_broker_provider,
@@ -33,6 +35,8 @@ __all__ = [
     'Order',
     'OrderType',
     'OrderSide',
+    'OrderStatus',
+    'AccountInfo',
     'create_broker_provider',
     'get_available_brokers',
     'is_broker_available',
