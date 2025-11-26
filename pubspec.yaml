@@ -54,8 +54,8 @@ dependencies:
   uuid: ^4.3.3
   logger: ^2.0.2+1
 
-  # Notifications
-  flutter_local_notifications: ^16.3.0
+  # Notifications (temporarily disabled for build compatibility)
+  # flutter_local_notifications: ^16.3.0
 
   # Permissions
   permission_handler: ^11.1.0

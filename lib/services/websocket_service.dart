@@ -190,15 +190,12 @@ class WebSocketService {
   void _handleSignalUpdate(Map<String, dynamic> data) {
     final signal = TradeSignal(
       id: data['id'] ?? DateTime.now().millisecondsSinceEpoch.toString(),
-      symbol: data['symbol'],
-      type: data['prediction'] == 'BUY' ? TradeType.buy : TradeType.sell,
-      confidence: data['confidence'].toDouble(),
-      predictedPrice: data['predicted_price']?.toDouble() ?? 0.0,
-      upperBound: data['upper_bound']?.toDouble() ?? 0.0,
-      lowerBound: data['lower_bound']?.toDouble() ?? 0.0,
+      symbol: data['symbol'] ?? 'UNKNOWN',
+      trend: _parseTrendFromPrediction(data['prediction']),
+      probability: (data['confidence'] ?? 0.0).toDouble(),
+      action: 'entry',
       timestamp: DateTime.parse(data['timestamp'] ?? DateTime.now().toIso8601String()),
-      quantumState: data['quantum_state'] ?? 'neutral',
-      features: Map<String, double>.from(data['features'] ?? {}),
+      mlPrediction: data,
     );
     
     _messageController?.add({
@@ -207,20 +204,24 @@ class WebSocketService {
     });
   }
 
+  TrendDirection _parseTrendFromPrediction(dynamic prediction) {
+    if (prediction == null) return TrendDirection.neutral;
+    final predStr = prediction.toString().toLowerCase();
+    if (predStr.contains('buy') || predStr.contains('bull')) return TrendDirection.bullish;
+    if (predStr.contains('sell') || predStr.contains('bear')) return TrendDirection.bearish;
+    return TrendDirection.neutral;
+  }
+
   void _handlePositionUpdate(Map<String, dynamic> data) {
     final position = OpenTrade(
-      ticket: data['ticket'],
-      symbol: data['symbol'],
-      type: data['type'] == 'BUY' ? TradeType.buy : TradeType.sell,
-      lots: data['lots']?.toDouble() ?? 0.0,
-      openPrice: data['open_price']?.toDouble() ?? 0.0,
+      ticket: data['ticket'] ?? DateTime.now().millisecondsSinceEpoch.toString(),
+      symbol: data['symbol'] ?? 'UNKNOWN',
+      type: data['type'] == 'BUY' ? 'buy' : 'sell',
+      entryPrice: data['open_price']?.toDouble() ?? 0.0,
       currentPrice: data['current_price']?.toDouble() ?? 0.0,
-      profit: data['profit']?.toDouble() ?? 0.0,
-      swap: data['swap']?.toDouble() ?? 0.0,
-      commission: data['commission']?.toDouble() ?? 0.0,
+      volume: data['lots']?.toDouble() ?? 0.0,
+      profitLoss: data['profit']?.toDouble() ?? 0.0,
       openTime: DateTime.parse(data['open_time'] ?? DateTime.now().toIso8601String()),
-      stopLoss: data['stop_loss']?.toDouble(),
-      takeProfit: data['take_profit']?.toDouble(),
     );
     
     _messageController?.add({

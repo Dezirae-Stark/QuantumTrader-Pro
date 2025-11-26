@@ -277,7 +277,7 @@ class DataService {
   }
   
   double getTotalProfit() {
-    return _openTrades.fold(0.0, (sum, trade) => sum + trade.profit);
+    return _openTrades.fold(0.0, (sum, trade) => sum + trade.profitLoss);
   }
   
   int getOpenTradeCount() => _openTrades.length;

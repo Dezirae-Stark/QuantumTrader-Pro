@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 
 enum TradingMode { conservative, aggressive }
 enum TrendDirection { bullish, bearish, neutral }
+enum TradeType { buy, sell }
 
 class AppState extends ChangeNotifier {
   TradingMode _tradingMode = TradingMode.conservative;
@@ -70,6 +71,7 @@ class AppState extends ChangeNotifier {
 }
 
 class TradeSignal {
+  final String id;
   final String symbol;
   final TrendDirection trend;
   final double probability;
@@ -78,6 +80,7 @@ class TradeSignal {
   final Map<String, dynamic>? mlPrediction;
 
   TradeSignal({
+    required this.id,
     required this.symbol,
     required this.trend,
     required this.probability,
@@ -88,6 +91,7 @@ class TradeSignal {
 
   factory TradeSignal.fromJson(Map<String, dynamic> json) {
     return TradeSignal(
+      id: json['id'] ?? DateTime.now().millisecondsSinceEpoch.toString(),
       symbol: json['symbol'] ?? '',
       trend: _parseTrend(json['trend']),
       probability: (json['probability'] ?? 0.0).toDouble(),
@@ -118,6 +122,7 @@ class TradeSignal {
 }
 
 class OpenTrade {
+  final String ticket;
   final String symbol;
   final String type; // buy, sell
   final double entryPrice;
@@ -128,6 +133,7 @@ class OpenTrade {
   final int? predictedWindow; // 3-8 candles ahead
 
   OpenTrade({
+    required this.ticket,
     required this.symbol,
     required this.type,
     required this.entryPrice,
@@ -140,6 +146,7 @@ class OpenTrade {
 
   factory OpenTrade.fromJson(Map<String, dynamic> json) {
     return OpenTrade(
+      ticket: json['ticket'] ?? DateTime.now().millisecondsSinceEpoch.toString(),
       symbol: json['symbol'] ?? '',
       type: json['type'] ?? 'buy',
       entryPrice: (json['entry_price'] ?? 0.0).toDouble(),

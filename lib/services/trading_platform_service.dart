@@ -7,6 +7,9 @@ import 'package:shared_preferences/shared_preferences.dart';
 import '../models/app_state.dart';
 import 'websocket_service.dart';
 
+// For backward compatibility, create an alias
+typedef MT4Service = TradingPlatformService;
+
 /// Unified trading platform service that supports both MT4 and MT5
 /// Uses WebSocket for real-time data when available, falls back to HTTP polling
 class TradingPlatformService {

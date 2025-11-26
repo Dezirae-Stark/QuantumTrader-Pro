@@ -97,15 +97,13 @@ class ErrorHandler {
       case ErrorSeverity.high:
         _logger.e(
           '${error.context ?? 'Error'}: ${error.error}',
-          error.error,
-          error.stackTrace,
+          stackTrace: error.stackTrace,
         );
         break;
       case ErrorSeverity.critical:
         _logger.f(
           '${error.context ?? 'CRITICAL ERROR'}: ${error.error}',
-          error.error,
-          error.stackTrace,
+          stackTrace: error.stackTrace,
         );
         break;
     }
@@ -462,7 +460,7 @@ extension ErrorHandlingExtension on State {
   Future<void> handleErrorAsync(
     Future<void> Function() operation, {
     String? context,
-    bool showDialog = true,
+    bool showErrorDialog = true,
     VoidCallback? onRetry,
   }) async {
     final errorHandler = ErrorHandler();
@@ -473,10 +471,10 @@ extension ErrorHandlingExtension on State {
         error,
         stackTrace: stackTrace,
         context: context ?? widget.runtimeType.toString(),
-        severity: showDialog ? ErrorSeverity.high : ErrorSeverity.medium,
+        severity: showErrorDialog ? ErrorSeverity.high : ErrorSeverity.medium,
       );
 
-      if (showDialog && mounted) {
+      if (showErrorDialog && mounted) {
         showDialog(
           context: this.context,
           builder: (context) => ErrorDialog(
