@@ -9,6 +9,7 @@ class AppState extends ChangeNotifier {
   bool _isDarkMode = false;
   bool _isConnectedToMT4 = false;
   bool _isTelegramConnected = false;
+  bool? _ultraHighAccuracyMode = false;
   List<TradeSignal> _signals = [];
   List<OpenTrade> _openTrades = [];
   double _totalPnL = 0.0;
@@ -17,6 +18,7 @@ class AppState extends ChangeNotifier {
   bool get isDarkMode => _isDarkMode;
   bool get isConnectedToMT4 => _isConnectedToMT4;
   bool get isTelegramConnected => _isTelegramConnected;
+  bool? get ultraHighAccuracyMode => _ultraHighAccuracyMode;
   List<TradeSignal> get signals => _signals;
   List<OpenTrade> get openTrades => _openTrades;
   double get totalPnL => _totalPnL;
@@ -58,6 +60,11 @@ class AppState extends ChangeNotifier {
 
   void addSignal(TradeSignal signal) {
     _signals.insert(0, signal);
+    notifyListeners();
+  }
+
+  void setUltraHighAccuracyMode(bool enabled) {
+    _ultraHighAccuracyMode = enabled;
     notifyListeners();
   }
 }

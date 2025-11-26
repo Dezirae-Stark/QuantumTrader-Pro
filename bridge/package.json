@@ -6,7 +6,10 @@
   "scripts": {
     "start": "node websocket_bridge.js",
     "dev": "nodemon websocket_bridge.js",
-    "test": "echo \"No tests specified\" && exit 0"
+    "test": "echo \"No tests specified\" && exit 0",
+    "clean": "rm -rf node_modules package-lock.json logs/*.log",
+    "lint": "eslint *.js middleware/*.js --fix",
+    "validate": "node --check websocket_bridge.js"
   },
   "keywords": [
     "mt4",

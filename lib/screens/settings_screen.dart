@@ -2,8 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:hive/hive.dart';
 import '../models/app_state.dart';
+import '../models/indicator_settings.dart';
 import '../services/mt4_service.dart';
 import '../services/telegram_service.dart';
+import '../services/ml_service.dart';
+import '../widgets/indicator_settings_widget.dart';
 
 class SettingsScreen extends StatefulWidget {
   const SettingsScreen({super.key});
@@ -16,6 +19,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
   final _mt4EndpointController = TextEditingController();
   final _telegramBotTokenController = TextEditingController();
   final _telegramChatIdController = TextEditingController();
+  final _accountBalanceController = TextEditingController();
+  
+  bool _unifiedAggressiveEnabled = false;
+  bool _isLoading = false;
 
   @override
   void initState() {
@@ -32,6 +39,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
           box.get('telegram_bot_token', defaultValue: '');
       _telegramChatIdController.text =
           box.get('telegram_chat_id', defaultValue: '');
+      _accountBalanceController.text =
+          box.get('account_balance', defaultValue: '50000');
+      _unifiedAggressiveEnabled =
+          box.get('unified_aggressive_enabled', defaultValue: false);
     });
   }
 
@@ -81,6 +92,85 @@ class _SettingsScreenState extends State<SettingsScreen> {
         ),
       );
     }
+  }
+
+  Future<void> _toggleUnifiedAggressiveTrading() async {
+    if (_isLoading) return;
+    
+    setState(() {
+      _isLoading = true;
+    });
+
+    try {
+      final mlService = Provider.of<MLService>(context, listen: false);
+      final accountBalance = double.tryParse(_accountBalanceController.text);
+      
+      final success = await mlService.enableUnifiedAggressiveTrading(
+        !_unifiedAggressiveEnabled,
+        accountBalance: accountBalance,
+      );
+
+      if (success) {
+        setState(() {
+          _unifiedAggressiveEnabled = !_unifiedAggressiveEnabled;
+        });
+
+        // Save to local storage
+        final box = await Hive.openBox('settings');
+        await box.put('unified_aggressive_enabled', _unifiedAggressiveEnabled);
+        await box.put('account_balance', _accountBalanceController.text);
+
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(
+                _unifiedAggressiveEnabled 
+                  ? '20% Risk Model ENABLED for all GBP/USD trades!'
+                  : 'Unified Aggressive Trading disabled'
+              ),
+              backgroundColor: _unifiedAggressiveEnabled ? Colors.green : Colors.orange,
+              duration: const Duration(seconds: 3),
+            ),
+          );
+        }
+      } else {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Failed to update trading settings'),
+              backgroundColor: Colors.red,
+            ),
+          );
+        }
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Error: $e'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    } finally {
+      setState(() {
+        _isLoading = false;
+      });
+    }
+  }
+
+  Widget _buildFeatureRow(String text, bool isActive) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 2),
+      child: Text(
+        text,
+        style: TextStyle(
+          fontSize: 14,
+          color: isActive ? Colors.green.shade700 : Colors.grey,
+          fontWeight: isActive ? FontWeight.w500 : FontWeight.normal,
+        ),
+      ),
+    );
   }
 
   @override
@@ -225,6 +315,120 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
           const SizedBox(height: 24),
 
+          // Unified Aggressive Trading Settings
+          Text(
+            'Aggressive Trading (20% Risk Model)',
+            style: theme.textTheme.titleLarge?.copyWith(
+              color: _unifiedAggressiveEnabled ? Colors.green : null,
+            ),
+          ),
+          const SizedBox(height: 12),
+          Card(
+            elevation: _unifiedAggressiveEnabled ? 4 : 2,
+            color: _unifiedAggressiveEnabled 
+              ? theme.colorScheme.primaryContainer.withOpacity(0.1)
+              : null,
+            child: Padding(
+              padding: const EdgeInsets.all(16.0),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    children: [
+                      Icon(
+                        Icons.trending_up,
+                        color: _unifiedAggressiveEnabled ? Colors.green : Colors.grey,
+                        size: 28,
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              'Your 20% Risk Model',
+                              style: theme.textTheme.titleMedium?.copyWith(
+                                fontWeight: FontWeight.bold,
+                                color: _unifiedAggressiveEnabled ? Colors.green : null,
+                              ),
+                            ),
+                            Text(
+                              _unifiedAggressiveEnabled
+                                ? 'ACTIVE: 20% risk on ALL GBP/USD trades'
+                                : 'Apply 20% risk to all GBP/USD strategies',
+                              style: theme.textTheme.bodyMedium?.copyWith(
+                                color: _unifiedAggressiveEnabled 
+                                  ? Colors.green 
+                                  : theme.textTheme.bodyMedium?.color?.withOpacity(0.7),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      Transform.scale(
+                        scale: 1.2,
+                        child: Switch(
+                          value: _unifiedAggressiveEnabled,
+                          onChanged: _isLoading ? null : (value) => _toggleUnifiedAggressiveTrading(),
+                          activeColor: Colors.green,
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 16),
+                  TextField(
+                    controller: _accountBalanceController,
+                    decoration: const InputDecoration(
+                      labelText: 'Account Balance (\$)',
+                      hintText: '50000',
+                      prefixIcon: Icon(Icons.account_balance_wallet),
+                      border: OutlineInputBorder(),
+                      helperText: 'Used for position sizing calculations',
+                    ),
+                    keyboardType: TextInputType.number,
+                  ),
+                  const SizedBox(height: 16),
+                  Container(
+                    padding: const EdgeInsets.all(12),
+                    decoration: BoxDecoration(
+                      color: _unifiedAggressiveEnabled 
+                        ? Colors.green.withOpacity(0.1)
+                        : theme.colorScheme.surface,
+                      border: Border.all(
+                        color: _unifiedAggressiveEnabled ? Colors.green : Colors.grey.withOpacity(0.3),
+                      ),
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'Key Features:',
+                          style: theme.textTheme.titleSmall?.copyWith(
+                            fontWeight: FontWeight.bold,
+                            color: _unifiedAggressiveEnabled ? Colors.green : null,
+                          ),
+                        ),
+                        const SizedBox(height: 8),
+                        _buildFeatureRow('• 100:1+ leverage optimization', _unifiedAggressiveEnabled),
+                        _buildFeatureRow('• 20% risk on ALL GBP/USD strategies', _unifiedAggressiveEnabled),
+                        _buildFeatureRow('• Multiple profit targets (25%/35%/25%/15%)', _unifiedAggressiveEnabled),
+                        _buildFeatureRow('• 10%+ daily return targeting', _unifiedAggressiveEnabled),
+                        _buildFeatureRow('• Works with all strategies (News, Ultra, Volatility)', _unifiedAggressiveEnabled),
+                      ],
+                    ),
+                  ),
+                  if (_isLoading) ...[
+                    const SizedBox(height: 16),
+                    const Center(child: CircularProgressIndicator()),
+                  ],
+                ],
+              ),
+            ),
+          ),
+
+          const SizedBox(height: 24),
+
           // Theme Settings
           Text(
             'Appearance',
@@ -244,6 +448,104 @@ class _SettingsScreenState extends State<SettingsScreen> {
               ),
             ),
           ),
+
+          const SizedBox(height: 24),
+
+          // Ultra High Accuracy Mode
+          Text(
+            'Trading Mode',
+            style: theme.textTheme.titleLarge,
+          ),
+          const SizedBox(height: 12),
+          Card(
+            child: Column(
+              children: [
+                SwitchListTile(
+                  title: const Text('Ultra High Accuracy Mode'),
+                  subtitle: const Text('94.7%+ win rate with strict filters'),
+                  value: appState.ultraHighAccuracyMode ?? false,
+                  onChanged: (value) async {
+                    final mlService = Provider.of<MLService>(context, listen: false);
+                    final success = await mlService.enableUltraHighAccuracy(value);
+                    if (success) {
+                      appState.setUltraHighAccuracyMode(value);
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                          content: Text(
+                            value 
+                              ? 'Ultra High Accuracy Mode Enabled (94.7%+ win rate)' 
+                              : 'Standard Mode Enabled'
+                          ),
+                          backgroundColor: Colors.green,
+                        ),
+                      );
+                    }
+                  },
+                  secondary: Icon(
+                    appState.ultraHighAccuracyMode ?? false 
+                      ? Icons.verified_user 
+                      : Icons.trending_up,
+                    color: appState.ultraHighAccuracyMode ?? false 
+                      ? Colors.green 
+                      : null,
+                  ),
+                ),
+                if (appState.ultraHighAccuracyMode ?? false)
+                  Padding(
+                    padding: const EdgeInsets.all(16.0),
+                    child: Column(
+                      children: [
+                        const Divider(),
+                        Row(
+                          children: [
+                            Icon(Icons.check_circle, color: Colors.green[600], size: 20),
+                            const SizedBox(width: 8),
+                            const Text('Multiple timeframe confirmation'),
+                          ],
+                        ),
+                        const SizedBox(height: 8),
+                        Row(
+                          children: [
+                            Icon(Icons.check_circle, color: Colors.green[600], size: 20),
+                            const SizedBox(width: 8),
+                            const Text('Advanced entry filters'),
+                          ],
+                        ),
+                        const SizedBox(height: 8),
+                        Row(
+                          children: [
+                            Icon(Icons.check_circle, color: Colors.green[600], size: 20),
+                            const SizedBox(width: 8),
+                            const Text('Market regime filtering'),
+                          ],
+                        ),
+                        const SizedBox(height: 8),
+                        Row(
+                          children: [
+                            Icon(Icons.check_circle, color: Colors.green[600], size: 20),
+                            const SizedBox(width: 8),
+                            const Text('Volatility-based sizing'),
+                          ],
+                        ),
+                        const SizedBox(height: 8),
+                        Row(
+                          children: [
+                            Icon(Icons.check_circle, color: Colors.green[600], size: 20),
+                            const SizedBox(width: 8),
+                            const Text('ML ensemble voting'),
+                          ],
+                        ),
+                      ],
+                    ),
+                  ),
+              ],
+            ),
+          ),
+
+          const SizedBox(height: 24),
+
+          // Technical Indicators Settings
+          const IndicatorSettingsWidget(),
 
           const SizedBox(height: 24),
 

@@ -1,0 +1,131 @@
+{
+  "start_date": "2025-10-15T15:13:08.564471",
+  "end_date": "2025-11-26T06:13:08.564471",
+  "initial_capital": 10000,
+  "final_capital": 11699.809980449421,
+  "total_return": 1699.8099804494213,
+  "total_return_pct": 16.998099804494213,
+  "trades": [
+    {
+      "entry_time": "2025-10-20T04:13:08.564471",
+      "exit_time": "2025-10-21T16:13:08.564471",
+      "symbol": "UNKNOWN",
+      "direction": "long",
+      "entry_price": 1.1367746474311784,
+      "exit_price": 1.184207925410036,
+      "size": 8796.818281088039,
+      "pnl": 417.26192685634476,
+      "pnl_pct": 4.172619268563447,
+      "max_drawdown": 0.00236491462166571,
+      "entry_signal": "BUY (P=60.9%)",
+      "exit_signal": "Take Profit",
+      "entry_confidence": 0.5633368858830544
+    },
+    {
+      "entry_time": "2025-10-21T22:13:08.564471",
+      "exit_time": "2025-10-23T02:13:08.564471",
+      "symbol": "UNKNOWN",
+      "direction": "long",
+      "entry_price": 1.1885078313761577,
+      "exit_price": 1.2407147272480026,
+      "size": 8764.992246449343,
+      "pnl": 457.5930375279088,
+      "pnl_pct": 4.392642142828392,
+      "max_drawdown": 0.0001540016633820757,
+      "entry_signal": "BUY (P=60.0%)",
+      "exit_signal": "Take Profit",
+      "entry_confidence": 0.5393902496441759
+    },
+    {
+      "entry_time": "2025-11-08T01:13:08.564471",
+      "exit_time": "2025-11-09T18:13:08.564471",
+      "symbol": "UNKNOWN",
+      "direction": "long",
+      "entry_price": 1.1522157879859292,
+      "exit_price": 1.1993109664944335,
+      "size": 9438.210340264022,
+      "pnl": 444.4942007755453,
+      "pnl_pct": 4.087357507123434,
+      "max_drawdown": 0.003644253106291542,
+      "entry_signal": "BUY (P=60.9%)",
+      "exit_signal": "Take Profit",
+      "entry_confidence": 0.5536922413216343
+    },
+    {
+      "entry_time": "2025-11-11T18:13:08.564471",
+      "exit_time": "2025-11-13T20:13:08.564471",
+      "symbol": "UNKNOWN",
+      "direction": "long",
+      "entry_price": 1.2699073711757562,
+      "exit_price": 1.3230962351247257,
+      "size": 8913.523475873417,
+      "pnl": 474.10018746417677,
+      "pnl_pct": 4.188405009392461,
+      "max_drawdown": 0.0019800582231826436,
+      "entry_signal": "BUY (P=60.9%)",
+      "exit_signal": "Take Profit",
+      "entry_confidence": 0.5629417683888539
+    },
+    {
+      "entry_time": "2025-11-16T18:13:08.564471",
+      "exit_time": "2025-11-18T02:13:08.564471",
+      "symbol": "UNKNOWN",
+      "direction": "long",
+      "entry_price": 1.338102619009292,
+      "exit_price": 1.3274781540709422,
+      "size": 8813.561221003843,
+      "pnl": -93.63937217455467,
+      "pnl_pct": -0.7939947794299929,
+      "max_drawdown": 0.009015042722806616,
+      "entry_signal": "BUY (P=60.9%)",
+      "exit_signal": "SELL",
+      "entry_confidence": 0.5627189756081772
+    }
+  ],
+  "win_rate": 0.8,
+  "profit_factor": 19.152727223339106,
+  "sharpe_ratio": 2.644385595153006,
+  "max_drawdown": 0.01113997195242718,
+  "max_drawdown_pct": 1.1139971952427181,
+  "total_trades": 5,
+  "winning_trades": 4,
+  "losing_trades": 1,
+  "avg_win": 448.3623381559939,
+  "avg_loss": -93.63937217455467,
+  "best_trade": 474.10018746417677,
+  "worst_trade": -93.63937217455467,
+  "avg_trade_duration": "1 days 13:24:00",
+  "exposure_time_pct": 18.71871871871872,
+  "indicator_performance": {
+    "Alligator": {
+      "signals": 950,
+      "correct": 0,
+      "total_pnl": 0.0
+    },
+    "Awesome Oscillator": {
+      "signals": 950,
+      "correct": 0,
+      "total_pnl": 0.0
+    },
+    "Accelerator Oscillator": {
+      "signals": 950,
+      "correct": 0,
+      "total_pnl": 0.0
+    },
+    "Fractals": {
+      "signals": 950,
+      "correct": 0,
+      "total_pnl": 0.0
+    },
+    "Elliott Wave": {
+      "signals": 950,
+      "correct": 0,
+      "total_pnl": 0.0
+    },
+    "Williams MFI": {
+      "signals": 950,
+      "correct": 0,
+      "total_pnl": 0.0
+    }
+  }
+}

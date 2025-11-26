@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Quantum Predictor Daemon - Real-time Market Prediction Service
+Market Predictor Daemon - Real-time Market Prediction Service
 Consumes real market data from bridge and generates trading signals
 """
 
@@ -12,6 +12,7 @@ import argparse
 import logging
 from datetime import datetime
 from pathlib import Path
+from dotenv import load_dotenv
 
 import numpy as np
 import pandas as pd
@@ -19,7 +20,10 @@ import pandas as pd
 # Add parent directory to path
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from ml.quantum_predictor import QuantumMarketPredictor, ChaosTheoryAnalyzer
+from ml.technical_predictor import TechnicalPredictor, get_realistic_base_price
+
+# Load environment variables
+load_dotenv('ml/.env')
 
 # Configure logging
 logging.basicConfig(
@@ -36,22 +40,30 @@ logger = logging.getLogger(__name__)
 class PredictorDaemon:
     """Daemon service that continuously monitors market data and generates predictions"""
 
-    def __init__(self, bridge_data_dir='bridge/data', predictions_dir='predictions', poll_interval=10):
+    def __init__(self, bridge_data_dir='bridge/data', predictions_dir='predictions'):
         self.bridge_data_dir = Path(bridge_data_dir)
         self.predictions_dir = Path(predictions_dir)
-        self.poll_interval = poll_interval
-
-        self.quantum = QuantumMarketPredictor()
-        self.chaos = ChaosTheoryAnalyzer()
+        
+        # Load configuration from environment
+        self.poll_interval = int(os.getenv('PREDICTOR_UPDATE_INTERVAL', 10))
+        self.confidence_threshold = float(os.getenv('CONFIDENCE_THRESHOLD', 0.7))
+        self.symbols = os.getenv('SYMBOLS', 'EURUSD,GBPUSD,XAUUSD').split(',')
+        
+        self.predictor = TechnicalPredictor()
+        self.last_predictions = {}
+        self.model_trained = False
 
         # Ensure directories exist
         os.makedirs(self.bridge_data_dir, exist_ok=True)
         os.makedirs(self.predictions_dir, exist_ok=True)
         os.makedirs('ml/logs', exist_ok=True)
+        os.makedirs('ml/models', exist_ok=True)
 
         logger.info("Predictor Daemon initialized")
         logger.info(f"Monitoring: {self.bridge_data_dir}")
         logger.info(f"Output to: {self.predictions_dir}")
+        logger.info(f"Symbols: {self.symbols}")
+        logger.info(f"Poll interval: {self.poll_interval}s")
 
     def load_market_data(self, symbol):
         """Load real market data from bridge"""
@@ -65,194 +77,308 @@ class PredictorDaemon:
             with open(market_file, 'r') as f:
                 data = json.load(f)
 
-            if not data or len(data) < 50:
+            if not data:
+                logger.warning(f"Empty market data for {symbol}")
+                return None
+
+            # Handle both list and dict formats
+            if isinstance(data, dict) and 'candles' in data:
+                data = data['candles']
+            
+            if len(data) < 50:
                 logger.warning(f"Insufficient data for {symbol}: {len(data)} candles")
                 return None
 
-            # Convert to pandas Series
+            # Convert to pandas DataFrame
             df = pd.DataFrame(data)
-            df['timestamp'] = pd.to_datetime(df['timestamp'], unit='s')
-            df = df.set_index('timestamp')
-
-            # Use mid price (bid + ask) / 2
-            df['price'] = (df['bid'] + df['ask']) / 2.0
-
-            return df['price']
+            
+            # Handle different timestamp formats
+            if 'timestamp' in df.columns:
+                df['time'] = pd.to_datetime(df['timestamp'])
+            elif 'time' in df.columns:
+                df['time'] = pd.to_datetime(df['time'])
+            else:
+                # Create synthetic timestamps if missing
+                df['time'] = pd.date_range(end=datetime.now(), periods=len(df), freq='1H')
+            
+            df = df.set_index('time')
+            
+            # Ensure we have required columns
+            if 'bid' in df.columns and 'ask' in df.columns:
+                df['close'] = (df['bid'] + df['ask']) / 2
+                df['open'] = df['close'].shift(1).fillna(df['close'])
+                df['high'] = df[['bid', 'ask']].max(axis=1)
+                df['low'] = df[['bid', 'ask']].min(axis=1)
+            elif 'close' not in df.columns:
+                logger.error(f"Missing price data for {symbol}")
+                return None
+            
+            # Ensure volume exists
+            if 'volume' not in df.columns:
+                df['volume'] = 100  # Default volume
+            
+            return df
 
         except Exception as e:
             logger.error(f"Error loading market data for {symbol}: {e}")
             return None
 
-    def generate_predictions(self, symbol, price_data):
+    def train_models_if_needed(self):
+        """Train models on available data if not already trained"""
+        if self.model_trained:
+            return True
+        
+        logger.info("Training prediction models...")
+        
+        # Combine data from all symbols for training
+        all_data = []
+        for symbol in self.symbols:
+            df = self.load_market_data(symbol)
+            if df is not None and len(df) > 100:
+                all_data.append(df)
+        
+        if not all_data:
+            logger.error("No sufficient data for training")
+            return False
+        
+        # Use the symbol with most data for training
+        training_data = max(all_data, key=len)
+        
+        try:
+            self.model_trained = self.predictor.train(training_data)
+            if self.model_trained:
+                logger.info("Models trained successfully")
+                # Save model state
+                self.save_model_state()
+            return self.model_trained
+        except Exception as e:
+            logger.error(f"Model training failed: {e}")
+            return False
+
+    def generate_predictions(self, symbol, market_data):
         """Generate predictions for a symbol"""
         try:
             logger.info(f"Generating predictions for {symbol}")
 
             # Get predictions
-            predictions = self.quantum.predict_next_candles(price_data, n_candles=8)
-
-            # Get superposition states
-            states = self.quantum.quantum_superposition_prediction(price_data)
-
-            # Get chaos analysis
-            attractor = self.chaos.detect_strange_attractor(price_data)
-
-            # Calculate confidence
-            bullish_prob = states['strong_bull']['probability'] + states['bull']['probability']
-            bearish_prob = states['strong_bear']['probability'] + states['bear']['probability']
-            neutral_prob = states['neutral']['probability']
-
-            # Determine action
-            confidence_threshold = 0.6
-            action = "HOLD"
-            signal_type = "NEUTRAL"
-
-            if bullish_prob > confidence_threshold:
-                action = "BUY"
-                signal_type = "BUY"
-                confidence = bullish_prob
-            elif bearish_prob > confidence_threshold:
-                action = "SELL"
-                signal_type = "SELL"
-                confidence = bearish_prob
-            else:
-                confidence = max(bullish_prob, bearish_prob, neutral_prob)
-
-            # Get next candle prediction
-            next_candle = predictions[0]
-
-            # Create signal
+            predictions = self.predictor.predict_next_candles(market_data, n_candles=5)
+            
+            # Analyze market regime
+            regime = self.predictor.analyze_market_regime(market_data)
+            
+            # Get current price info
+            current_price = float(market_data['close'].iloc[-1])
+            current_bid = float(market_data['bid'].iloc[-1]) if 'bid' in market_data else current_price
+            current_ask = float(market_data['ask'].iloc[-1]) if 'ask' in market_data else current_price
+            
+            # Build signal
+            main_prediction = predictions[0] if predictions else {}
+            
             signal = {
                 'symbol': symbol,
-                'type': signal_type,
-                'action': action,
-                'trend': 'BULLISH' if bullish_prob > bearish_prob else 'BEARISH' if bearish_prob > bullish_prob else 'NEUTRAL',
-                'probability': float(bullish_prob if bullish_prob > bearish_prob else bearish_prob),
-                'confidence': float(confidence * 100),  # Convert to percentage
-                'timestamp': datetime.utcnow().isoformat(),
-                'ml_prediction': {
-                    'next_price': float(next_candle['predicted_price']),
-                    'upper_bound': float(next_candle['upper_bound']),
-                    'lower_bound': float(next_candle['lower_bound']),
-                    'entry_probability': float(bullish_prob if signal_type == 'BUY' else bearish_prob if signal_type == 'SELL' else neutral_prob),
-                    'exit_probability': float(1 - confidence),
-                    'confidence_score': float(next_candle['confidence'] * 100),
-                    'predicted_window': 8
+                'timestamp': datetime.now().isoformat(),
+                'current_price': {
+                    'bid': current_bid,
+                    'ask': current_ask,
+                    'mid': current_price
                 },
-                'chaos_analysis': {
-                    'is_strange_attractor': attractor['is_attractor'],
-                    'fractal_dimension': float(attractor['fractal_dimension']),
-                    'lyapunov_exponent': float(attractor['lyapunov_exponent']),
-                    'predictability': attractor['predictability']
+                'prediction': main_prediction.get('direction', 'NEUTRAL'),
+                'confidence': main_prediction.get('confidence', 0.5),
+                'predicted_price': main_prediction.get('predicted_price', current_price),
+                'upper_bound': main_prediction.get('upper_bound', current_price * 1.001),
+                'lower_bound': main_prediction.get('lower_bound', current_price * 0.999),
+                'market_regime': regime,
+                'technical_scores': main_prediction.get('technical_scores', {}),
+                'next_candles': predictions,
+                'metadata': {
+                    'model_version': '2.0',
+                    'data_points': len(market_data),
+                    'last_update': market_data.index[-1].isoformat() if not market_data.empty else None
                 }
             }
 
-            logger.info(f"{symbol}: {action} signal (confidence: {confidence*100:.1f}%)")
             return signal
 
         except Exception as e:
             logger.error(f"Error generating predictions for {symbol}: {e}")
             return None
 
-    def save_signals(self, signals):
-        """Save signals to file for bridge to serve"""
+    def save_predictions(self, signals):
+        """Save predictions to file"""
+        if not signals:
+            return
+        
+        output_file = self.predictions_dir / 'signal_output.json'
+        
         try:
-            output = {
-                'signals': signals,
-                'timestamp': datetime.utcnow().isoformat(),
-                'total_signals': len(signals)
-            }
-
-            output_file = self.predictions_dir / 'signal_output.json'
+            # Save main signal file
             with open(output_file, 'w') as f:
-                json.dump(output, f, indent=2)
-
-            logger.info(f"Saved {len(signals)} signals to {output_file}")
-            return True
-
+                json.dump(signals, f, indent=2)
+            
+            # Save individual symbol files
+            for signal in signals:
+                symbol_file = self.predictions_dir / f"{signal['symbol']}_signal.json"
+                with open(symbol_file, 'w') as f:
+                    json.dump(signal, f, indent=2)
+            
+            logger.info(f"Saved {len(signals)} predictions")
+            
         except Exception as e:
-            logger.error(f"Error saving signals: {e}")
-            return False
+            logger.error(f"Error saving predictions: {e}")
 
-    def run(self, symbols=None):
+    def save_model_state(self):
+        """Save trained model state"""
+        try:
+            import pickle
+            model_file = Path('ml/models/technical_model.pkl')
+            with open(model_file, 'wb') as f:
+                pickle.dump({
+                    'predictor': self.predictor,
+                    'trained_at': datetime.now().isoformat(),
+                    'version': '2.0'
+                }, f)
+            logger.info("Model state saved")
+        except Exception as e:
+            logger.error(f"Error saving model: {e}")
+
+    def load_model_state(self):
+        """Load previously trained model if available"""
+        try:
+            import pickle
+            model_file = Path('ml/models/technical_model.pkl')
+            if model_file.exists():
+                with open(model_file, 'rb') as f:
+                    state = pickle.load(f)
+                    self.predictor = state['predictor']
+                    self.model_trained = True
+                    logger.info(f"Loaded model trained at {state['trained_at']}")
+                    return True
+        except Exception as e:
+            logger.error(f"Error loading model: {e}")
+        return False
+
+    def run_once(self):
+        """Run one prediction cycle"""
+        signals = []
+        
+        # Ensure models are trained
+        if not self.model_trained:
+            self.load_model_state()
+            if not self.model_trained:
+                self.train_models_if_needed()
+        
+        for symbol in self.symbols:
+            try:
+                # Load market data
+                market_data = self.load_market_data(symbol)
+                
+                if market_data is None:
+                    logger.warning(f"Skipping {symbol} - no data")
+                    continue
+                
+                # Generate predictions
+                signal = self.generate_predictions(symbol, market_data)
+                
+                if signal and signal['confidence'] >= self.confidence_threshold:
+                    signals.append(signal)
+                    logger.info(f"{symbol}: {signal['prediction']} (confidence: {signal['confidence']:.2f})")
+                else:
+                    logger.info(f"{symbol}: Low confidence signal filtered out")
+                    
+            except Exception as e:
+                logger.error(f"Error processing {symbol}: {e}")
+                continue
+        
+        # Save all signals
+        if signals:
+            self.save_predictions(signals)
+        
+        return signals
+
+    def run(self):
         """Main daemon loop"""
-        if symbols is None:
-            symbols = ['EURUSD', 'GBPUSD', 'USDJPY', 'AUDUSD', 'XAUUSD']
-
-        logger.info("=" * 60)
-        logger.info("🔬 Quantum Predictor Daemon Starting")
-        logger.info("=" * 60)
-        logger.info(f"Monitoring symbols: {', '.join(symbols)}")
-        logger.info(f"Poll interval: {self.poll_interval}s")
-        logger.info("Waiting for market data from EA...")
-        logger.info("=" * 60)
-
-        iteration = 0
-
+        logger.info("Starting prediction daemon...")
+        
         while True:
             try:
-                iteration += 1
-                logger.info(f"\n--- Prediction Cycle #{iteration} ---")
-
-                signals = []
-
-                for symbol in symbols:
-                    # Load real market data
-                    price_data = self.load_market_data(symbol)
-
-                    if price_data is None or len(price_data) < 50:
-                        logger.debug(f"Skipping {symbol}: insufficient data")
-                        continue
-
-                    # Generate predictions
-                    signal = self.generate_predictions(symbol, price_data)
-
-                    if signal:
-                        signals.append(signal)
-
-                # Save signals
-                if signals:
-                    self.save_signals(signals)
-                    logger.info(f"✅ Generated {len(signals)} signals")
-                else:
-                    logger.warning("⚠️  No signals generated (waiting for market data)")
-
-                # Sleep until next cycle
-                logger.info(f"Sleeping {self.poll_interval}s until next cycle...")
-                time.sleep(self.poll_interval)
-
+                start_time = time.time()
+                
+                # Run prediction cycle
+                signals = self.run_once()
+                
+                # Calculate cycle time
+                cycle_time = time.time() - start_time
+                logger.info(f"Prediction cycle completed in {cycle_time:.2f}s")
+                
+                # Sleep for remainder of interval
+                sleep_time = max(0, self.poll_interval - cycle_time)
+                if sleep_time > 0:
+                    time.sleep(sleep_time)
+                    
             except KeyboardInterrupt:
-                logger.info("\n🛑 Daemon stopped by user")
+                logger.info("Daemon stopped by user")
                 break
-
             except Exception as e:
-                logger.error(f"Error in main loop: {e}", exc_info=True)
+                logger.error(f"Daemon error: {e}")
                 time.sleep(self.poll_interval)
+
+    def generate_test_data(self):
+        """Generate test data for development"""
+        logger.info("Generating test data...")
+        
+        for symbol in self.symbols:
+            base_price = get_realistic_base_price(symbol)
+            
+            # Generate realistic price movements
+            timestamps = pd.date_range(end=datetime.now(), periods=200, freq='1H')
+            prices = [base_price]
+            
+            for _ in range(199):
+                # Random walk with momentum
+                change = np.random.normal(0, 0.0002) + (prices[-1] - base_price) * -0.01
+                new_price = prices[-1] * (1 + change)
+                prices.append(new_price)
+            
+            # Create market data
+            spread_pct = 0.00001 if 'USD' in symbol else 0.0001
+            data = []
+            for i, (ts, price) in enumerate(zip(timestamps, prices)):
+                spread = price * spread_pct
+                data.append({
+                    'timestamp': ts.isoformat(),
+                    'bid': price - spread/2,
+                    'ask': price + spread/2,
+                    'volume': np.random.randint(50, 200),
+                    'open': prices[max(0, i-1)],
+                    'high': price * 1.0001,
+                    'low': price * 0.9999,
+                    'close': price
+                })
+            
+            # Save test data
+            output_file = self.bridge_data_dir / f"{symbol}_market.json"
+            with open(output_file, 'w') as f:
+                json.dump(data, f, indent=2)
+            
+            logger.info(f"Generated test data for {symbol}")
 
 
 def main():
-    parser = argparse.ArgumentParser(description='Quantum Predictor Daemon')
-    parser.add_argument('--symbols', type=str, help='Comma-separated list of symbols (default: EURUSD,GBPUSD,USDJPY,AUDUSD,XAUUSD)')
-    parser.add_argument('--interval', type=int, default=10, help='Poll interval in seconds (default: 10)')
-    parser.add_argument('--bridge-data', type=str, default='bridge/data', help='Bridge data directory')
-    parser.add_argument('--predictions', type=str, default='predictions', help='Predictions output directory')
-
+    parser = argparse.ArgumentParser(description='Market Predictor Daemon')
+    parser.add_argument('--test-data', action='store_true', help='Generate test data')
+    parser.add_argument('--once', action='store_true', help='Run once and exit')
     args = parser.parse_args()
-
-    # Parse symbols
-    symbols = None
-    if args.symbols:
-        symbols = [s.strip() for s in args.symbols.split(',')]
-
-    # Create daemon
-    daemon = PredictorDaemon(
-        bridge_data_dir=args.bridge_data,
-        predictions_dir=args.predictions,
-        poll_interval=args.interval
-    )
-
-    # Run
-    daemon.run(symbols=symbols)
+    
+    daemon = PredictorDaemon()
+    
+    if args.test_data:
+        daemon.generate_test_data()
+        return
+    
+    if args.once:
+        daemon.run_once()
+    else:
+        daemon.run()
 
 
 if __name__ == '__main__':
