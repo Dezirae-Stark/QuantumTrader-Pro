@@ -56,6 +56,7 @@ paths = [
   '''mql5/README\.md''',  # MQL5 documentation with demo credentials
   '''lib/screens/account_login_screen\.dart''',  # Login screen with demo hints
   '''backtest/lhfx_backtest\.py''',  # Backtest script with demo credentials
+  '''QUICK_START\.md''',  # Quick start guide with demo credentials
 ]
 
 [[rules]]

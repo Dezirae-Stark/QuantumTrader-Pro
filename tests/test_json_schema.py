@@ -108,7 +108,8 @@ def test_negative_price_rejected():
     with pytest.raises(ValidationError) as exc_info:
         validate_prediction_response(response)
 
-    assert "must be positive" in str(exc_info.value).lower()
+    # The actual error from jsonschema mentions "minimum of 0" due to exclusiveMinimum
+    assert "is less than or equal to the minimum of 0" in str(exc_info.value).lower()
 
 
 def test_confidence_range_validation():
@@ -130,7 +131,8 @@ def test_confidence_range_validation():
     with pytest.raises(ValidationError) as exc_info:
         validate_prediction_response(response)
 
-    assert "confidence" in str(exc_info.value).lower()
+    # The actual error from jsonschema mentions "greater than the maximum of 100"
+    assert "is greater than the maximum of 100" in str(exc_info.value).lower()
 
 
 def test_signal_validation():

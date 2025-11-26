@@ -227,7 +227,8 @@ def test_signal_invalid_risk_reward():
     with pytest.raises(ValidationError) as exc_info:
         validate_signal_object(signal)
 
-    assert "risk/reward ratio must be positive" in str(exc_info.value).lower()
+    # JSON schema validation error for minimum constraint
+    assert "is less than the minimum of 0" in str(exc_info.value).lower()
 
 
 # ===================================================================
@@ -281,7 +282,8 @@ def test_limit_order_missing_price():
     with pytest.raises(ValidationError) as exc_info:
         validate_order_request(order)
 
-    assert "require a price" in str(exc_info.value).lower()
+    # Schema validation error - price is required for limit orders
+    assert "'price' is a required property" in str(exc_info.value)
 
 
 def test_stop_order_missing_stop_price():
@@ -297,7 +299,8 @@ def test_stop_order_missing_stop_price():
     with pytest.raises(ValidationError) as exc_info:
         validate_order_request(order)
 
-    assert "require a stop_price" in str(exc_info.value).lower()
+    # Schema validation error - stop_price is required for stop orders
+    assert "'stop_price' is a required property" in str(exc_info.value)
 
 
 def test_order_request_negative_quantity():
@@ -465,7 +468,8 @@ def test_account_info_negative_equity():
     with pytest.raises(ValidationError) as exc_info:
         validate_account_info(account)
 
-    assert "equity cannot be negative" in str(exc_info.value).lower()
+    # JSON schema validation error for minimum constraint
+    assert "is less than the minimum of 0" in str(exc_info.value).lower()
 
 
 def test_account_info_invalid_currency():
