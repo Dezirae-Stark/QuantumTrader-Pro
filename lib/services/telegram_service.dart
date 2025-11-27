@@ -12,6 +12,10 @@ class TelegramService {
   Stream<TelegramCommand> get commandStream =>
       _commandStream?.stream ?? Stream.empty();
 
+  Future<bool> isConnected() async {
+    return _isInitialized && _botToken != null && _chatId != null;
+  }
+
   Future<void> initialize() async {
     _logger.i('Initializing Telegram Service...');
 
@@ -29,7 +33,7 @@ class TelegramService {
     }
   }
 
-  void setCredentials(String botToken, String chatId) async {
+  Future<void> setCredentials(String botToken, String chatId) async {
     _botToken = botToken;
     _chatId = chatId;
 

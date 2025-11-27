@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import '../models/app_state.dart';
 import '../services/cantilever_hedge_manager.dart';
 import '../services/risk_manager.dart';
+import '../services/quantum_settings_service.dart';
 import '../theme/colors/quantum_colors.dart';
 import '../theme/components/quantum_card.dart';
 import '../theme/components/quantum_controls.dart';
@@ -18,6 +19,7 @@ class _CyberpunkQuantumScreenState extends State<CyberpunkQuantumScreen>
     with TickerProviderStateMixin {
   final hedgeManager = CantileverHedgeManager();
   final riskManager = RiskManager();
+  late QuantumSettingsService _settingsService;
 
   late AnimationController _pulseController;
   late Animation<double> _pulseAnimation;
@@ -56,7 +58,31 @@ class _CyberpunkQuantumScreenState extends State<CyberpunkQuantumScreen>
       curve: Curves.easeInOut,
     ));
     
+    _initializeSettings();
     _loadQuantumData();
+  }
+  
+  Future<void> _initializeSettings() async {
+    _settingsService = QuantumSettingsService();
+    await _settingsService.initialize();
+    
+    // Load saved settings
+    setState(() {
+      _isQuantumActive = _settingsService.isQuantumActive;
+      _riskScale = _settingsService.riskScale;
+      _cantileverStepSize = _settingsService.cantileverStepSize;
+      _cantileverLockPercent = _settingsService.cantileverLockPercent;
+      _autoHedgeEnabled = _settingsService.autoHedgeEnabled;
+      _hedgeMultiplier = _settingsService.hedgeMultiplier;
+      
+      // Update module status
+      final savedModules = _settingsService.getAllModuleStatus();
+      savedModules.forEach((module, isActive) {
+        if (_moduleStatus.containsKey(module)) {
+          _moduleStatus[module]!.isActive = isActive;
+        }
+      });
+    });
   }
 
   @override
@@ -139,13 +165,14 @@ class _CyberpunkQuantumScreenState extends State<CyberpunkQuantumScreen>
                 const SizedBox(width: 8),
                 QuantumToggle(
                   value: _isQuantumActive,
-                  onChanged: (value) {
+                  onChanged: (value) async {
                     setState(() {
                       _isQuantumActive = value;
-                      if (value) {
-                        _showActivationMessage();
-                      }
                     });
+                    await _settingsService.setQuantumActive(value);
+                    if (value) {
+                      _showActivationMessage();
+                    }
                   },
                 ),
               ],
@@ -320,10 +347,11 @@ class _CyberpunkQuantumScreenState extends State<CyberpunkQuantumScreen>
             label: 'Risk Multiplier',
             displayValue: (value) => '${value.toStringAsFixed(1)}x',
             activeColor: _getRiskColor(_riskScale),
-            onChanged: (value) {
+            onChanged: (value) async {
               setState(() {
                 _riskScale = value;
               });
+              await _settingsService.setRiskScale(value);
             },
           ),
           const SizedBox(height: 16),
@@ -377,11 +405,12 @@ class _CyberpunkQuantumScreenState extends State<CyberpunkQuantumScreen>
               ),
               QuantumToggle(
                 value: _moduleStatus['Cantilever Stops']!.isActive,
-                onChanged: (value) {
+                onChanged: (value) async {
                   if (_isQuantumActive) {
                     setState(() {
                       _moduleStatus['Cantilever Stops']!.isActive = value;
                     });
+                    await _settingsService.setModuleStatus('Cantilever Stops', value);
                   }
                 },
                 scale: 0.8,
@@ -399,11 +428,12 @@ class _CyberpunkQuantumScreenState extends State<CyberpunkQuantumScreen>
                   divisions: 9,
                   label: 'Step Size',
                   displayValue: (value) => '${(value * 100).toInt()}%',
-                  onChanged: (value) {
+                  onChanged: (value) async {
                     if (_moduleStatus['Cantilever Stops']!.isActive) {
                       setState(() {
                         _cantileverStepSize = value;
                       });
+                      await _settingsService.setCantileverStepSize(value);
                     }
                   },
                 ),
@@ -421,11 +451,12 @@ class _CyberpunkQuantumScreenState extends State<CyberpunkQuantumScreen>
                   divisions: 10,
                   label: 'Lock Percent',
                   displayValue: (value) => '${(value * 100).toInt()}%',
-                  onChanged: (value) {
+                  onChanged: (value) async {
                     if (_moduleStatus['Cantilever Stops']!.isActive) {
                       setState(() {
                         _cantileverLockPercent = value;
                       });
+                      await _settingsService.setCantileverLockPercent(value);
                     }
                   },
                 ),
@@ -494,12 +525,14 @@ class _CyberpunkQuantumScreenState extends State<CyberpunkQuantumScreen>
               ),
               QuantumToggle(
                 value: _autoHedgeEnabled,
-                onChanged: (value) {
+                onChanged: (value) async {
                   if (_isQuantumActive) {
                     setState(() {
                       _autoHedgeEnabled = value;
                       _moduleStatus['Counter-Hedge']!.isActive = value;
                     });
+                    await _settingsService.setAutoHedgeEnabled(value);
+                    await _settingsService.setModuleStatus('Counter-Hedge', value);
                   }
                 },
                 scale: 0.8,
@@ -543,11 +576,12 @@ class _CyberpunkQuantumScreenState extends State<CyberpunkQuantumScreen>
             label: 'Hedge Multiplier',
             displayValue: (value) => '${value.toStringAsFixed(1)}x',
             activeColor: QuantumColors.neonMagenta,
-            onChanged: (value) {
+            onChanged: (value) async {
               if (_autoHedgeEnabled) {
                 setState(() {
                   _hedgeMultiplier = value;
                 });
+                await _settingsService.setHedgeMultiplier(value);
               }
             },
           ),

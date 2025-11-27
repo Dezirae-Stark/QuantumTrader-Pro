@@ -6,6 +6,10 @@ import '../theme/colors/quantum_colors.dart';
 import '../theme/components/quantum_card.dart';
 import '../theme/components/quantum_button.dart';
 import '../theme/components/quantum_controls.dart';
+import '../services/broker_adapter_service.dart';
+import '../services/telegram_service.dart';
+import '../widgets/market_pair_dialog.dart';
+import 'package:hive_flutter/hive_flutter.dart';
 import 'broker_config_screen.dart';
 
 class CyberpunkDashboardScreen extends StatefulWidget {
@@ -18,11 +22,13 @@ class CyberpunkDashboardScreen extends StatefulWidget {
 class _CyberpunkDashboardScreenState extends State<CyberpunkDashboardScreen>
     with SingleTickerProviderStateMixin {
   late TabController _tabController;
+  late BrokerAdapterService _brokerService;
+  late TelegramService _telegramService;
+  late Box _marketSettingsBox;
   Timer? _refreshTimer;
-  bool _isMT4Connected = false;
-  bool _isTelegramConnected = false;
+  bool _isLoadingMarketData = true;
 
-  final List<String> _watchedSymbols = [
+  List<String> _watchedSymbols = [
     'EURUSD',
     'GBPUSD',
     'USDJPY',
@@ -72,41 +78,128 @@ class _CyberpunkDashboardScreenState extends State<CyberpunkDashboardScreen>
   void initState() {
     super.initState();
     _tabController = TabController(length: 3, vsync: this);
+    _brokerService = Provider.of<BrokerAdapterService>(context, listen: false);
+    _telegramService = Provider.of<TelegramService>(context, listen: false);
+    _initializeData();
     _startAutoRefresh();
-    _loadSignals();
-    _checkConnections();
+  }
+
+  Future<void> _initializeData() async {
+    _marketSettingsBox = await Hive.openBox('market_settings');
+    _loadWatchedPairs();
+    await _checkConnections();
+    await _loadMarketData();
+    await _loadSignals();
+  }
+
+  void _loadWatchedPairs() {
+    final savedPairs = _marketSettingsBox.get('watched_pairs');
+    if (savedPairs != null && savedPairs is List) {
+      setState(() {
+        _watchedSymbols = List<String>.from(savedPairs);
+      });
+    }
+  }
+
+  void _updateWatchedPairs(List<String> newPairs) {
+    setState(() {
+      _watchedSymbols = newPairs;
+      // Initialize market data for new pairs
+      for (final symbol in _watchedSymbols) {
+        if (!_marketData.containsKey(symbol)) {
+          _marketData[symbol] = MarketData(
+            symbol: symbol,
+            price: 0.0,
+            change: 0.0,
+            changePercent: 0.0,
+            spread: 0.0,
+            volume: 0,
+            trend: TrendDirection.neutral,
+          );
+        }
+      }
+    });
+    _loadMarketData();
   }
 
   void _startAutoRefresh() {
-    _refreshTimer = Timer.periodic(const Duration(seconds: 5), (_) {
+    _refreshTimer = Timer.periodic(const Duration(seconds: 5), (_) async {
       if (mounted) {
-        _updateMarketData();
+        await _loadMarketData();
+        await _checkConnections();
       }
     });
   }
 
-  void _updateMarketData() {
-    setState(() {
-      _marketData.forEach((symbol, data) {
-        final random = (DateTime.now().millisecond / 1000);
-        final changeMultiplier = random > 0.5 ? 1 : -1;
-        data.price += data.price * 0.0001 * changeMultiplier;
-        data.change = data.price * 0.001 * changeMultiplier;
-        data.changePercent = (data.change / data.price) * 100;
+  Future<void> _loadMarketData() async {
+    if (!_brokerService.isConnected) {
+      // Use default data when not connected
+      setState(() {
+        _isLoadingMarketData = false;
       });
-    });
+      return;
+    }
+
+    try {
+      final marketData = await _brokerService.fetchMarketData();
+      if (marketData.isNotEmpty && mounted) {
+        setState(() {
+          // Update market data from live feed
+          for (final symbol in _watchedSymbols) {
+            if (marketData.containsKey(symbol)) {
+              final data = marketData[symbol] as Map<String, dynamic>;
+              _marketData[symbol] = MarketData(
+                symbol: symbol,
+                price: (data['price'] ?? 0.0).toDouble(),
+                change: (data['change'] ?? 0.0).toDouble(),
+                changePercent: (data['changePercent'] ?? 0.0).toDouble(),
+                spread: (data['spread'] ?? 0.0).toDouble(),
+                volume: (data['volume'] ?? 0).toInt(),
+                trend: _determineTrend(data['changePercent'] ?? 0.0),
+              );
+            }
+          }
+          _isLoadingMarketData = false;
+        });
+      }
+    } catch (e) {
+      debugPrint('Error loading market data: $e');
+      setState(() {
+        _isLoadingMarketData = false;
+      });
+    }
   }
 
-  void _checkConnections() {
-    // TODO: Check actual connections
-    setState(() {
-      _isMT4Connected = false;
-      _isTelegramConnected = false;
-    });
+  TrendDirection _determineTrend(double changePercent) {
+    if (changePercent > 0.1) return TrendDirection.bullish;
+    if (changePercent < -0.1) return TrendDirection.bearish;
+    return TrendDirection.neutral;
+  }
+
+  Future<void> _checkConnections() async {
+    final appState = Provider.of<AppState>(context, listen: false);
+    
+    // Check broker connection
+    final isBrokerConnected = _brokerService.isConnected;
+    appState.setMT4Connection(isBrokerConnected);
+    
+    // Check Telegram connection
+    final isTelegramConnected = await _telegramService.isConnected();
+    appState.setTelegramConnection(isTelegramConnected);
   }
 
   Future<void> _loadSignals() async {
-    // TODO: Load from service
+    if (!_brokerService.isConnected) return;
+    
+    try {
+      final signals = await _brokerService.fetchSignals();
+      if (mounted) {
+        final appState = Provider.of<AppState>(context, listen: false);
+        appState.updateSignals(signals);
+      }
+    } catch (e) {
+      debugPrint('Error loading signals: $e');
+    }
   }
 
   @override
@@ -123,56 +216,59 @@ class _CyberpunkDashboardScreenState extends State<CyberpunkDashboardScreen>
 
     return Scaffold(
       backgroundColor: Colors.transparent,
-      body: NestedScrollView(
-        headerSliverBuilder: (context, innerBoxIsScrolled) => [
-          SliverAppBar(
-            pinned: true,
-            expandedHeight: 140,
-            backgroundColor: QuantumColors.backgroundSecondary,
-            flexibleSpace: FlexibleSpaceBar(
-              title: Column(
-                mainAxisAlignment: MainAxisAlignment.end,
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    'QuantumTrader Pro',
-                    style: theme.textTheme.headlineMedium!.copyWith(
-                      color: QuantumColors.textPrimary,
-                      letterSpacing: 2,
-                    ),
-                  ),
-                  const SizedBox(height: 8),
-                  Row(
-                    children: [
-                      _buildConnectionPill(
-                        'MT4',
-                        _isMT4Connected,
-                        onTap: () => _navigateToBrokerConfig(),
-                      ),
-                      const SizedBox(width: 8),
-                      _buildConnectionPill(
-                        'TG',
-                        _isTelegramConnected,
-                        onTap: () => _navigateToBrokerConfig(),
-                      ),
-                    ],
-                  ),
-                ],
-              ),
-              background: Container(
-                decoration: BoxDecoration(
-                  gradient: LinearGradient(
-                    begin: Alignment.topLeft,
-                    end: Alignment.bottomRight,
-                    colors: [
-                      QuantumColors.backgroundSecondary,
-                      QuantumColors.backgroundTertiary.withOpacity(0.8),
-                    ],
-                  ),
+      body: Column(
+        children: [
+          // Custom app bar with connection status
+          Container(
+            decoration: BoxDecoration(
+              color: QuantumColors.backgroundSecondary,
+              border: Border(
+                bottom: BorderSide(
+                  color: QuantumColors.neonCyan.withOpacity(0.2),
+                  width: 1,
                 ),
               ),
             ),
-            bottom: TabBar(
+            child: SafeArea(
+              bottom: false,
+              child: Padding(
+                padding: const EdgeInsets.all(16),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'QuantumTrader Pro',
+                      style: theme.textTheme.headlineMedium!.copyWith(
+                        color: QuantumColors.textPrimary,
+                        letterSpacing: 2,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+                    Row(
+                      children: [
+                        _buildConnectionPill(
+                          _brokerService.brokerType == BrokerType.mt5 ? 'MT5' : 'MT4',
+                          appState.isConnectedToMT4,
+                          onTap: () => _navigateToBrokerConfig(),
+                        ),
+                        const SizedBox(width: 8),
+                        _buildConnectionPill(
+                          'TG',
+                          appState.isTelegramConnected,
+                          onTap: () => _navigateToBrokerConfig(),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ),
+          // Tab bar
+          Container(
+            color: QuantumColors.backgroundSecondary,
+            child: TabBar(
               controller: _tabController,
               indicatorColor: QuantumColors.neonCyan,
               indicatorWeight: 3,
@@ -185,15 +281,18 @@ class _CyberpunkDashboardScreenState extends State<CyberpunkDashboardScreen>
               ],
             ),
           ),
+          // Tab views
+          Expanded(
+            child: TabBarView(
+              controller: _tabController,
+              children: [
+                _buildOverviewTab(appState),
+                _buildMarketsTab(),
+                _buildSignalsTab(appState),
+              ],
+            ),
+          ),
         ],
-        body: TabBarView(
-          controller: _tabController,
-          children: [
-            _buildOverviewTab(appState),
-            _buildMarketsTab(),
-            _buildSignalsTab(appState),
-          ],
-        ),
       ),
     );
   }
@@ -519,9 +618,127 @@ class _CyberpunkDashboardScreenState extends State<CyberpunkDashboardScreen>
   }
 
   Widget _buildSignalsTab(AppState appState) {
-    return Center(
-      child: _buildEmptySignalsState(),
+    if (appState.signals.isEmpty) {
+      return Center(
+        child: _buildEmptySignalsState(),
+      );
+    }
+
+    return ListView.builder(
+      padding: const EdgeInsets.all(16),
+      itemCount: appState.signals.length,
+      itemBuilder: (context, index) {
+        final signal = appState.signals[index];
+        return _buildSignalCard(signal);
+      },
     );
+  }
+
+  Widget _buildSignalCard(TradeSignal signal) {
+    final color = signal.getTrendColor();
+    
+    return QuantumCard(
+      margin: const EdgeInsets.only(bottom: 12),
+      hasGlow: signal.probability > 0.8,
+      glowColor: color.withOpacity(0.3),
+      child: Row(
+        children: [
+          Container(
+            width: 4,
+            height: 80,
+            decoration: BoxDecoration(
+              color: color,
+              borderRadius: const BorderRadius.only(
+                topLeft: Radius.circular(8),
+                bottomLeft: Radius.circular(8),
+              ),
+            ),
+          ),
+          const SizedBox(width: 16),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text(
+                      signal.symbol,
+                      style: Theme.of(context).textTheme.titleMedium!.copyWith(
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+                      decoration: BoxDecoration(
+                        color: color.withOpacity(0.2),
+                        borderRadius: BorderRadius.circular(16),
+                        border: Border.all(color: color.withOpacity(0.5)),
+                      ),
+                      child: Text(
+                        '${(signal.probability * 100).toInt()}%',
+                        style: TextStyle(
+                          color: color,
+                          fontWeight: FontWeight.bold,
+                          fontSize: 12,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 8),
+                Row(
+                  children: [
+                    Icon(
+                      _getTrendIcon(signal.trend),
+                      color: color,
+                      size: 16,
+                    ),
+                    const SizedBox(width: 4),
+                    Text(
+                      signal.trend.name.toUpperCase(),
+                      style: Theme.of(context).textTheme.bodyMedium!.copyWith(
+                        color: color,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                    const SizedBox(width: 16),
+                    Text(
+                      signal.action.toUpperCase(),
+                      style: Theme.of(context).textTheme.bodyMedium!.copyWith(
+                        color: QuantumColors.textSecondary,
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  _formatTimestamp(signal.timestamp),
+                  style: Theme.of(context).textTheme.bodySmall!.copyWith(
+                    color: QuantumColors.textTertiary,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  String _formatTimestamp(DateTime timestamp) {
+    final now = DateTime.now();
+    final difference = now.difference(timestamp);
+    
+    if (difference.inMinutes < 1) {
+      return 'Just now';
+    } else if (difference.inMinutes < 60) {
+      return '${difference.inMinutes} min ago';
+    } else if (difference.inHours < 24) {
+      return '${difference.inHours} hours ago';
+    } else {
+      return '${difference.inDays} days ago';
+    }
   }
 
   void _showTradingModeSnackbar(TradingMode mode) {
@@ -540,6 +757,16 @@ class _CyberpunkDashboardScreenState extends State<CyberpunkDashboardScreen>
           ),
         ),
         duration: const Duration(seconds: 2),
+      ),
+    );
+  }
+  
+  void _showMarketPairDialog() {
+    showDialog(
+      context: context,
+      builder: (context) => MarketPairDialog(
+        currentPairs: _watchedSymbols,
+        onPairsUpdated: _updateWatchedPairs,
       ),
     );
   }

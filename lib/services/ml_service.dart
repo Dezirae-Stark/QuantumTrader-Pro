@@ -1,7 +1,9 @@
 import 'dart:convert';
 import 'dart:io';
+import 'dart:math';
 import 'package:flutter/services.dart';
 import 'package:logger/logger.dart';
+import 'autotrading_engine.dart';
 
 class MLService {
   final Logger _logger = Logger();
@@ -62,7 +64,7 @@ class MLService {
     return null;
   }
 
-  Future<MLPrediction?> predict(List<double> features) async {
+  Future<MLPredictionOld?> predict(List<double> features) async {
     if (!_isInitialized) {
       _logger.w('ML Service not initialized');
       return null;
@@ -82,7 +84,7 @@ class MLService {
         0.15, // neutral
       ];
 
-      return MLPrediction(
+      return MLPredictionOld(
         trendProbabilities: trendProbabilities,
         entryProbability: 0.72,
         exitProbability: 0.28,
@@ -93,6 +95,55 @@ class MLService {
     } catch (e) {
       _logger.e('Error during prediction: $e');
       return null;
+    }
+  }
+  
+  Future<List<MLPrediction>> getPredictions(Map<String, dynamic> marketData) async {
+    if (!_isInitialized) {
+      _logger.w('ML Service not initialized');
+      return [];
+    }
+
+    final predictions = <MLPrediction>[];
+    final random = Random();
+
+    try {
+      for (final entry in marketData.entries) {
+        final symbol = entry.key;
+        final data = entry.value as Map<String, dynamic>;
+        final currentPrice = (data['price'] ?? 0.0).toDouble();
+        
+        if (currentPrice == 0) continue;
+
+        // Simulate ML prediction with some randomness
+        final trendFactor = random.nextDouble();
+        final confidence = 0.65 + (random.nextDouble() * 0.3); // 0.65 - 0.95
+        
+        // Determine direction based on simulated analysis
+        final direction = trendFactor > 0.5 ? TradeDirection.buy : TradeDirection.sell;
+        
+        // Calculate predicted price (1-3% movement)
+        final priceChange = currentPrice * (0.01 + random.nextDouble() * 0.02);
+        final predictedPrice = direction == TradeDirection.buy
+            ? currentPrice + priceChange
+            : currentPrice - priceChange;
+
+        predictions.add(MLPrediction(
+          symbol: symbol,
+          direction: direction,
+          currentPrice: currentPrice,
+          predictedPrice: predictedPrice,
+          confidence: confidence,
+          candlesAhead: 3 + random.nextInt(5), // 3-7 candles
+          timestamp: DateTime.now(),
+        ));
+      }
+
+      _logger.i('Generated ${predictions.length} ML predictions');
+      return predictions;
+    } catch (e) {
+      _logger.e('Error generating predictions: $e');
+      return [];
     }
   }
 
@@ -119,11 +170,11 @@ class MLService {
     };
   }
 
-  MLPrediction? getLastPrediction() {
+  MLPredictionOld? getLastPrediction() {
     if (_lastPrediction == null) return null;
 
     try {
-      return MLPrediction(
+      return MLPredictionOld(
         trendProbabilities: List<double>.from(
           _lastPrediction!['trend_probabilities'] ?? [0.33, 0.33, 0.34],
         ),
@@ -144,7 +195,7 @@ class MLService {
   }
 }
 
-class MLPrediction {
+class MLPredictionOld {
   final List<double> trendProbabilities; // [bullish, bearish, neutral]
   final double entryProbability;
   final double exitProbability;
@@ -152,7 +203,7 @@ class MLPrediction {
   final int predictedWindow; // Number of candles ahead
   final DateTime timestamp;
 
-  MLPrediction({
+  MLPredictionOld({
     required this.trendProbabilities,
     required this.entryProbability,
     required this.exitProbability,

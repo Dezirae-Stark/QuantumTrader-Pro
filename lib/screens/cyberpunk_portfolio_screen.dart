@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:intl/intl.dart';
 import '../models/app_state.dart';
-import '../services/mt4_service.dart';
+import '../services/broker_adapter_service.dart';
 import '../theme/colors/quantum_colors.dart';
 import '../theme/components/quantum_card.dart';
 import '../theme/components/quantum_button.dart';
@@ -48,8 +48,8 @@ class _CyberpunkPortfolioScreenState extends State<CyberpunkPortfolioScreen>
     setState(() => _isLoading = true);
     
     try {
-      final mt4Service = Provider.of<MT4Service>(context, listen: false);
-      final trades = await mt4Service.fetchOpenTrades();
+      final brokerService = Provider.of<BrokerAdapterService>(context, listen: false);
+      final trades = await brokerService.fetchOpenTrades();
       if (mounted) {
         Provider.of<AppState>(context, listen: false).updateOpenTrades(trades);
       }
@@ -180,8 +180,8 @@ class _CyberpunkPortfolioScreenState extends State<CyberpunkPortfolioScreen>
     
     return Container(
       margin: const EdgeInsets.all(16),
-      height: 180,
       child: QuantumCard(
+        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 20),
         hasGlow: true,
         glowColor: pnlColor.withOpacity(0.3),
         gradient: LinearGradient(
@@ -214,13 +214,19 @@ class _CyberpunkPortfolioScreenState extends State<CyberpunkPortfolioScreen>
                   size: 32,
                 ),
                 const SizedBox(width: 8),
-                Text(
-                  currencyFormat.format(appState.totalPnL),
-                  style: TextStyle(
-                    color: pnlColor,
-                    fontSize: 42,
-                    fontWeight: FontWeight.bold,
-                    letterSpacing: -1,
+                Flexible(
+                  child: FittedBox(
+                    fit: BoxFit.scaleDown,
+                    child: Text(
+                      currencyFormat.format(appState.totalPnL),
+                      style: TextStyle(
+                        color: pnlColor,
+                        fontSize: 42,
+                        fontWeight: FontWeight.bold,
+                        letterSpacing: -1,
+                      ),
+                      maxLines: 1,
+                    ),
                   ),
                 ),
               ],
@@ -311,12 +317,16 @@ class _CyberpunkPortfolioScreenState extends State<CyberpunkPortfolioScreen>
             textAlign: TextAlign.center,
           ),
           const SizedBox(height: 4),
-          Text(
-            value,
-            style: Theme.of(context).textTheme.titleSmall!.copyWith(
-              fontWeight: FontWeight.bold,
+          Flexible(
+            child: Text(
+              value,
+              style: Theme.of(context).textTheme.titleSmall!.copyWith(
+                fontWeight: FontWeight.bold,
+              ),
+              textAlign: TextAlign.center,
+              overflow: TextOverflow.ellipsis,
+              maxLines: 1,
             ),
-            textAlign: TextAlign.center,
           ),
         ],
       ),
@@ -427,12 +437,16 @@ class _CyberpunkPortfolioScreenState extends State<CyberpunkPortfolioScreen>
                             color: profitColor.withOpacity(0.2),
                             borderRadius: BorderRadius.circular(12),
                           ),
-                          child: Text(
-                            '${isProfit ? '+' : ''}${currencyFormat.format(trade.profitLoss)}',
-                            style: TextStyle(
-                              color: profitColor,
-                              fontWeight: FontWeight.bold,
-                              fontSize: 14,
+                          child: FittedBox(
+                            fit: BoxFit.scaleDown,
+                            child: Text(
+                              '${isProfit ? '+' : ''}${currencyFormat.format(trade.profitLoss)}',
+                              style: TextStyle(
+                                color: profitColor,
+                                fontWeight: FontWeight.bold,
+                                fontSize: 14,
+                              ),
+                              maxLines: 1,
                             ),
                           ),
                         ),

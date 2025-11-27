@@ -10,6 +10,61 @@ import '../models/app_state.dart';
 /// 4. Quantum probability-based exit optimization
 class CantileverHedgeManager {
   final Logger _logger = Logger();
+  
+  // Track active cantilever stops
+  final Map<String, CantileverStop> _activeCantilevers = {};
+  
+  void setupCantileverStop({
+    required String symbol,
+    required double entryPrice,
+    required bool direction,
+    required double stepPercent,
+    required double lockPercent,
+  }) {
+    _activeCantilevers[symbol] = CantileverStop(
+      symbol: symbol,
+      entryPrice: entryPrice,
+      currentStop: entryPrice * (direction ? 0.98 : 1.02),
+      direction: direction,
+      stepPercent: stepPercent,
+      lockPercent: lockPercent,
+      lastUpdatePrice: entryPrice,
+      stopLossPrice: entryPrice * (direction ? 0.98 : 1.02),
+      lockedProfitAmount: 0.0,
+      profitSteps: 0,
+      isActive: true,
+      nextTriggerPrice: entryPrice * (direction ? 1.005 : 0.995),
+    );
+    _logger.i('Cantilever stop setup for $symbol at $entryPrice');
+  }
+  
+  void updateCantileverStop({
+    required String symbol,
+    required double currentPrice,
+  }) {
+    final cantilever = _activeCantilevers[symbol];
+    if (cantilever == null) return;
+    
+    final profitPercent = cantilever.direction
+        ? (currentPrice - cantilever.entryPrice) / cantilever.entryPrice
+        : (cantilever.entryPrice - currentPrice) / cantilever.entryPrice;
+    
+    if (profitPercent > cantilever.stepPercent) {
+      final steps = (profitPercent / cantilever.stepPercent).floor();
+      final lockedProfit = profitPercent * cantilever.lockPercent * steps;
+      
+      final newStop = cantilever.direction
+          ? cantilever.entryPrice * (1 + lockedProfit)
+          : cantilever.entryPrice * (1 - lockedProfit);
+      
+      if ((cantilever.direction && newStop > cantilever.currentStop) ||
+          (!cantilever.direction && newStop < cantilever.currentStop)) {
+        cantilever.currentStop = newStop;
+        cantilever.lastUpdatePrice = currentPrice;
+        _logger.i('Cantilever stop updated for $symbol to $newStop');
+      }
+    }
+  }
 
   // User-configurable settings
   double userRiskScale = 1.0; // 1.0 = normal, 2.0 = double risk, 0.5 = half
@@ -356,6 +411,15 @@ class CantileverHedgeManager {
 
 /// Cantilever trailing stop configuration
 class CantileverStop {
+  final String symbol;
+  final double entryPrice;
+  double currentStop;
+  final bool direction; // true = buy, false = sell
+  final double stepPercent;
+  final double lockPercent;
+  double lastUpdatePrice;
+  
+  // Original fields for compatibility
   final double stopLossPrice;
   final double lockedProfitAmount;
   final int profitSteps;
@@ -363,12 +427,20 @@ class CantileverStop {
   final double nextTriggerPrice;
 
   CantileverStop({
+    this.symbol = '',
+    this.entryPrice = 0.0,
+    double? currentStop,
+    this.direction = true,
+    this.stepPercent = 0.0,
+    this.lockPercent = 0.0,
+    double? lastUpdatePrice,
     required this.stopLossPrice,
     required this.lockedProfitAmount,
     required this.profitSteps,
     required this.isActive,
     required this.nextTriggerPrice,
-  });
+  }) : currentStop = currentStop ?? stopLossPrice,
+       lastUpdatePrice = lastUpdatePrice ?? entryPrice;
 
   @override
   String toString() {

@@ -6,10 +6,14 @@ import 'theme/utils/quantum_wallpaper.dart';
 import 'screens/cyberpunk_dashboard_screen.dart';
 import 'screens/cyberpunk_portfolio_screen.dart';
 import 'screens/cyberpunk_quantum_screen.dart';
-import 'screens/cyberpunk_settings_screen.dart';
-import 'services/mt4_service.dart';
+import 'screens/enhanced_settings_screen.dart';
+import 'services/broker_adapter_service.dart';
 import 'services/telegram_service.dart';
 import 'services/ml_service.dart';
+import 'services/quantum_settings_service.dart';
+import 'services/autotrading_engine.dart';
+import 'services/risk_manager.dart';
+import 'services/cantilever_hedge_manager.dart';
 import 'models/app_state.dart';
 
 void main() async {
@@ -31,9 +35,28 @@ class QuantumTraderApp extends StatelessWidget {
     return MultiProvider(
       providers: [
         ChangeNotifierProvider(create: (_) => AppState()),
-        Provider(create: (_) => MT4Service()),
+        Provider(create: (_) => BrokerAdapterService()),
         Provider(create: (_) => TelegramService()),
         Provider(create: (_) => MLService()),
+        Provider(create: (_) => QuantumSettingsService()),
+        Provider(create: (_) => RiskManager()),
+        Provider(create: (_) => CantileverHedgeManager()),
+        ProxyProvider<BrokerAdapterService, AutoTradingEngine>(
+          update: (context, brokerService, _) {
+            final mlService = Provider.of<MLService>(context, listen: false);
+            final quantumSettings = Provider.of<QuantumSettingsService>(context, listen: false);
+            final riskManager = Provider.of<RiskManager>(context, listen: false);
+            final hedgeManager = Provider.of<CantileverHedgeManager>(context, listen: false);
+            
+            return AutoTradingEngine(
+              brokerService: brokerService,
+              mlService: mlService,
+              riskManager: riskManager,
+              hedgeManager: hedgeManager,
+              quantumSettings: quantumSettings,
+            );
+          },
+        ),
       ],
       child: MaterialApp(
         title: 'QuantumTrader Pro',
@@ -61,7 +84,7 @@ class _MainNavigatorState extends State<MainNavigator> {
     const CyberpunkDashboardScreen(),
     const CyberpunkPortfolioScreen(),
     const CyberpunkQuantumScreen(),
-    const CyberpunkSettingsScreen(),
+    const EnhancedSettingsScreen(),
   ];
 
   @override
@@ -71,14 +94,14 @@ class _MainNavigatorState extends State<MainNavigator> {
   }
 
   Future<void> _initializeServices() async {
-    final mt4Service = Provider.of<MT4Service>(context, listen: false);
+    final brokerService = Provider.of<BrokerAdapterService>(context, listen: false);
     final telegramService = Provider.of<TelegramService>(
       context,
       listen: false,
     );
     final mlService = Provider.of<MLService>(context, listen: false);
 
-    await mt4Service.initialize();
+    await brokerService.initialize();
     await telegramService.initialize();
     await mlService.initialize();
   }

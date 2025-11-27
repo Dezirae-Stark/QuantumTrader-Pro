@@ -232,3 +232,7 @@ mt4_credentials.json
 *.bak
 *~
 .secret-scan-results.md
+flutter/
+android-sdk/
+android-tools.zip
+flutter.tar.xz
