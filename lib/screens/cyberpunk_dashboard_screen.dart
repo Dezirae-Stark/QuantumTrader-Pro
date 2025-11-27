@@ -1,13 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:fl_chart/fl_chart.dart';
 import 'dart:async';
 import '../models/app_state.dart';
 import '../theme/colors/quantum_colors.dart';
 import '../theme/components/quantum_card.dart';
 import '../theme/components/quantum_button.dart';
 import '../theme/components/quantum_controls.dart';
-import '../widgets/signal_card.dart';
 import 'broker_config_screen.dart';
 
 class CyberpunkDashboardScreen extends StatefulWidget {

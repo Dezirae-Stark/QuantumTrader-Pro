@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:hive_flutter/hive_flutter.dart';
-import 'package:google_fonts/google_fonts.dart';
 import 'theme/quantum_theme.dart';
 import 'theme/utils/quantum_wallpaper.dart';
 import 'screens/cyberpunk_dashboard_screen.dart';

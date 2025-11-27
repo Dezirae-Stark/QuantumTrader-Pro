@@ -221,7 +221,7 @@ class _QuantumSliderState extends State<QuantumSlider> {
             inactiveTrackColor: activeColor.withOpacity(0.2),
             thumbColor: activeColor,
             overlayColor: activeColor.withOpacity(0.2),
-            thumbShape: _CustomThumbShape(color: activeColor),
+            thumbShape: _CustomThumbShape(color: activeColor, radius: 12.0),
             trackHeight: 8,
             overlayShape: const RoundSliderOverlayShape(overlayRadius: 24),
           ),
