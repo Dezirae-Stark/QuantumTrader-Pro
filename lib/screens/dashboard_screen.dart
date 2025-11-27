@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../models/app_state.dart';
-import '../services/mt4_service.dart';
+import '../services/broker_adapter_service.dart';
 import '../widgets/signal_card.dart';
 import '../widgets/trend_indicator.dart';
 import '../widgets/connection_status.dart';
@@ -23,8 +23,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
   }
 
   Future<void> _loadSignals() async {
-    final mt4Service = Provider.of<MT4Service>(context, listen: false);
-    final signals = await mt4Service.fetchSignals();
+    final brokerService = Provider.of<BrokerAdapterService>(context, listen: false);
+    final signals = await brokerService.fetchSignals();
     if (mounted) {
       Provider.of<AppState>(context, listen: false).updateSignals(signals);
     }

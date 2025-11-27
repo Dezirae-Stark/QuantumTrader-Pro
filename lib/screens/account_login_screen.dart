@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../models/app_state.dart';
-import '../services/mt4_service.dart';
+import '../services/broker_adapter_service.dart';
 
 class AccountLoginScreen extends StatefulWidget {
   const AccountLoginScreen({Key? key}) : super(key: key);
@@ -66,9 +66,9 @@ class _AccountLoginScreenState extends State<AccountLoginScreen> {
     });
 
     try {
-      final mt4Service = MT4Service();
-      final success = await mt4Service.connect(
-        login: int.parse(_loginController.text),
+      final brokerService = BrokerAdapterService();
+      final success = await brokerService.connect(
+        login: _loginController.text,
         password: _passwordController.text,
         server: _serverController.text,
       );

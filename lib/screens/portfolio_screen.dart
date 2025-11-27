@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:intl/intl.dart';
 import '../models/app_state.dart';
-import '../services/mt4_service.dart';
+import '../services/broker_adapter_service.dart';
 
 class PortfolioScreen extends StatefulWidget {
   const PortfolioScreen({super.key});
@@ -19,8 +19,8 @@ class _PortfolioScreenState extends State<PortfolioScreen> {
   }
 
   Future<void> _loadTrades() async {
-    final mt4Service = Provider.of<MT4Service>(context, listen: false);
-    final trades = await mt4Service.fetchOpenTrades();
+    final brokerService = Provider.of<BrokerAdapterService>(context, listen: false);
+    final trades = await brokerService.fetchOpenTrades();
     if (mounted) {
       Provider.of<AppState>(context, listen: false).updateOpenTrades(trades);
     }

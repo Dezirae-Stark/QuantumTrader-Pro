@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:hive/hive.dart';
 import '../models/app_state.dart';
-import '../services/mt4_service.dart';
+import '../services/broker_adapter_service.dart';
 import '../services/telegram_service.dart';
 
 class SettingsScreen extends StatefulWidget {
@@ -45,8 +45,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
     final box = await Hive.openBox('settings');
     await box.put('mt4_endpoint', _mt4EndpointController.text);
 
-    final mt4Service = Provider.of<MT4Service>(context, listen: false);
-    mt4Service.setApiEndpoint(_mt4EndpointController.text);
+    final brokerService = Provider.of<BrokerAdapterService>(context, listen: false);
+    brokerService.setApiEndpoint(_mt4EndpointController.text);
 
     if (mounted) {
       ScaffoldMessenger.of(
@@ -73,8 +73,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
   }
 
   Future<void> _testMT4Connection() async {
-    final mt4Service = Provider.of<MT4Service>(context, listen: false);
-    final connected = await mt4Service.testConnection();
+    final brokerService = Provider.of<BrokerAdapterService>(context, listen: false);
+    final connected = await brokerService.testConnection();
 
     if (mounted) {
       final appState = Provider.of<AppState>(context, listen: false);
