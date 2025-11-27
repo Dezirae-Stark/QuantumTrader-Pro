@@ -373,7 +373,7 @@ class _CyberpunkPortfolioScreenState extends State<CyberpunkPortfolioScreen>
   }
 
   Widget _buildTradeCard(OpenTrade trade, NumberFormat currencyFormat) {
-    final isProfit = trade.profit >= 0;
+    final isProfit = trade.profitLoss >= 0;
     final profitColor = isProfit ? QuantumColors.bullish : QuantumColors.bearish;
 
     return QuantumCard(
@@ -387,16 +387,16 @@ class _CyberpunkPortfolioScreenState extends State<CyberpunkPortfolioScreen>
               Container(
                 padding: const EdgeInsets.all(12),
                 decoration: BoxDecoration(
-                  color: trade.type == TradeType.buy
+                  color: trade.type == 'buy'
                       ? QuantumColors.bullish.withOpacity(0.1)
                       : QuantumColors.bearish.withOpacity(0.1),
                   borderRadius: BorderRadius.circular(12),
                 ),
                 child: Icon(
-                  trade.type == TradeType.buy
+                  trade.type == 'buy'
                       ? Icons.arrow_upward
                       : Icons.arrow_downward,
-                  color: trade.type == TradeType.buy
+                  color: trade.type == 'buy'
                       ? QuantumColors.bullish
                       : QuantumColors.bearish,
                   size: 24,
@@ -428,7 +428,7 @@ class _CyberpunkPortfolioScreenState extends State<CyberpunkPortfolioScreen>
                             borderRadius: BorderRadius.circular(12),
                           ),
                           child: Text(
-                            '${isProfit ? '+' : ''}${currencyFormat.format(trade.profit)}',
+                            '${isProfit ? '+' : ''}${currencyFormat.format(trade.profitLoss)}',
                             style: TextStyle(
                               color: profitColor,
                               fontWeight: FontWeight.bold,
@@ -449,7 +449,7 @@ class _CyberpunkPortfolioScreenState extends State<CyberpunkPortfolioScreen>
                         const SizedBox(width: 16),
                         _buildTradeInfo(
                           'Entry',
-                          trade.openPrice.toStringAsFixed(5),
+                          trade.entryPrice.toStringAsFixed(5),
                           Icons.login,
                         ),
                         const SizedBox(width: 16),
@@ -472,7 +472,7 @@ class _CyberpunkPortfolioScreenState extends State<CyberpunkPortfolioScreen>
             children: [
               Expanded(
                 child: LinearProgressIndicator(
-                  value: (trade.profit.abs() / 100).clamp(0, 1),
+                  value: (trade.profitLoss.abs() / 100).clamp(0, 1),
                   backgroundColor: QuantumColors.surface,
                   valueColor: AlwaysStoppedAnimation<Color>(
                     isProfit ? QuantumColors.bullish : QuantumColors.bearish,
@@ -482,7 +482,7 @@ class _CyberpunkPortfolioScreenState extends State<CyberpunkPortfolioScreen>
               ),
               const SizedBox(width: 12),
               Text(
-                '${((trade.profit.abs() / 100) * 100).toStringAsFixed(0)}% Risk',
+                '${((trade.profitLoss.abs() / 100) * 100).toStringAsFixed(0)}% Risk',
                 style: Theme.of(context).textTheme.labelSmall!.copyWith(
                   color: QuantumColors.textTertiary,
                 ),

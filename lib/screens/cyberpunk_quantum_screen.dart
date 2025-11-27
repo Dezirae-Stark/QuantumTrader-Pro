@@ -378,11 +378,13 @@ class _CyberpunkQuantumScreenState extends State<CyberpunkQuantumScreen>
               ),
               QuantumToggle(
                 value: _moduleStatus['Cantilever Stops']!.isActive,
-                onChanged: _isQuantumActive ? (value) {
-                  setState(() {
-                    _moduleStatus['Cantilever Stops']!.isActive = value;
-                  });
-                } : null,
+                onChanged: (value) {
+                  if (_isQuantumActive) {
+                    setState(() {
+                      _moduleStatus['Cantilever Stops']!.isActive = value;
+                    });
+                  }
+                },
                 scale: 0.8,
               ),
             ],
@@ -398,11 +400,13 @@ class _CyberpunkQuantumScreenState extends State<CyberpunkQuantumScreen>
                   divisions: 9,
                   label: 'Step Size',
                   displayValue: (value) => '${(value * 100).toInt()}%',
-                  onChanged: _moduleStatus['Cantilever Stops']!.isActive ? (value) {
-                    setState(() {
-                      _cantileverStepSize = value;
-                    });
-                  } : null,
+                  onChanged: (value) {
+                    if (_moduleStatus['Cantilever Stops']!.isActive) {
+                      setState(() {
+                        _cantileverStepSize = value;
+                      });
+                    }
+                  },
                 ),
               ),
             ],
@@ -418,11 +422,13 @@ class _CyberpunkQuantumScreenState extends State<CyberpunkQuantumScreen>
                   divisions: 10,
                   label: 'Lock Percent',
                   displayValue: (value) => '${(value * 100).toInt()}%',
-                  onChanged: _moduleStatus['Cantilever Stops']!.isActive ? (value) {
-                    setState(() {
-                      _cantileverLockPercent = value;
-                    });
-                  } : null,
+                  onChanged: (value) {
+                    if (_moduleStatus['Cantilever Stops']!.isActive) {
+                      setState(() {
+                        _cantileverLockPercent = value;
+                      });
+                    }
+                  },
                 ),
               ),
             ],
@@ -489,12 +495,14 @@ class _CyberpunkQuantumScreenState extends State<CyberpunkQuantumScreen>
               ),
               QuantumToggle(
                 value: _autoHedgeEnabled,
-                onChanged: _isQuantumActive ? (value) {
-                  setState(() {
-                    _autoHedgeEnabled = value;
-                    _moduleStatus['Counter-Hedge']!.isActive = value;
-                  });
-                } : null,
+                onChanged: (value) {
+                  if (_isQuantumActive) {
+                    setState(() {
+                      _autoHedgeEnabled = value;
+                      _moduleStatus['Counter-Hedge']!.isActive = value;
+                    });
+                  }
+                },
                 scale: 0.8,
               ),
             ],
@@ -536,11 +544,13 @@ class _CyberpunkQuantumScreenState extends State<CyberpunkQuantumScreen>
             label: 'Hedge Multiplier',
             displayValue: (value) => '${value.toStringAsFixed(1)}x',
             activeColor: QuantumColors.neonMagenta,
-            onChanged: _autoHedgeEnabled ? (value) {
-              setState(() {
-                _hedgeMultiplier = value;
-              });
-            } : null,
+            onChanged: (value) {
+              if (_autoHedgeEnabled) {
+                setState(() {
+                  _hedgeMultiplier = value;
+                });
+              }
+            },
           ),
         ],
       ),
