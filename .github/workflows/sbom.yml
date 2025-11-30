@@ -50,33 +50,38 @@ jobs:
       with:
         persist-credentials: false
 
+    - name: Install pnpm
+      uses: pnpm/action-setup@v3
+      with:
+        version: 8
+        
     - name: Setup Node.js
       uses: actions/setup-node@v4
       with:
         node-version: '20'
-        cache: 'npm'
-        cache-dependency-path: 'bridge/package-lock.json'
+        cache: 'pnpm'
+        cache-dependency-path: 'bridge/pnpm-lock.yaml'
 
     - name: Install dependencies
       working-directory: ./bridge
-      run: npm ci --production
+      run: pnpm install --frozen-lockfile --prod
 
     - name: Generate SBOM (CycloneDX JSON)
       working-directory: ./bridge
       run: |
-        npx @cyclonedx/cyclonedx-npm \
+        pnpm dlx @cyclonedx/cyclonedx-npm \
           --output-format JSON \
           --output-file ../sbom-bridge.cdx.json \
-          --package-lock-only
+          --omit dev
 
     - name: Generate SBOM (SPDX JSON)
       working-directory: ./bridge
       run: |
-        npx @cyclonedx/cyclonedx-npm \
+        pnpm dlx @cyclonedx/cyclonedx-npm \
           --output-format JSON \
           --output-file ../sbom-bridge.spdx.json \
           --spec-version 2.3 \
-          --package-lock-only
+          --omit dev
 
     - name: Upload SBOM artifacts
       uses: actions/upload-artifact@v4
@@ -94,7 +99,7 @@ jobs:
         echo "" >> $GITHUB_STEP_SUMMARY
         echo "### Dependencies Summary" >> $GITHUB_STEP_SUMMARY
         echo "" >> $GITHUB_STEP_SUMMARY
-        npm list --depth=0 --json | jq -r '
+        pnpm list --depth=0 --json | jq -r '
           "- Total dependencies: \(.dependencies | length)",
           "",
           "### Key Dependencies:",
@@ -282,7 +287,7 @@ jobs:
         path: |
           sbom-complete-*.tar.gz
           sbom-complete-*.tar.gz.sha256
-        retention-days: 365
+        retention-days: 90
 
     - name: Analyze for vulnerabilities (optional)
       continue-on-error: true
