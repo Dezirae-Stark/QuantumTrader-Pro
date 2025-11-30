@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import '../theme/colors/quantum_colors.dart';
-import '../theme/components/quantum_card.dart';
 import '../theme/components/quantum_button.dart';
 
 class MarketPairDialog extends StatefulWidget {

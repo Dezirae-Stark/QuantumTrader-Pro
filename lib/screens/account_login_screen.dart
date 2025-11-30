@@ -68,7 +68,7 @@ class _AccountLoginScreenState extends State<AccountLoginScreen> {
     try {
       final brokerService = BrokerAdapterService();
       final success = await brokerService.connect(
-        login: _loginController.text,
+        login: int.parse(_loginController.text),
         password: _passwordController.text,
         server: _serverController.text,
       );
@@ -286,7 +286,7 @@ class _AccountLoginScreenState extends State<AccountLoginScreen> {
                         _rememberCredentials = value!;
                       });
                     },
-                    fillColor: MaterialStateProperty.all(
+                    fillColor: WidgetStateProperty.all(
                       const Color(0xFF00D9FF),
                     ),
                   ),

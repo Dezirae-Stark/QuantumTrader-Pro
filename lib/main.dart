@@ -114,7 +114,7 @@ class _MainNavigatorState extends State<MainNavigator> {
         body: _screens[_selectedIndex],
         bottomNavigationBar: Container(
           decoration: BoxDecoration(
-            color: Theme.of(context).colorScheme.background,
+            color: Theme.of(context).colorScheme.surface,
             border: Border(
               top: BorderSide(
                 color: Theme.of(context).colorScheme.primary.withOpacity(0.2),

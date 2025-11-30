@@ -3,7 +3,7 @@ import 'package:flutter/rendering.dart';
 import 'dart:ui' as ui;
 import 'dart:typed_data';
 import 'dart:io';
-import '../assets/icons/app_icon.dart';
+import 'lib/assets/icons/app_icon.dart';
 
 class IconGenerator {
   static Future<void> generateAppIcons() async {

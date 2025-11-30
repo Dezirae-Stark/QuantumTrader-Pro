@@ -85,7 +85,7 @@ class _ModernDashboardScreenState extends State<ModernDashboardScreen>
     final appState = Provider.of<AppState>(context);
 
     return Scaffold(
-      backgroundColor: theme.colorScheme.background,
+      backgroundColor: theme.colorScheme.surface,
       body: NestedScrollView(
         headerSliverBuilder: (context, innerBoxIsScrolled) => [
           SliverAppBar(

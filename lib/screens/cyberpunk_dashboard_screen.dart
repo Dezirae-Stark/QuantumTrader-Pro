@@ -26,7 +26,6 @@ class _CyberpunkDashboardScreenState extends State<CyberpunkDashboardScreen>
   late TelegramService _telegramService;
   late Box _marketSettingsBox;
   Timer? _refreshTimer;
-  bool _isLoadingMarketData = true;
 
   List<String> _watchedSymbols = [
     'EURUSD',
@@ -757,16 +756,6 @@ class _CyberpunkDashboardScreenState extends State<CyberpunkDashboardScreen>
           ),
         ),
         duration: const Duration(seconds: 2),
-      ),
-    );
-  }
-
-  void _showMarketPairDialog() {
-    showDialog(
-      context: context,
-      builder: (context) => MarketPairDialog(
-        currentPairs: _watchedSymbols,
-        onPairsUpdated: _updateWatchedPairs,
       ),
     );
   }
