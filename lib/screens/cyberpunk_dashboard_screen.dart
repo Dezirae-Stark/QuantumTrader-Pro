@@ -26,6 +26,7 @@ class _CyberpunkDashboardScreenState extends State<CyberpunkDashboardScreen>
   late TelegramService _telegramService;
   late Box _marketSettingsBox;
   Timer? _refreshTimer;
+  bool _isLoadingMarketData = true;
 
   List<String> _watchedSymbols = [
     'EURUSD',
