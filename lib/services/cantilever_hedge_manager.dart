@@ -10,10 +10,10 @@ import '../models/app_state.dart';
 /// 4. Quantum probability-based exit optimization
 class CantileverHedgeManager {
   final Logger _logger = Logger();
-  
+
   // Track active cantilever stops
   final Map<String, CantileverStop> _activeCantilevers = {};
-  
+
   void setupCantileverStop({
     required String symbol,
     required double entryPrice,
@@ -37,26 +37,26 @@ class CantileverHedgeManager {
     );
     _logger.i('Cantilever stop setup for $symbol at $entryPrice');
   }
-  
+
   void updateCantileverStop({
     required String symbol,
     required double currentPrice,
   }) {
     final cantilever = _activeCantilevers[symbol];
     if (cantilever == null) return;
-    
+
     final profitPercent = cantilever.direction
         ? (currentPrice - cantilever.entryPrice) / cantilever.entryPrice
         : (cantilever.entryPrice - currentPrice) / cantilever.entryPrice;
-    
+
     if (profitPercent > cantilever.stepPercent) {
       final steps = (profitPercent / cantilever.stepPercent).floor();
       final lockedProfit = profitPercent * cantilever.lockPercent * steps;
-      
+
       final newStop = cantilever.direction
           ? cantilever.entryPrice * (1 + lockedProfit)
           : cantilever.entryPrice * (1 - lockedProfit);
-      
+
       if ((cantilever.direction && newStop > cantilever.currentStop) ||
           (!cantilever.direction && newStop < cantilever.currentStop)) {
         cantilever.currentStop = newStop;
@@ -418,7 +418,7 @@ class CantileverStop {
   final double stepPercent;
   final double lockPercent;
   double lastUpdatePrice;
-  
+
   // Original fields for compatibility
   final double stopLossPrice;
   final double lockedProfitAmount;

@@ -47,7 +47,7 @@ class QuantumTraderApp extends StatelessWidget {
             final quantumSettings = Provider.of<QuantumSettingsService>(context, listen: false);
             final riskManager = Provider.of<RiskManager>(context, listen: false);
             final hedgeManager = Provider.of<CantileverHedgeManager>(context, listen: false);
-            
+
             return AutoTradingEngine(
               brokerService: brokerService,
               mlService: mlService,

@@ -13,12 +13,12 @@ class BrokerAdapterService {
   String _apiEndpoint = '';
   BrokerType _brokerType = BrokerType.mt4;
   bool _isConnected = false;
-  
+
   // Cached credentials
   int? _login;
   String? _password;
   String? _server;
-  
+
   // Settings box
   late Box _settingsBox;
 
@@ -52,13 +52,13 @@ class BrokerAdapterService {
     await _settingsBox.put('broker_server', server);
     await _settingsBox.put('broker_api_endpoint', apiEndpoint);
     await _settingsBox.put('broker_type', brokerType == BrokerType.mt5 ? 'mt5' : 'mt4');
-    
+
     _login = login;
     _password = password;
     _server = server;
     _apiEndpoint = apiEndpoint;
     _brokerType = brokerType;
-    
+
     _logger.i('Broker settings saved: ${brokerType.name} - Login: $login, Server: $server');
   }
 
@@ -96,7 +96,7 @@ class BrokerAdapterService {
       _logger.w('Cannot start polling - not connected to broker');
       return;
     }
-    
+
     _pollTimer?.cancel();
     _pollTimer = Timer.periodic(Duration(seconds: intervalSeconds), (_) {
       fetchMarketData();
@@ -312,7 +312,7 @@ class BrokerAdapterService {
       if (response.statusCode == 200) {
         final data = json.decode(response.body);
         _isConnected = data['success'] == true;
-        
+
         if (_isConnected) {
           _logger.i('Connected to ${_brokerType.name.toUpperCase()}: $server, Login: $login');
           // Save successful connection details
@@ -325,7 +325,7 @@ class BrokerAdapterService {
           );
           startPolling();
         }
-        
+
         return _isConnected;
       }
     } catch (e) {
@@ -338,7 +338,7 @@ class BrokerAdapterService {
   Future<void> disconnect() async {
     stopPolling();
     _isConnected = false;
-    
+
     try {
       await http.post(
         Uri.parse('$_apiEndpoint/api/disconnect'),
@@ -347,7 +347,7 @@ class BrokerAdapterService {
     } catch (e) {
       _logger.e('Error disconnecting: $e');
     }
-    
+
     _logger.i('Disconnected from broker');
   }
 

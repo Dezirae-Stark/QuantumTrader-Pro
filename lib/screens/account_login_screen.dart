@@ -5,7 +5,7 @@ import '../models/app_state.dart';
 import '../services/broker_adapter_service.dart';
 
 class AccountLoginScreen extends StatefulWidget {
-  const AccountLoginScreen({Key? key}) : super(key: key);
+  const AccountLoginScreen({super.key});
 
   @override
   State<AccountLoginScreen> createState() => _AccountLoginScreenState();

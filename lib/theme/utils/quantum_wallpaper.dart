@@ -55,55 +55,55 @@ class QuantumWavePatternPainter extends CustomPainter {
     // Draw quantum interference pattern
     const gridSize = 50.0;
     const waveAmplitude = 20.0;
-    
+
     // Vertical lines with wave distortion
     for (double x = 0; x < size.width; x += gridSize) {
       final path = Path();
       path.moveTo(x, 0);
-      
+
       for (double y = 0; y < size.height; y += 10) {
         final wave = math.sin(y / 50) * waveAmplitude * math.cos(x / 100);
         path.lineTo(x + wave, y);
       }
-      
+
       canvas.drawPath(path, paint);
       if (x % (gridSize * 3) == 0) {
         canvas.drawPath(path, glowPaint);
       }
     }
-    
+
     // Horizontal lines with wave distortion
     for (double y = 0; y < size.height; y += gridSize) {
       final path = Path();
       path.moveTo(0, y);
-      
+
       for (double x = 0; x < size.width; x += 10) {
         final wave = math.sin(x / 50) * waveAmplitude * math.cos(y / 100);
         path.lineTo(x, y + wave);
       }
-      
+
       canvas.drawPath(path, paint);
       if (y % (gridSize * 3) == 0) {
         canvas.drawPath(path, glowPaint);
       }
     }
-    
+
     // Add quantum nodes at intersections
     final nodePaint = Paint()
       ..color = QuantumColors.neonMagenta.withOpacity(0.5)
       ..style = PaintingStyle.fill;
-    
+
     final nodeGlowPaint = Paint()
       ..color = QuantumColors.neonMagenta.withOpacity(0.2)
       ..style = PaintingStyle.fill
       ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 8);
-    
+
     for (double x = gridSize * 2; x < size.width; x += gridSize * 3) {
       for (double y = gridSize * 2; y < size.height; y += gridSize * 3) {
         // Add some randomness to node positions
         final offsetX = (math.sin(x + y) * 10).toDouble();
         final offsetY = (math.cos(x - y) * 10).toDouble();
-        
+
         canvas.drawCircle(
           Offset(x + offsetX, y + offsetY),
           8,
@@ -148,7 +148,7 @@ class _AnimatedQuantumBackgroundState extends State<AnimatedQuantumBackground>
       duration: const Duration(seconds: 10),
       vsync: this,
     )..repeat(reverse: true);
-    
+
     _animation = Tween<double>(
       begin: 0.0,
       end: 1.0,
@@ -209,20 +209,20 @@ class AnimatedQuantumPatternPainter extends CustomPainter {
     // Draw animated quantum particles
     final particleCount = 50;
     final random = math.Random(42); // Fixed seed for consistent pattern
-    
+
     for (int i = 0; i < particleCount; i++) {
       final baseX = random.nextDouble() * size.width;
       final baseY = random.nextDouble() * size.height;
       final radius = 20 + random.nextDouble() * 30;
-      
+
       // Animate position based on sine wave
       final x = baseX + math.sin(animation * 2 * math.pi + i) * radius;
       final y = baseY + math.cos(animation * 2 * math.pi + i) * radius;
-      
+
       final opacity = (0.3 + 0.7 * math.sin(animation * math.pi + i)).clamp(0.0, 1.0);
-      
+
       paint.color = QuantumColors.neonCyan.withOpacity(opacity * 0.3);
-      
+
       // Draw particle trail
       final path = Path();
       path.moveTo(baseX, baseY);
@@ -232,14 +232,14 @@ class AnimatedQuantumPatternPainter extends CustomPainter {
         x,
         y,
       );
-      
+
       canvas.drawPath(path, paint);
-      
+
       // Draw particle
       final particlePaint = Paint()
         ..color = QuantumColors.neonMagenta.withOpacity(opacity)
         ..style = PaintingStyle.fill;
-      
+
       canvas.drawCircle(Offset(x, y), 3, particlePaint);
     }
   }

@@ -49,7 +49,7 @@ class _CyberpunkQuantumScreenState extends State<CyberpunkQuantumScreen>
       duration: const Duration(seconds: 2),
       vsync: this,
     )..repeat(reverse: true);
-    
+
     _pulseAnimation = Tween<double>(
       begin: 0.5,
       end: 1.0,
@@ -57,15 +57,15 @@ class _CyberpunkQuantumScreenState extends State<CyberpunkQuantumScreen>
       parent: _pulseController,
       curve: Curves.easeInOut,
     ));
-    
+
     _initializeSettings();
     _loadQuantumData();
   }
-  
+
   Future<void> _initializeSettings() async {
     _settingsService = QuantumSettingsService();
     await _settingsService.initialize();
-    
+
     // Load saved settings
     setState(() {
       _isQuantumActive = _settingsService.isQuantumActive;
@@ -74,7 +74,7 @@ class _CyberpunkQuantumScreenState extends State<CyberpunkQuantumScreen>
       _cantileverLockPercent = _settingsService.cantileverLockPercent;
       _autoHedgeEnabled = _settingsService.autoHedgeEnabled;
       _hedgeMultiplier = _settingsService.hedgeMultiplier;
-      
+
       // Update module status
       final savedModules = _settingsService.getAllModuleStatus();
       savedModules.forEach((module, isActive) {
@@ -257,7 +257,7 @@ class _CyberpunkQuantumScreenState extends State<CyberpunkQuantumScreen>
 
   Widget _buildModuleRow(String moduleName, ModuleStatus status) {
     final isActive = _isQuantumActive && status.isActive;
-    
+
     return Row(
       children: [
         Container(
@@ -682,7 +682,7 @@ class _CyberpunkQuantumScreenState extends State<CyberpunkQuantumScreen>
     final confidence = prediction['confidence'] as double;
     final bullishProb = prediction['bullish_probability'] as double;
     final isBullish = bullishProb > 0.5;
-    
+
     return QuantumCard(
       padding: const EdgeInsets.all(16),
       child: Column(

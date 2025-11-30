@@ -33,9 +33,9 @@ class QuantumCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final effectiveGlowColor = glowColor ?? 
+    final effectiveGlowColor = glowColor ??
         (isActive ? QuantumColors.neonCyan : QuantumColors.glowCyan);
-    
+
     return GestureDetector(
       onTap: onTap,
       child: Container(
@@ -57,7 +57,7 @@ class QuantumCard extends StatelessWidget {
               color: gradient == null ? (color ?? QuantumColors.surface) : null,
               borderRadius: BorderRadius.circular(borderRadius),
               border: Border.all(
-                color: isActive 
+                color: isActive
                     ? QuantumColors.neonCyan.withOpacity(0.5)
                     : QuantumColors.neonCyan.withOpacity(0.1),
                 width: 1,

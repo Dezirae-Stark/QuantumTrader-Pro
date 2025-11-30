@@ -6,7 +6,7 @@ import 'autotrading_engine.dart';
 /// Advanced risk management with Kelly Criterion and dynamic position sizing
 class RiskManager {
   final Logger _logger = Logger();
-  
+
   Future<RiskAssessment> assessTrade({
     required String symbol,
     required TradeDirection direction,
@@ -16,7 +16,7 @@ class RiskManager {
     // Calculate risk metrics
     final priceMovement = (predictedPrice - currentPrice).abs();
     final movementPercent = (priceMovement / currentPrice) * 100;
-    
+
     // Basic risk checks
     if (movementPercent > 5.0) {
       return RiskAssessment(
@@ -25,17 +25,17 @@ class RiskManager {
         recommendedLotSize: 0.0,
       );
     }
-    
+
     // Calculate stop loss and take profit
     final isLong = direction == TradeDirection.buy;
     final stopLoss = isLong
         ? currentPrice - (priceMovement * 2) // 2:1 risk/reward
         : currentPrice + (priceMovement * 2);
     final takeProfit = predictedPrice;
-    
+
     // Recommend lot size based on risk
     final recommendedLotSize = _calculateLotSize(movementPercent);
-    
+
     return RiskAssessment(
       isApproved: true,
       recommendedLotSize: recommendedLotSize,
@@ -44,7 +44,7 @@ class RiskManager {
       riskRewardRatio: 2.0,
     );
   }
-  
+
   double _calculateLotSize(double movementPercent) {
     // Conservative lot sizing based on movement
     if (movementPercent < 0.5) return 1.0;

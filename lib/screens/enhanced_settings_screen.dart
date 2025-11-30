@@ -31,7 +31,7 @@ class _EnhancedSettingsScreenState extends State<EnhancedSettingsScreen>
   final _brokerPasswordController = TextEditingController();
   final _brokerServerController = TextEditingController();
   final _apiEndpointController = TextEditingController();
-  
+
   // Telegram settings
   final _telegramTokenController = TextEditingController();
   final _telegramChatIdController = TextEditingController();
@@ -43,7 +43,7 @@ class _EnhancedSettingsScreenState extends State<EnhancedSettingsScreen>
   bool _riskModelExpanded = true;
   bool _brokerSectionExpanded = false;
   bool _telegramSectionExpanded = false;
-  
+
   // Connection status
   bool _isBrokerConnecting = false;
   bool _isTelegramConnecting = false;
@@ -77,7 +77,7 @@ class _EnhancedSettingsScreenState extends State<EnhancedSettingsScreen>
       duration: const Duration(seconds: 3),
       vsync: this,
     )..repeat(reverse: true);
-    
+
     _glowAnimation = Tween<double>(
       begin: 0.5,
       end: 1.0,
@@ -85,7 +85,7 @@ class _EnhancedSettingsScreenState extends State<EnhancedSettingsScreen>
       parent: _animationController,
       curve: Curves.easeInOut,
     ));
-    
+
     _initializeServices();
   }
 
@@ -93,7 +93,7 @@ class _EnhancedSettingsScreenState extends State<EnhancedSettingsScreen>
     _brokerService = Provider.of<BrokerAdapterService>(context, listen: false);
     _telegramService = Provider.of<TelegramService>(context, listen: false);
     _settingsBox = await Hive.openBox('app_settings');
-    
+
     await _loadSettings();
   }
 
@@ -120,12 +120,12 @@ class _EnhancedSettingsScreenState extends State<EnhancedSettingsScreen>
       if (_brokerService.savedServer != null) {
         _brokerServerController.text = _brokerService.savedServer!;
       }
-      
+
       // Load other settings
       _darkModeEnabled = _settingsBox.get('dark_mode_enabled', defaultValue: true);
       _ultraHighAccuracyEnabled = _settingsBox.get('ultra_high_accuracy', defaultValue: false);
       _maxRiskPercent = _settingsBox.get('max_risk_percent', defaultValue: 20.0);
-      
+
       // Load indicators
       _indicators.forEach((key, defaultValue) {
         _indicators[key] = _settingsBox.get('indicator_$key', defaultValue: defaultValue);
@@ -137,12 +137,12 @@ class _EnhancedSettingsScreenState extends State<EnhancedSettingsScreen>
     await _settingsBox.put('dark_mode_enabled', _darkModeEnabled);
     await _settingsBox.put('ultra_high_accuracy', _ultraHighAccuracyEnabled);
     await _settingsBox.put('max_risk_percent', _maxRiskPercent);
-    
+
     // Save indicators
     _indicators.forEach((key, value) async {
       await _settingsBox.put('indicator_$key', value);
     });
-    
+
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Row(
@@ -919,14 +919,14 @@ class _EnhancedSettingsScreenState extends State<EnhancedSettingsScreen>
 
   Future<void> _handleBrokerConnection() async {
     final appState = Provider.of<AppState>(context, listen: false);
-    
+
     if (appState.isConnectedToMT4) {
       // Disconnect
       await _brokerService.disconnect();
       appState.setMT4Connection(false);
       return;
     }
-    
+
     // Validate inputs
     if (_brokerLoginController.text.isEmpty ||
         _brokerPasswordController.text.isEmpty ||
@@ -934,22 +934,22 @@ class _EnhancedSettingsScreenState extends State<EnhancedSettingsScreen>
       _showErrorSnackbar('Please fill in all broker connection fields');
       return;
     }
-    
+
     setState(() {
       _isBrokerConnecting = true;
     });
-    
+
     try {
       // Set API endpoint
       _brokerService.setApiEndpoint(_apiEndpointController.text);
-      
+
       // Connect to broker
       final success = await _brokerService.connect(
         login: int.parse(_brokerLoginController.text),
         password: _brokerPasswordController.text,
         server: _brokerServerController.text,
       );
-      
+
       if (success) {
         appState.setMT4Connection(true);
         _showSuccessSnackbar('Connected to ${_selectedBrokerType.name.toUpperCase()} successfully');
@@ -970,10 +970,10 @@ class _EnhancedSettingsScreenState extends State<EnhancedSettingsScreen>
       _showErrorSnackbar('Please enter API endpoint');
       return;
     }
-    
+
     _brokerService.setApiEndpoint(_apiEndpointController.text);
     final isConnected = await _brokerService.testConnection();
-    
+
     if (isConnected) {
       _showSuccessSnackbar('API endpoint is reachable');
     } else {
@@ -983,34 +983,34 @@ class _EnhancedSettingsScreenState extends State<EnhancedSettingsScreen>
 
   Future<void> _handleTelegramConnection() async {
     final appState = Provider.of<AppState>(context, listen: false);
-    
+
     if (appState.isTelegramConnected) {
       // Disconnect - for now just update state
       appState.setTelegramConnection(false);
       return;
     }
-    
+
     // Validate inputs
     if (_telegramTokenController.text.isEmpty ||
         _telegramChatIdController.text.isEmpty) {
       _showErrorSnackbar('Please fill in all Telegram fields');
       return;
     }
-    
+
     setState(() {
       _isTelegramConnecting = true;
     });
-    
+
     try {
       // Set credentials and connect
       _telegramService.setCredentials(
         _telegramTokenController.text,
         _telegramChatIdController.text,
       );
-      
+
       // Simulate connection delay
       await Future.delayed(const Duration(seconds: 1));
-      
+
       appState.setTelegramConnection(true);
       _showSuccessSnackbar('Connected to Telegram successfully');
     } catch (e) {

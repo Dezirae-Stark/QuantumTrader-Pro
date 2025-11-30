@@ -20,7 +20,7 @@ class AppIconPainter extends CustomPainter {
           QuantumColors.backgroundPrimary,
         ],
       ).createShader(Rect.fromCircle(center: center, radius: radius * 1.5));
-    
+
     if (!isAdaptive) {
       canvas.drawRect(Rect.fromLTWH(0, 0, size.width, size.height), backgroundPaint);
     }
@@ -54,15 +54,15 @@ class AppIconPainter extends CustomPainter {
       ).createShader(Rect.fromCircle(center: center, radius: radius));
 
     final qPath = Path();
-    
+
     // Outer circle of Q
     qPath.addOval(Rect.fromCircle(center: center, radius: radius));
-    
+
     // Inner cutout
     final innerRadius = radius * 0.6;
     final innerPath = Path()
       ..addOval(Rect.fromCircle(center: center, radius: innerRadius));
-    
+
     // Tail of Q
     final tailPath = Path()
       ..moveTo(center.dx + radius * 0.7, center.dy + radius * 0.7)
@@ -70,11 +70,11 @@ class AppIconPainter extends CustomPainter {
       ..lineTo(center.dx + radius * 0.9, center.dy + radius * 1.1)
       ..lineTo(center.dx + radius * 0.5, center.dy + radius * 0.7)
       ..close();
-    
+
     // Combine paths
     final combinedPath = Path.combine(PathOperation.difference, qPath, innerPath);
     final finalPath = Path.combine(PathOperation.union, combinedPath, tailPath);
-    
+
     canvas.drawPath(finalPath, qPaint);
 
     // Add glow effect
@@ -82,19 +82,19 @@ class AppIconPainter extends CustomPainter {
       ..color = QuantumColors.neonCyan.withOpacity(0.3)
       ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 10)
       ..style = PaintingStyle.fill;
-    
+
     canvas.drawPath(finalPath, glowPaint);
 
     // Add quantum nodes
     final nodePaint = Paint()
       ..color = QuantumColors.neonMagenta
       ..style = PaintingStyle.fill;
-    
+
     final nodeGlow = Paint()
       ..color = QuantumColors.neonMagenta.withOpacity(0.5)
       ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 5)
       ..style = PaintingStyle.fill;
-    
+
     // Place nodes at strategic points
     final nodePositions = [
       Offset(center.dx - radius * 0.8, center.dy),
@@ -102,7 +102,7 @@ class AppIconPainter extends CustomPainter {
       Offset(center.dx, center.dy - radius * 0.8),
       Offset(center.dx, center.dy + radius * 0.8),
     ];
-    
+
     for (final pos in nodePositions) {
       canvas.drawCircle(pos, 4, nodeGlow);
       canvas.drawCircle(pos, 2, nodePaint);

@@ -18,23 +18,23 @@ class AutoTradingEngine {
   final RiskManager _riskManager;
   final CantileverHedgeManager _hedgeManager;
   final QuantumSettingsService _quantumSettings;
-  
+
   Timer? _tradingTimer;
   Timer? _monitoringTimer;
   TradingStatus _status = TradingStatus.idle;
   bool _isEnabled = false;
-  
+
   // Trading parameters
   final Map<String, TradingSession> _activeSessions = {};
   late Box _tradingHistoryBox;
-  
+
   // Performance metrics
   int _totalTrades = 0;
   int _winningTrades = 0;
   int _losingTrades = 0;
   double _totalProfit = 0.0;
   double _totalLoss = 0.0;
-  
+
   AutoTradingEngine({
     required BrokerAdapterService brokerService,
     required MLService mlService,
@@ -50,7 +50,7 @@ class AutoTradingEngine {
   TradingStatus get status => _status;
   bool get isEnabled => _isEnabled;
   Map<String, TradingSession> get activeSessions => _activeSessions;
-  
+
   double get winRate => _totalTrades > 0 ? (_winningTrades / _totalTrades) * 100 : 0.0;
   double get profitFactor => _totalLoss != 0 ? _totalProfit / _totalLoss.abs() : 0.0;
   double get netProfit => _totalProfit - _totalLoss.abs();
@@ -82,54 +82,54 @@ class AutoTradingEngine {
       _logger.w('Cannot start autotrading: Broker not connected or Quantum system inactive');
       return;
     }
-    
+
     _isEnabled = true;
     _status = TradingStatus.analyzing;
-    
+
     // Start trading cycle
     _tradingTimer = Timer.periodic(const Duration(seconds: 30), (_) async {
       await _tradingCycle();
     });
-    
+
     // Start position monitoring
     _monitoringTimer = Timer.periodic(const Duration(seconds: 10), (_) async {
       await _monitorPositions();
     });
-    
+
     _logger.i('AutoTrading Engine started');
   }
 
   Future<void> stop() async {
     _isEnabled = false;
     _status = TradingStatus.idle;
-    
+
     _tradingTimer?.cancel();
     _monitoringTimer?.cancel();
-    
+
     // Close all active sessions safely
     for (final session in _activeSessions.values) {
       await _closeTradingSession(session);
     }
-    
+
     _logger.i('AutoTrading Engine stopped');
   }
 
   Future<void> _tradingCycle() async {
     if (!_isEnabled || _status != TradingStatus.analyzing) return;
-    
+
     try {
       // Get market data
       final marketData = await _brokerService.fetchMarketData();
       if (marketData.isEmpty) return;
-      
+
       // Get ML predictions for watched symbols
       final predictions = await _mlService.getPredictions(marketData);
-      
+
       // Analyze each prediction
       for (final prediction in predictions) {
         await _analyzePrediction(prediction, marketData);
       }
-      
+
     } catch (e) {
       _logger.e('Trading cycle error: $e');
     }
@@ -140,12 +140,12 @@ class AutoTradingEngine {
     Map<String, dynamic> marketData,
   ) async {
     final symbol = prediction.symbol;
-    
+
     // Check if we already have an active session for this symbol
     if (_activeSessions.containsKey(symbol)) {
       return;
     }
-    
+
     // Apply risk filters
     final riskAssessment = await _riskManager.assessTrade(
       symbol: symbol,
@@ -153,19 +153,19 @@ class AutoTradingEngine {
       currentPrice: prediction.currentPrice,
       predictedPrice: prediction.predictedPrice,
     );
-    
+
     if (!riskAssessment.isApproved) {
       _logger.w('Trade rejected by risk manager: ${riskAssessment.reason}');
       return;
     }
-    
+
     // Check confidence threshold
     final requiredConfidence = _quantumSettings.riskScale > 2.0 ? 0.85 : 0.75;
     if (prediction.confidence < requiredConfidence) {
       _logger.w('Trade rejected: Low confidence ${prediction.confidence}');
       return;
     }
-    
+
     // Execute trade
     await _executeTrade(prediction, riskAssessment);
   }
@@ -175,14 +175,14 @@ class AutoTradingEngine {
     RiskAssessment riskAssessment,
   ) async {
     _status = TradingStatus.executing;
-    
+
     try {
       // Calculate position size based on risk
       final positionSize = _calculatePositionSize(
         riskAssessment.recommendedLotSize,
         _quantumSettings.riskScale,
       );
-      
+
       // Send trade order
       final success = await _brokerService.sendTradeOrder(
         symbol: prediction.symbol,
@@ -191,7 +191,7 @@ class AutoTradingEngine {
         stopLoss: riskAssessment.stopLoss,
         takeProfit: riskAssessment.takeProfit,
       );
-      
+
       if (success) {
         // Create trading session
         final session = TradingSession(
@@ -205,10 +205,10 @@ class AutoTradingEngine {
           confidence: prediction.confidence,
           startTime: DateTime.now(),
         );
-        
+
         _activeSessions[prediction.symbol] = session;
         _logger.i('Trade executed: ${prediction.symbol} ${prediction.direction}');
-        
+
         // Enable cantilever stops if configured
         if (_quantumSettings.getModuleStatus('Cantilever Stops')) {
           _hedgeManager.setupCantileverStop(
@@ -220,7 +220,7 @@ class AutoTradingEngine {
           );
         }
       }
-      
+
     } catch (e) {
       _logger.e('Trade execution error: $e');
     } finally {
@@ -230,20 +230,20 @@ class AutoTradingEngine {
 
   Future<void> _monitorPositions() async {
     if (!_isEnabled || _activeSessions.isEmpty) return;
-    
+
     _status = TradingStatus.monitoring;
-    
+
     try {
       final openTrades = await _brokerService.fetchOpenTrades();
-      
+
       for (final trade in openTrades) {
         final session = _activeSessions[trade.symbol];
         if (session == null) continue;
-        
+
         // Update session with current data
         session.currentPrice = trade.currentPrice;
         session.currentProfit = trade.profitLoss;
-        
+
         // Check cantilever adjustments
         if (_quantumSettings.getModuleStatus('Cantilever Stops')) {
           _hedgeManager.updateCantileverStop(
@@ -251,18 +251,18 @@ class AutoTradingEngine {
             currentPrice: trade.currentPrice,
           );
         }
-        
+
         // Check for exit conditions
         if (_shouldExitTrade(session, trade)) {
           await _closeTradingSession(session);
         }
-        
+
         // Check for hedge activation
         if (_shouldActivateHedge(session, trade)) {
           await _activateCounterHedge(session);
         }
       }
-      
+
     } catch (e) {
       _logger.e('Position monitoring error: $e');
     } finally {
@@ -283,21 +283,21 @@ class AutoTradingEngine {
         return true;
       }
     }
-    
+
     // Check time-based exit (if trade is older than prediction window)
     final tradeDuration = DateTime.now().difference(session.startTime);
     if (tradeDuration.inHours > 8) {
       _logger.i('Time-based exit for ${session.symbol}');
       return true;
     }
-    
+
     // Check drawdown limit
     final drawdownPercent = (trade.profitLoss / session.entryPrice).abs() * 100;
     if (drawdownPercent > 5.0) {
       _logger.w('Drawdown limit reached for ${session.symbol}');
       return true;
     }
-    
+
     return false;
   }
 
@@ -305,39 +305,39 @@ class AutoTradingEngine {
     if (!_quantumSettings.autoHedgeEnabled || session.hasHedge) {
       return false;
     }
-    
+
     // Check if stop loss is close
     final priceToStopLoss = (trade.currentPrice - session.stopLoss).abs();
     final stopLossDistance = (session.entryPrice - session.stopLoss).abs();
-    
+
     if (priceToStopLoss < stopLossDistance * 0.2) {
       _logger.w('Stop loss proximity detected for ${session.symbol}');
       return true;
     }
-    
+
     return false;
   }
 
   Future<void> _activateCounterHedge(TradingSession session) async {
     if (!_quantumSettings.getModuleStatus('Counter-Hedge')) return;
-    
+
     try {
       // Open opposite position with multiplier
       final hedgeSize = session.lotSize * _quantumSettings.hedgeMultiplier;
       final hedgeDirection = session.direction == TradeDirection.buy ? 'sell' : 'buy';
-      
+
       final success = await _brokerService.sendTradeOrder(
         symbol: session.symbol,
         orderType: hedgeDirection,
         volume: hedgeSize,
       );
-      
+
       if (success) {
         session.hasHedge = true;
         session.hedgeActivatedAt = DateTime.now();
         _logger.i('Counter-hedge activated for ${session.symbol}');
       }
-      
+
     } catch (e) {
       _logger.e('Hedge activation error: $e');
     }
@@ -348,7 +348,7 @@ class AutoTradingEngine {
       // Close the position
       // Note: In real implementation, we'd need the position ID
       await _brokerService.closePosition(session.symbol);
-      
+
       // Update performance metrics
       _totalTrades++;
       if (session.currentProfit > 0) {
@@ -358,17 +358,17 @@ class AutoTradingEngine {
         _losingTrades++;
         _totalLoss += session.currentProfit;
       }
-      
+
       await _savePerformanceMetrics();
-      
+
       // Remove from active sessions
       _activeSessions.remove(session.symbol);
-      
+
       // Record in history
       await _recordTradeHistory(session);
-      
+
       _logger.i('Trading session closed for ${session.symbol}: \$${session.currentProfit.toStringAsFixed(2)}');
-      
+
     } catch (e) {
       _logger.e('Error closing trading session: $e');
     }
@@ -385,7 +385,7 @@ class AutoTradingEngine {
       'confidence': session.confidence,
       'timestamp': DateTime.now().toIso8601String(),
     };
-    
+
     final trades = _tradingHistoryBox.get('trades', defaultValue: []);
     trades.add(history);
     await _tradingHistoryBox.put('trades', trades);
@@ -394,7 +394,7 @@ class AutoTradingEngine {
   double _calculatePositionSize(double baseLotSize, double riskScale) {
     // Apply risk scaling
     final adjustedSize = baseLotSize * riskScale;
-    
+
     // Apply maximum position size limit
     const maxSize = 5.0;
     return adjustedSize > maxSize ? maxSize : adjustedSize;
@@ -428,7 +428,7 @@ class TradingSession {
   final double lotSize;
   final double confidence;
   final DateTime startTime;
-  
+
   double currentPrice;
   double currentProfit;
   bool hasHedge;

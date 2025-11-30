@@ -59,7 +59,7 @@ class _CyberpunkSettingsScreenState extends State<CyberpunkSettingsScreen>
       duration: const Duration(seconds: 3),
       vsync: this,
     )..repeat(reverse: true);
-    
+
     _glowAnimation = Tween<double>(
       begin: 0.5,
       end: 1.0,
@@ -67,7 +67,7 @@ class _CyberpunkSettingsScreenState extends State<CyberpunkSettingsScreen>
       parent: _animationController,
       curve: Curves.easeInOut,
     ));
-    
+
     _loadSettings();
   }
 

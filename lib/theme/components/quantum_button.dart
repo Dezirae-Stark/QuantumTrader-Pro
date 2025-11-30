@@ -30,11 +30,11 @@ class QuantumButton extends StatefulWidget {
   State<QuantumButton> createState() => _QuantumButtonState();
 }
 
-class _QuantumButtonState extends State<QuantumButton> 
+class _QuantumButtonState extends State<QuantumButton>
     with SingleTickerProviderStateMixin {
   late AnimationController _animationController;
   late Animation<double> _scaleAnimation;
-  
+
   @override
   void initState() {
     super.initState();

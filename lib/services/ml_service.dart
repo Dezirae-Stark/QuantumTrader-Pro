@@ -1,5 +1,4 @@
 import 'dart:convert';
-import 'dart:io';
 import 'dart:math';
 import 'package:flutter/services.dart';
 import 'package:logger/logger.dart';
@@ -33,25 +32,7 @@ class MLService {
   //   }
   // }
 
-  Future<Map<String, dynamic>?> loadPredictionFromJson(String jsonPath) async {
-    try {
-      final file = File(jsonPath);
-      if (await file.exists()) {
-        final jsonString = await file.readAsString();
-        final data = json.decode(jsonString);
-        _lastPrediction = data;
-        _logger.i('Loaded prediction from JSON: $jsonPath');
-        return data;
-      }
-    } catch (e) {
-      _logger.e('Error loading prediction JSON: $e');
-    }
-    return null;
-  }
-
-  Future<Map<String, dynamic>?> loadPredictionFromAsset(
-    String assetPath,
-  ) async {
+  Future<Map<String, dynamic>?> loadPredictionFromAsset(String assetPath) async {
     try {
       final jsonString = await rootBundle.loadString(assetPath);
       final data = json.decode(jsonString);
@@ -62,6 +43,31 @@ class MLService {
       _logger.e('Error loading prediction asset: $e');
     }
     return null;
+  }
+
+  Future<Map<String, dynamic>?> loadPredictionFromNetwork(
+    String url,
+  ) async {
+    try {
+      // For now, return mock data. In production, use http package
+      _logger.i('Network prediction loading not implemented yet');
+      return generateMockPrediction();
+    } catch (e) {
+      _logger.e('Error loading prediction from network: $e');
+    }
+    return null;
+  }
+
+  Map<String, dynamic> generateMockPrediction() {
+    final random = Random();
+    return {
+      'symbol': 'EURUSD',
+      'direction': random.nextBool() ? 'buy' : 'sell',
+      'confidence': 0.75 + random.nextDouble() * 0.2,
+      'predictedPrice': 1.0800 + random.nextDouble() * 0.01,
+      'currentPrice': 1.0850,
+      'timestamp': DateTime.now().toIso8601String(),
+    };
   }
 
   Future<MLPredictionOld?> predict(List<double> features) async {
@@ -97,7 +103,7 @@ class MLService {
       return null;
     }
   }
-  
+
   Future<List<MLPrediction>> getPredictions(Map<String, dynamic> marketData) async {
     if (!_isInitialized) {
       _logger.w('ML Service not initialized');
@@ -112,16 +118,16 @@ class MLService {
         final symbol = entry.key;
         final data = entry.value as Map<String, dynamic>;
         final currentPrice = (data['price'] ?? 0.0).toDouble();
-        
+
         if (currentPrice == 0) continue;
 
         // Simulate ML prediction with some randomness
         final trendFactor = random.nextDouble();
         final confidence = 0.65 + (random.nextDouble() * 0.3); // 0.65 - 0.95
-        
+
         // Determine direction based on simulated analysis
         final direction = trendFactor > 0.5 ? TradeDirection.buy : TradeDirection.sell;
-        
+
         // Calculate predicted price (1-3% movement)
         final priceChange = currentPrice * (0.01 + random.nextDouble() * 0.02);
         final predictedPrice = direction == TradeDirection.buy

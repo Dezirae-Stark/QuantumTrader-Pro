@@ -7,7 +7,7 @@ class QuantumTheme {
     return ThemeData(
       useMaterial3: true,
       brightness: Brightness.dark,
-      
+
       // Color scheme
       colorScheme: const ColorScheme.dark(
         primary: QuantumColors.neonCyan,
@@ -23,10 +23,10 @@ class QuantumTheme {
         onSurface: QuantumColors.textPrimary,
         onError: QuantumColors.textPrimary,
       ),
-      
+
       // Scaffold background
       scaffoldBackgroundColor: QuantumColors.backgroundPrimary,
-      
+
       // App bar theme
       appBarTheme: AppBarTheme(
         backgroundColor: QuantumColors.backgroundSecondary,
@@ -39,7 +39,7 @@ class QuantumTheme {
           color: QuantumColors.textPrimary,
         ),
       ),
-      
+
       // Card theme
       cardTheme: CardTheme(
         color: QuantumColors.surface,
@@ -49,10 +49,10 @@ class QuantumTheme {
         ),
         margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
       ),
-      
+
       // Typography
       textTheme: _buildTextTheme(),
-      
+
       // Input decoration theme
       inputDecorationTheme: InputDecorationTheme(
         filled: true,
@@ -76,7 +76,7 @@ class QuantumTheme {
         contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
         hintStyle: const TextStyle(color: QuantumColors.textTertiary),
       ),
-      
+
       // Elevated button theme
       elevatedButtonTheme: ElevatedButtonThemeData(
         style: ElevatedButton.styleFrom(
@@ -93,7 +93,7 @@ class QuantumTheme {
           ),
         ),
       ),
-      
+
       // Outlined button theme
       outlinedButtonTheme: OutlinedButtonThemeData(
         style: OutlinedButton.styleFrom(
@@ -109,13 +109,13 @@ class QuantumTheme {
           ),
         ),
       ),
-      
+
       // Icon theme
       iconTheme: const IconThemeData(
         color: QuantumColors.textSecondary,
         size: 24,
       ),
-      
+
       // Bottom navigation theme
       bottomNavigationBarTheme: const BottomNavigationBarThemeData(
         backgroundColor: QuantumColors.backgroundSecondary,
@@ -124,7 +124,7 @@ class QuantumTheme {
         type: BottomNavigationBarType.fixed,
         elevation: 0,
       ),
-      
+
       // Slider theme
       sliderTheme: SliderThemeData(
         activeTrackColor: QuantumColors.neonCyan,
@@ -141,7 +141,7 @@ class QuantumTheme {
         overlayShape: const RoundSliderOverlayShape(overlayRadius: 24),
         trackHeight: 6,
       ),
-      
+
       // Switch theme
       switchTheme: SwitchThemeData(
         thumbColor: MaterialStateProperty.resolveWith<Color>((states) {
@@ -157,7 +157,7 @@ class QuantumTheme {
           return QuantumColors.textTertiary.withOpacity(0.3);
         }),
       ),
-      
+
       // Chip theme
       chipTheme: ChipThemeData(
         backgroundColor: QuantumColors.surface,
@@ -177,7 +177,7 @@ class QuantumTheme {
           side: BorderSide(color: QuantumColors.neonCyan.withOpacity(0.3)),
         ),
       ),
-      
+
       // Dialog theme
       dialogTheme: DialogTheme(
         backgroundColor: QuantumColors.surface,
@@ -190,7 +190,7 @@ class QuantumTheme {
           fontWeight: FontWeight.w600,
         ),
       ),
-      
+
       // Divider theme
       dividerTheme: DividerThemeData(
         color: QuantumColors.neonCyan.withOpacity(0.2),
@@ -198,7 +198,7 @@ class QuantumTheme {
       ),
     );
   }
-  
+
   static TextTheme _buildTextTheme() {
     return TextTheme(
       displayLarge: GoogleFonts.orbitron(

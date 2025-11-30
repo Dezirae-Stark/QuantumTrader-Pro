@@ -178,11 +178,11 @@ class _CyberpunkDashboardScreenState extends State<CyberpunkDashboardScreen>
 
   Future<void> _checkConnections() async {
     final appState = Provider.of<AppState>(context, listen: false);
-    
+
     // Check broker connection
     final isBrokerConnected = _brokerService.isConnected;
     appState.setMT4Connection(isBrokerConnected);
-    
+
     // Check Telegram connection
     final isTelegramConnected = await _telegramService.isConnected();
     appState.setTelegramConnection(isTelegramConnected);
@@ -190,7 +190,7 @@ class _CyberpunkDashboardScreenState extends State<CyberpunkDashboardScreen>
 
   Future<void> _loadSignals() async {
     if (!_brokerService.isConnected) return;
-    
+
     try {
       final signals = await _brokerService.fetchSignals();
       if (mounted) {
@@ -417,7 +417,7 @@ class _CyberpunkDashboardScreenState extends State<CyberpunkDashboardScreen>
   Widget _buildMarketCard(MarketData data) {
     final isPositive = data.changePercent >= 0;
     final color = isPositive ? QuantumColors.bullish : QuantumColors.bearish;
-    
+
     return QuantumCard(
       hasGlow: data.trend == TrendDirection.bullish,
       glowColor: color.withOpacity(0.3),
@@ -636,7 +636,7 @@ class _CyberpunkDashboardScreenState extends State<CyberpunkDashboardScreen>
 
   Widget _buildSignalCard(TradeSignal signal) {
     final color = signal.getTrendColor();
-    
+
     return QuantumCard(
       margin: const EdgeInsets.only(bottom: 12),
       hasGlow: signal.probability > 0.8,
@@ -729,7 +729,7 @@ class _CyberpunkDashboardScreenState extends State<CyberpunkDashboardScreen>
   String _formatTimestamp(DateTime timestamp) {
     final now = DateTime.now();
     final difference = now.difference(timestamp);
-    
+
     if (difference.inMinutes < 1) {
       return 'Just now';
     } else if (difference.inMinutes < 60) {
@@ -760,7 +760,7 @@ class _CyberpunkDashboardScreenState extends State<CyberpunkDashboardScreen>
       ),
     );
   }
-  
+
   void _showMarketPairDialog() {
     showDialog(
       context: context,

@@ -24,7 +24,7 @@ class _AutoTradingStatusWidgetState extends State<AutoTradingStatusWidget>
       duration: const Duration(seconds: 2),
       vsync: this,
     )..repeat(reverse: true);
-    
+
     _pulseAnimation = Tween<double>(
       begin: 0.5,
       end: 1.0,

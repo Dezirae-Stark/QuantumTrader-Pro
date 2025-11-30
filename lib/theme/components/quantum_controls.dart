@@ -179,7 +179,7 @@ class _QuantumSliderState extends State<QuantumSlider> {
   @override
   Widget build(BuildContext context) {
     final activeColor = widget.activeColor ?? QuantumColors.neonCyan;
-    final displayText = widget.displayValue?.call(widget.value) ?? 
+    final displayText = widget.displayValue?.call(widget.value) ??
                        widget.value.toStringAsFixed(1);
 
     return Column(

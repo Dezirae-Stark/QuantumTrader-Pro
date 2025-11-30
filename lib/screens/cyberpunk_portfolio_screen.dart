@@ -46,7 +46,7 @@ class _CyberpunkPortfolioScreenState extends State<CyberpunkPortfolioScreen>
 
   Future<void> _loadTrades() async {
     setState(() => _isLoading = true);
-    
+
     try {
       final brokerService = Provider.of<BrokerAdapterService>(context, listen: false);
       final trades = await brokerService.fetchOpenTrades();
@@ -177,7 +177,7 @@ class _CyberpunkPortfolioScreenState extends State<CyberpunkPortfolioScreen>
   Widget _buildTotalPnLCard(AppState appState, NumberFormat currencyFormat) {
     final isProfit = appState.totalPnL >= 0;
     final pnlColor = isProfit ? QuantumColors.bullish : QuantumColors.bearish;
-    
+
     return Container(
       margin: const EdgeInsets.all(16),
       child: QuantumCard(
@@ -413,7 +413,7 @@ class _CyberpunkPortfolioScreenState extends State<CyberpunkPortfolioScreen>
                 ),
               ),
               const SizedBox(width: 16),
-              
+
               // Trade info
               Expanded(
                 child: Column(
@@ -480,7 +480,7 @@ class _CyberpunkPortfolioScreenState extends State<CyberpunkPortfolioScreen>
             ],
           ),
           const SizedBox(height: 12),
-          
+
           // Risk indicators
           Row(
             children: [
