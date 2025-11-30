@@ -15,7 +15,7 @@ class QuantumButton extends StatefulWidget {
   final double? width;
 
   const QuantumButton({
-    Key? key,
+    super.key,
     required this.text,
     this.onPressed,
     this.type = QuantumButtonType.primary,
@@ -24,7 +24,7 @@ class QuantumButton extends StatefulWidget {
     this.isLoading = false,
     this.isActive = false,
     this.width,
-  }) : super(key: key);
+  });
 
   @override
   State<QuantumButton> createState() => _QuantumButtonState();
@@ -267,12 +267,12 @@ class QuantumPillButton extends StatelessWidget {
   final IconData? icon;
 
   const QuantumPillButton({
-    Key? key,
+    super.key,
     required this.text,
     this.isActive = false,
     this.onPressed,
     this.icon,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {

@@ -118,10 +118,10 @@ class AppIcon extends StatelessWidget {
   final bool isAdaptive;
 
   const AppIcon({
-    Key? key,
+    super.key,
     this.size = 192,
     this.isAdaptive = false,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {

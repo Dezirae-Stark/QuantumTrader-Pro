@@ -8,12 +8,12 @@ class QuantumToggle extends StatefulWidget {
   final double scale;
 
   const QuantumToggle({
-    Key? key,
+    super.key,
     required this.value,
     required this.onChanged,
     this.label,
     this.scale = 1.0,
-  }) : super(key: key);
+  });
 
   @override
   State<QuantumToggle> createState() => _QuantumToggleState();
@@ -160,7 +160,7 @@ class QuantumSlider extends StatefulWidget {
   final Color? activeColor;
 
   const QuantumSlider({
-    Key? key,
+    super.key,
     required this.value,
     required this.onChanged,
     this.min = 0.0,
@@ -169,7 +169,7 @@ class QuantumSlider extends StatefulWidget {
     this.label,
     this.displayValue,
     this.activeColor,
-  }) : super(key: key);
+  });
 
   @override
   State<QuantumSlider> createState() => _QuantumSliderState();
@@ -312,12 +312,12 @@ class QuantumSegmentedControl<T> extends StatelessWidget {
   final String? label;
 
   const QuantumSegmentedControl({
-    Key? key,
+    super.key,
     required this.value,
     required this.options,
     required this.onValueChanged,
     this.label,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {

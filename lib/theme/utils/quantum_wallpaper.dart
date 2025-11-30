@@ -7,10 +7,10 @@ class QuantumWallpaper extends StatelessWidget {
   final double opacity;
 
   const QuantumWallpaper({
-    Key? key,
+    super.key,
     required this.child,
     this.opacity = 0.03,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -127,10 +127,10 @@ class AnimatedQuantumBackground extends StatefulWidget {
   final double opacity;
 
   const AnimatedQuantumBackground({
-    Key? key,
+    super.key,
     required this.child,
     this.opacity = 0.05,
-  }) : super(key: key);
+  });
 
   @override
   State<AnimatedQuantumBackground> createState() => _AnimatedQuantumBackgroundState();

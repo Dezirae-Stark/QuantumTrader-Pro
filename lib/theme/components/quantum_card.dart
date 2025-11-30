@@ -16,7 +16,7 @@ class QuantumCard extends StatelessWidget {
   final double? height;
 
   const QuantumCard({
-    Key? key,
+    super.key,
     required this.child,
     this.padding,
     this.margin,
@@ -29,7 +29,7 @@ class QuantumCard extends StatelessWidget {
     this.onTap,
     this.width,
     this.height,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -84,7 +84,7 @@ class QuantumInfoCard extends StatelessWidget {
   final bool isActive;
 
   const QuantumInfoCard({
-    Key? key,
+    super.key,
     required this.title,
     this.subtitle,
     this.icon,
@@ -92,7 +92,7 @@ class QuantumInfoCard extends StatelessWidget {
     this.trailing,
     this.onTap,
     this.isActive = false,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {
