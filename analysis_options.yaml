@@ -6,6 +6,10 @@ analyzer:
     - build/**
     - "**/*.g.dart"
     - "**/*.freezed.dart"
+  errors:
+    # Treat these as warnings instead of errors
+    deprecated_member_use: warning
+    deprecated_member_use_from_same_package: warning
 
 linter:
   rules:
