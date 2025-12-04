@@ -16,6 +16,7 @@ jobs:
   create-release:
     name: Create Release
     runs-on: ubuntu-latest
+    timeout-minutes: 30
     outputs:
       upload_url: ${{ steps.create_release.outputs.upload_url }}
       version: ${{ steps.get_version.outputs.version }}
@@ -82,6 +83,7 @@ jobs:
   build-linux:
     name: Build Linux Release
     runs-on: ubuntu-latest
+    timeout-minutes: 60
     needs: create-release
 
     steps:
@@ -124,6 +126,7 @@ jobs:
   build-windows:
     name: Build Windows Release
     runs-on: windows-latest
+    timeout-minutes: 60
     needs: create-release
 
     steps:
@@ -159,6 +162,7 @@ jobs:
   build-macos:
     name: Build macOS Release
     runs-on: macos-latest
+    timeout-minutes: 60
     needs: create-release
 
     steps:

@@ -65,6 +65,7 @@ jobs:
   results:
     name: CodeQL Results Summary
     runs-on: ubuntu-latest
+    timeout-minutes: 30
     needs: analyze
     if: always()
 

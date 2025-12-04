@@ -39,6 +39,7 @@ jobs:
   sbom-bridge:
     name: Generate Bridge Server SBOM
     runs-on: ubuntu-latest
+    timeout-minutes: 30
 
     steps:
     - name: Harden Runner
@@ -114,6 +115,7 @@ jobs:
   sbom-ml-backend:
     name: Generate ML Backend SBOM
     runs-on: ubuntu-latest
+    timeout-minutes: 30
 
     steps:
     - name: Harden Runner
@@ -174,6 +176,7 @@ jobs:
   sbom-mobile-app:
     name: Generate Mobile App SBOM
     runs-on: ubuntu-latest
+    timeout-minutes: 30
 
     steps:
     - name: Harden Runner
@@ -189,7 +192,7 @@ jobs:
     - name: Setup Flutter
       uses: subosito/flutter-action@v2
       with:
-        flutter-version: '3.24.x'
+        flutter-version: '3.24.5'
         channel: 'stable'
         cache: true
 
@@ -252,6 +255,7 @@ jobs:
   consolidate-sboms:
     name: Consolidate SBOMs
     runs-on: ubuntu-latest
+    timeout-minutes: 30
     needs: [sbom-bridge, sbom-ml-backend, sbom-mobile-app]
     if: always()
 

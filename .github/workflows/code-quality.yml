@@ -11,6 +11,7 @@ jobs:
   flutter-analyze:
     name: Flutter Analysis
     runs-on: ubuntu-latest
+    timeout-minutes: 30
 
     steps:
     - name: Checkout code
@@ -39,6 +40,7 @@ jobs:
   python-lint:
     name: Python Linting
     runs-on: ubuntu-latest
+    timeout-minutes: 30
 
     steps:
     - name: Checkout code
@@ -76,6 +78,7 @@ jobs:
   markdown-lint:
     name: Markdown Linting
     runs-on: ubuntu-latest
+    timeout-minutes: 30
 
     steps:
     - name: Checkout code
@@ -92,6 +95,7 @@ jobs:
   yaml-lint:
     name: YAML Validation
     runs-on: ubuntu-latest
+    timeout-minutes: 30
 
     steps:
     - name: Checkout code
@@ -110,6 +114,7 @@ jobs:
   json-validate:
     name: JSON Schema Validation
     runs-on: ubuntu-latest
+    timeout-minutes: 30
 
     steps:
     - name: Checkout code
@@ -161,6 +166,7 @@ jobs:
   dependency-review:
     name: Dependency Review
     runs-on: ubuntu-latest
+    timeout-minutes: 30
     if: github.event_name == 'pull_request'
 
     steps:
@@ -175,6 +181,7 @@ jobs:
   code-quality-status:
     name: Code Quality Status
     runs-on: ubuntu-latest
+    timeout-minutes: 30
     needs: [flutter-analyze, python-lint, markdown-lint, yaml-lint, json-validate]
     if: always()
 
