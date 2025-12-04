@@ -1,6 +1,7 @@
 /// Broker Service Abstraction for QuantumTrader Pro
 /// Supports multiple broker providers: MT4, MT5, Oanda, Binance, Generic REST
 import 'dart:convert';
+import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
 import 'package:web_socket_channel/web_socket_channel.dart';
 
@@ -310,7 +311,7 @@ class GenericRESTBrokerService implements BrokerService {
 
       return [];
     } catch (e) {
-      print('Error fetching candles: $e');
+      debugPrint('Error fetching candles: $e');
       return [];
     }
   }
@@ -329,7 +330,7 @@ class GenericRESTBrokerService implements BrokerService {
 
       return null;
     } catch (e) {
-      print('Error fetching account info: $e');
+      debugPrint('Error fetching account info: $e');
       return null;
     }
   }
@@ -387,7 +388,7 @@ class GenericRESTBrokerService implements BrokerService {
 
       return [];
     } catch (e) {
-      print('Error fetching orders: $e');
+      debugPrint('Error fetching orders: $e');
       return [];
     }
   }
@@ -404,7 +405,7 @@ class GenericRESTBrokerService implements BrokerService {
 
       return response.statusCode == 200;
     } catch (e) {
-      print('Error cancelling order: $e');
+      debugPrint('Error cancelling order: $e');
       return false;
     }
   }
@@ -421,7 +422,7 @@ class GenericRESTBrokerService implements BrokerService {
         return json.decode(data as String) as Map<String, dynamic>;
       });
     } catch (e) {
-      print('Error creating price stream: $e');
+      debugPrint('Error creating price stream: $e');
       return null;
     }
   }
