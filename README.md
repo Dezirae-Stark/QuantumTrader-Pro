@@ -14,7 +14,7 @@
 [![Flutter Desktop Build](https://github.com/Dezirae-Stark/QuantumTrader-Pro/actions/workflows/flutter-desktop-build.yml/badge.svg)](https://github.com/Dezirae-Stark/QuantumTrader-Pro/actions/workflows/flutter-desktop-build.yml)
 [![ML Tests](https://github.com/Dezirae-Stark/QuantumTrader-Pro/actions/workflows/ml-tests.yml/badge.svg)](https://github.com/Dezirae-Stark/QuantumTrader-Pro/actions/workflows/ml-tests.yml)
 
-**🚀 QuantumTrader Pro v2.1.0 - Desktop Suite**  
+**🚀 QuantumTrader Pro v2.1.0 - Desktop Suite**
 Advanced Multi-Platform Trading System with 94.7% Win Rate
 
 *Built by Dezirae Stark*
@@ -53,7 +53,7 @@ Advanced Multi-Platform Trading System with 94.7% Win Rate
 # Windows
 Download: QuantumTrader-Pro-Windows-v2.1.0.exe
 
-# macOS  
+# macOS
 Download: QuantumTrader-Pro-macOS-v2.1.0.dmg
 
 # Linux
@@ -295,27 +295,27 @@ graph TB
         UI[Flutter Desktop App<br/>Windows/Mac/Linux]
         MOBILE[Flutter Mobile<br/>Android/iOS]
     end
-    
+
     subgraph "Trading Platforms"
         MT4[MetaTrader 4]
         MT5[MetaTrader 5]
         OANDA[Oanda API]
         BINANCE[Binance API]
     end
-    
+
     subgraph "Core Services"
         BRIDGE[WebSocket Bridge<br/>Node.js]
         ML[ML Engine<br/>Python]
         API[REST API<br/>FastAPI]
     end
-    
+
     subgraph "ML Components"
         QUANTUM[Quantum Predictor]
         ULTRA[Ultra High Accuracy]
         NEWS[News Trading]
         VOL[Volatility Suite]
     end
-    
+
     UI <--> BRIDGE
     MOBILE <--> BRIDGE
     BRIDGE <--> MT4 & MT5
