@@ -23,8 +23,10 @@ class _DashboardScreenState extends State<DashboardScreen> {
   }
 
   Future<void> _loadSignals() async {
-    final brokerService =
-        Provider.of<BrokerAdapterService>(context, listen: false);
+    final brokerService = Provider.of<BrokerAdapterService>(
+      context,
+      listen: false,
+    );
     final signals = await brokerService.fetchSignals();
     if (mounted) {
       Provider.of<AppState>(context, listen: false).updateSignals(signals);
