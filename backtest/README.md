@@ -18,9 +18,9 @@ pip install MetaTrader5 pandas numpy
 
 ## Open Demo/Practice Account
 
-**Login:** [Provided by your broker]
-**Password:** [Provided by your broker]
-**Server:** [Broker]Demo-Server
+- **Login:** [Provided by your broker]
+- **Password:** [Provided by your broker]
+- **Server:** [Broker]Demo-Server
 
 ## Usage
 
