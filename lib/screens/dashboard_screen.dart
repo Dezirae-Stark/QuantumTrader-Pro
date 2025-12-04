@@ -23,7 +23,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
   }
 
   Future<void> _loadSignals() async {
-    final brokerService = 
+    final brokerService =
         Provider.of<BrokerAdapterService>(context, listen: false);
     final signals = await brokerService.fetchSignals();
     if (mounted) {
@@ -178,10 +178,13 @@ class _DashboardScreenState extends State<DashboardScreen> {
                 : SliverPadding(
                     padding: const EdgeInsets.symmetric(horizontal: 16.0),
                     sliver: SliverList(
-                      delegate: SliverChildBuilderDelegate((context, index) {
-                        final signal = appState.signals[index];
-                        return SignalCard(signal: signal);
-                      }, childCount: appState.signals.length),
+                      delegate: SliverChildBuilderDelegate(
+                        (context, index) {
+                          final signal = appState.signals[index];
+                          return SignalCard(signal: signal);
+                        },
+                        childCount: appState.signals.length,
+                      ),
                     ),
                   ),
 

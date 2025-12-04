@@ -59,7 +59,10 @@ class MLService {
     return null;
   }
 
-  Map<String, dynamic>? generatePredictionFromMarketData(String symbol, Map<String, dynamic> marketData) {
+  Map<String, dynamic>? generatePredictionFromMarketData(
+    String symbol,
+    Map<String, dynamic> marketData,
+  ) {
     // Generate predictions based on real market data
     if (marketData.isEmpty) return null;
     
@@ -151,8 +154,9 @@ class MLService {
     }
 
     // Simulated trend analysis
-    final avgChange =
-        priceHistory.sublist(priceHistory.length - 5).reduce((a, b) => a + b) /
+    final avgChange = priceHistory
+            .sublist(priceHistory.length - 5)
+            .reduce((a, b) => a + b) /
         5;
     final isUptrend = avgChange > 0;
 
