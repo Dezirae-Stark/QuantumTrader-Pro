@@ -35,44 +35,7 @@ class _CyberpunkDashboardScreenState extends State<CyberpunkDashboardScreen>
     'XAUUSD',
   ];
 
-  final Map<String, MarketData> _marketData = {
-    'EURUSD': MarketData(
-      symbol: 'EURUSD',
-      price: 1.0856,
-      change: 0.0012,
-      changePercent: 0.11,
-      spread: 0.8,
-      volume: 125430,
-      trend: TrendDirection.bullish,
-    ),
-    'GBPUSD': MarketData(
-      symbol: 'GBPUSD',
-      price: 1.2634,
-      change: -0.0023,
-      changePercent: -0.18,
-      spread: 1.2,
-      volume: 98765,
-      trend: TrendDirection.bearish,
-    ),
-    'USDJPY': MarketData(
-      symbol: 'USDJPY',
-      price: 149.32,
-      change: 0.45,
-      changePercent: 0.30,
-      spread: 0.5,
-      volume: 234567,
-      trend: TrendDirection.bullish,
-    ),
-    'XAUUSD': MarketData(
-      symbol: 'XAUUSD',
-      price: 2034.56,
-      change: 12.34,
-      changePercent: 0.61,
-      spread: 3.0,
-      volume: 45678,
-      trend: TrendDirection.bullish,
-    ),
-  };
+  final Map<String, MarketData> _marketData = {};
 
   @override
   void initState() {
@@ -133,8 +96,19 @@ class _CyberpunkDashboardScreenState extends State<CyberpunkDashboardScreen>
 
   Future<void> _loadMarketData() async {
     if (!_brokerService.isConnected) {
-      // Use default data when not connected
+      // Initialize empty data when not connected
       setState(() {
+        for (final symbol in _watchedSymbols) {
+          _marketData[symbol] = MarketData(
+            symbol: symbol,
+            price: 0.0,
+            change: 0.0,
+            changePercent: 0.0,
+            spread: 0.0,
+            volume: 0,
+            trend: TrendDirection.neutral,
+          );
+        }
         _isLoadingMarketData = false;
       });
       return;

@@ -1,5 +1,4 @@
 import 'dart:convert';
-import 'dart:math';
 import 'package:flutter/services.dart';
 import 'package:logger/logger.dart';
 import 'autotrading_engine.dart';
@@ -49,23 +48,32 @@ class MLService {
     String url,
   ) async {
     try {
-      // For now, return mock data. In production, use http package
-      _logger.i('Network prediction loading not implemented yet');
-      return generateMockPrediction();
+      // Return null if no network prediction available
+      _logger.i('Network prediction endpoint: $url');
+      // In production, this would call the ML backend API
+      // For now, return null to indicate no prediction available
+      return null;
     } catch (e) {
       _logger.e('Error loading prediction from network: $e');
     }
     return null;
   }
 
-  Map<String, dynamic> generateMockPrediction() {
-    final random = Random();
+  Map<String, dynamic>? generatePredictionFromMarketData(String symbol, Map<String, dynamic> marketData) {
+    // Generate predictions based on real market data
+    if (marketData.isEmpty) return null;
+    
+    final price = (marketData['price'] ?? 0.0).toDouble();
+    final changePercent = (marketData['changePercent'] ?? 0.0).toDouble();
+    
+    if (price == 0.0) return null;
+    
     return {
-      'symbol': 'EURUSD',
-      'direction': random.nextBool() ? 'buy' : 'sell',
-      'confidence': 0.75 + random.nextDouble() * 0.2,
-      'predictedPrice': 1.0800 + random.nextDouble() * 0.01,
-      'currentPrice': 1.0850,
+      'symbol': symbol,
+      'direction': changePercent > 0 ? 'buy' : 'sell',
+      'confidence': 0.0,  // No confidence without ML model
+      'predictedPrice': price,
+      'currentPrice': price,
       'timestamp': DateTime.now().toIso8601String(),
     };
   }
@@ -83,21 +91,10 @@ class MLService {
       // final output = List.filled(1 * 3, 0).reshape([1, 3]);
       // _interpreter?.run(input, output);
 
-      // Simulate prediction
-      final trendProbabilities = [
-        0.65, // bullish
-        0.20, // bearish
-        0.15, // neutral
-      ];
-
-      return MLPredictionOld(
-        trendProbabilities: trendProbabilities,
-        entryProbability: 0.72,
-        exitProbability: 0.28,
-        confidenceScore: 0.78,
-        predictedWindow: 5, // candles ahead
-        timestamp: DateTime.now(),
-      );
+      // Without a real ML model, return null
+      // In production, use TFLite interpreter with real model
+      _logger.w('ML prediction requires trained model and real market data');
+      return null;
     } catch (e) {
       _logger.e('Error during prediction: $e');
       return null;
@@ -111,41 +108,33 @@ class MLService {
     }
 
     final predictions = <MLPrediction>[];
-    final random = Random();
 
     try {
       for (final entry in marketData.entries) {
         final symbol = entry.key;
         final data = entry.value as Map<String, dynamic>;
         final currentPrice = (data['price'] ?? 0.0).toDouble();
+        final changePercent = (data['changePercent'] ?? 0.0).toDouble();
 
         if (currentPrice == 0) continue;
 
-        // Simulate ML prediction with some randomness
-        final trendFactor = random.nextDouble();
-        final confidence = 0.65 + (random.nextDouble() * 0.3); // 0.65 - 0.95
+        // Without a trained ML model, we can only provide basic trend analysis
+        // based on current market movement
+        final direction = changePercent >= 0 ? TradeDirection.buy : TradeDirection.sell;
 
-        // Determine direction based on simulated analysis
-        final direction = trendFactor > 0.5 ? TradeDirection.buy : TradeDirection.sell;
-
-        // Calculate predicted price (1-3% movement)
-        final priceChange = currentPrice * (0.01 + random.nextDouble() * 0.02);
-        final predictedPrice = direction == TradeDirection.buy
-            ? currentPrice + priceChange
-            : currentPrice - priceChange;
-
+        // No prediction confidence without ML model
         predictions.add(MLPrediction(
           symbol: symbol,
           direction: direction,
           currentPrice: currentPrice,
-          predictedPrice: predictedPrice,
-          confidence: confidence,
-          candlesAhead: 3 + random.nextInt(5), // 3-7 candles
+          predictedPrice: currentPrice, // No prediction without ML model
+          confidence: 0.0, // No confidence without ML model
+          candlesAhead: 0, // No prediction window without ML model
           timestamp: DateTime.now(),
         ));
       }
 
-      _logger.i('Generated ${predictions.length} ML predictions');
+      _logger.i('Generated ${predictions.length} market analysis entries');
       return predictions;
     } catch (e) {
       _logger.e('Error generating predictions: $e');

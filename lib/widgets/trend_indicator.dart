@@ -1,20 +1,23 @@
 import 'package:flutter/material.dart';
-import 'dart:math';
 
 class TrendIndicatorCard extends StatelessWidget {
   final String symbol;
+  final double price;
+  final double changePercent;
+  final bool isConnected;
 
-  const TrendIndicatorCard({super.key, required this.symbol});
+  const TrendIndicatorCard({
+    super.key,
+    required this.symbol,
+    required this.price,
+    required this.changePercent,
+    required this.isConnected,
+  });
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-
-    // Simulate trend data (in production, fetch from MT4)
-    final random = Random();
-    final price = 1.0800 + (random.nextDouble() * 0.02);
-    final change = -0.5 + (random.nextDouble() * 1.0);
-    final isPositive = change >= 0;
+    final isPositive = changePercent >= 0;
 
     return Card(
       elevation: 2,
@@ -43,9 +46,12 @@ class TrendIndicatorCard extends StatelessWidget {
             ),
             const SizedBox(height: 8),
             Text(
-              price.toStringAsFixed(5),
+              isConnected && price > 0 
+                ? price.toStringAsFixed(5)
+                : '---.-----',
               style: theme.textTheme.titleMedium?.copyWith(
                 fontWeight: FontWeight.w600,
+                color: !isConnected || price == 0 ? Colors.grey : null,
               ),
             ),
             const SizedBox(height: 4),
@@ -58,9 +64,13 @@ class TrendIndicatorCard extends StatelessWidget {
                 borderRadius: BorderRadius.circular(4),
               ),
               child: Text(
-                '${isPositive ? '+' : ''}${change.toStringAsFixed(2)}%',
+                isConnected && price > 0
+                  ? '${isPositive ? '+' : ''}${changePercent.toStringAsFixed(2)}%'
+                  : '-.--%',
                 style: TextStyle(
-                  color: isPositive ? Colors.green : Colors.red,
+                  color: !isConnected || price == 0 
+                    ? Colors.grey
+                    : (isPositive ? Colors.green : Colors.red),
                   fontSize: 12,
                   fontWeight: FontWeight.w600,
                 ),

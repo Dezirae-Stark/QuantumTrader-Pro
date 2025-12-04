@@ -115,7 +115,13 @@ class _DashboardScreenState extends State<DashboardScreen> {
                 ),
                 delegate: SliverChildBuilderDelegate((context, index) {
                   final symbol = _watchedSymbols[index];
-                  return TrendIndicatorCard(symbol: symbol);
+                  final marketData = appState.marketData[symbol];
+                  return TrendIndicatorCard(
+                    symbol: symbol,
+                    price: marketData?['price']?.toDouble() ?? 0.0,
+                    changePercent: marketData?['changePercent']?.toDouble() ?? 0.0,
+                    isConnected: appState.isBrokerConnected,
+                  );
                 }, childCount: _watchedSymbols.length),
               ),
             ),
