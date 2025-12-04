@@ -46,9 +46,9 @@ class TrendIndicatorCard extends StatelessWidget {
             ),
             const SizedBox(height: 8),
             Text(
-              isConnected && price > 0 
-                ? price.toStringAsFixed(5)
-                : '---.-----',
+              isConnected && price > 0
+                  ? price.toStringAsFixed(5)
+                  : '---.-----',
               style: theme.textTheme.titleMedium?.copyWith(
                 fontWeight: FontWeight.w600,
                 color: !isConnected || price == 0 ? Colors.grey : null,
@@ -65,12 +65,12 @@ class TrendIndicatorCard extends StatelessWidget {
               ),
               child: Text(
                 isConnected && price > 0
-                  ? '${isPositive ? '+' : ''}${changePercent.toStringAsFixed(2)}%'
-                  : '-.--%',
+                    ? '${isPositive ? '+' : ''}${changePercent.toStringAsFixed(2)}%'
+                    : '-.--%',
                 style: TextStyle(
-                  color: !isConnected || price == 0 
-                    ? Colors.grey
-                    : (isPositive ? Colors.green : Colors.red),
+                  color: !isConnected || price == 0
+                      ? Colors.grey
+                      : (isPositive ? Colors.green : Colors.red),
                   fontSize: 12,
                   fontWeight: FontWeight.w600,
                 ),

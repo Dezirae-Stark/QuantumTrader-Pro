@@ -97,7 +97,7 @@ class CantileverHedgeManager {
 
     // If trade is profitable, engage cantilever
     if (profitPercent > 0.001) {
-      // How many "steps" of profit?
+      // How many 'steps' of profit?
       int profitSteps = (profitPercent / cantileverStepSize).floor();
 
       if (profitSteps > 0) {

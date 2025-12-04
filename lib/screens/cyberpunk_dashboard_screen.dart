@@ -719,7 +719,7 @@ class _CyberpunkDashboardScreenState extends State<CyberpunkDashboardScreen>
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text(
-          'Trading mode set to ${mode == TradingMode.conservative ? "Conservative" : "Aggressive"}',
+          'Trading mode set to ${mode == TradingMode.conservative ? 'Conservative' : 'Aggressive'}',
           style: TextStyle(color: QuantumColors.textPrimary),
         ),
         backgroundColor: QuantumColors.surface,

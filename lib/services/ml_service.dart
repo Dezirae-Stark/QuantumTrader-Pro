@@ -31,7 +31,8 @@ class MLService {
   //   }
   // }
 
-  Future<Map<String, dynamic>?> loadPredictionFromAsset(String assetPath) async {
+  Future<Map<String, dynamic>?> loadPredictionFromAsset(
+      String assetPath) async {
     try {
       final jsonString = await rootBundle.loadString(assetPath);
       final data = json.decode(jsonString);
@@ -65,16 +66,16 @@ class MLService {
   ) {
     // Generate predictions based on real market data
     if (marketData.isEmpty) return null;
-    
+
     final price = (marketData['price'] ?? 0.0).toDouble();
     final changePercent = (marketData['changePercent'] ?? 0.0).toDouble();
-    
+
     if (price == 0.0) return null;
-    
+
     return {
       'symbol': symbol,
       'direction': changePercent > 0 ? 'buy' : 'sell',
-      'confidence': 0.0,  // No confidence without ML model
+      'confidence': 0.0, // No confidence without ML model
       'predictedPrice': price,
       'currentPrice': price,
       'timestamp': DateTime.now().toIso8601String(),
@@ -104,7 +105,8 @@ class MLService {
     }
   }
 
-  Future<List<MLPrediction>> getPredictions(Map<String, dynamic> marketData) async {
+  Future<List<MLPrediction>> getPredictions(
+      Map<String, dynamic> marketData) async {
     if (!_isInitialized) {
       _logger.w('ML Service not initialized');
       return [];
@@ -123,7 +125,8 @@ class MLService {
 
         // Without a trained ML model, we can only provide basic trend analysis
         // based on current market movement
-        final direction = changePercent >= 0 ? TradeDirection.buy : TradeDirection.sell;
+        final direction =
+            changePercent >= 0 ? TradeDirection.buy : TradeDirection.sell;
 
         // No prediction confidence without ML model
         predictions.add(MLPrediction(
