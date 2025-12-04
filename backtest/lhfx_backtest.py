@@ -10,11 +10,13 @@ import pandas as pd
 import numpy as np
 from datetime import datetime, timedelta
 import MetaTrader5 as MT5
+import os
 
-# LHFX Practice Account Credentials
-LHFX_LOGIN = 194302
-LHFX_PASSWORD = "ajty2ky"
-LHFX_SERVER = "LHFXDemo-Server"
+# Get credentials from environment variables
+# Set these in your environment or .env file (never commit credentials!)
+LHFX_LOGIN = int(os.environ.get('MT5_LOGIN', '0'))
+LHFX_PASSWORD = os.environ.get('MT5_PASSWORD', '')
+LHFX_SERVER = os.environ.get('MT5_SERVER', 'Demo-Server')
 
 class LHFXBacktester:
     def __init__(self):

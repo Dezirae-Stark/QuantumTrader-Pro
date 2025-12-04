@@ -12,6 +12,7 @@ import logging
 from typing import Dict, List, Optional, Tuple
 import json
 import time
+import os
 
 logger = logging.getLogger(__name__)
 
@@ -287,11 +288,14 @@ if __name__ == "__main__":
     # Initialize connector
     connector = MT5Connector()
     
-    # Connect to demo account (replace with your credentials)
-    # These would come from environment variables or config
-    LOGIN = 12345678  # Your MT5 account number
-    PASSWORD = "your_password"
-    SERVER = "YourBroker-Demo"
+    # Connect to demo account - credentials from environment
+    # Set these environment variables:
+    # MT5_LOGIN=your_account_number
+    # MT5_PASSWORD=your_password
+    # MT5_SERVER=YourBroker-Demo
+    LOGIN = int(os.environ.get('MT5_LOGIN', '0'))
+    PASSWORD = os.environ.get('MT5_PASSWORD', '')
+    SERVER = os.environ.get('MT5_SERVER', 'Demo-Server')
     
     if connector.connect(LOGIN, PASSWORD, SERVER):
         # Get market data

@@ -1,0 +1,21 @@
+# Gitleaks ignore file
+# These are false positives or example/documentation references
+
+# Example credentials in documentation
+bridge/MT5_INTEGRATION.md:*
+backtest/README.md:*
+
+# Variable names that contain "password" or "key" but are not secrets
+*.py:api_key
+*.py:api_secret
+*.py:JWT_SECRET
+*.dart:apiKey
+*.dart:apiSecret
+
+# Test files with mock credentials
+*test*.py
+*mock*.py
+
+# Environment variable references (not actual secrets)
+*:os.environ.get*
+*:process.env*

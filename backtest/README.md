@@ -16,11 +16,34 @@ Python-based backtesting engine that connects to LHFX MT5 practice account to ru
 pip install MetaTrader5 pandas numpy
 ```
 
-## Open Demo/Practice Account
+## Setup
 
-- **Login:** [Provided by your broker]
-- **Password:** [Provided by your broker]
-- **Server:** [Broker]Demo-Server
+### 1. Open Demo/Practice Account
+
+- **Login:** Provided by your broker
+- **Password:** Provided by your broker  
+- **Server:** Your broker's demo server
+
+### 2. Set Environment Variables
+
+```bash
+# Linux/Mac
+export MT5_LOGIN=your_account_number
+export MT5_PASSWORD='your_password'
+export MT5_SERVER='YourBroker-Demo'
+
+# Windows
+set MT5_LOGIN=your_account_number
+set MT5_PASSWORD=your_password
+set MT5_SERVER=YourBroker-Demo
+```
+
+Or create a `.env` file (recommended):
+```
+MT5_LOGIN=your_account_number
+MT5_PASSWORD=your_password
+MT5_SERVER=YourBroker-Demo
+```
 
 ## Usage
 
