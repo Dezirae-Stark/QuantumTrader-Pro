@@ -81,7 +81,7 @@ class _AccountLoginScreenState extends State<AccountLoginScreen> {
 
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
-            content: Text('Successfully connected to MT4!'),
+            content: const Text('Successfully connected to MT4!'),
             backgroundColor: Color(0xFF4CAF50),
           ),
         );
@@ -90,7 +90,7 @@ class _AccountLoginScreenState extends State<AccountLoginScreen> {
       } else if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
-            content: Text('Failed to connect. Check your credentials.'),
+            content: const Text('Failed to connect. Check your credentials.'),
             backgroundColor: Color(0xFFF44336),
           ),
         );
@@ -353,7 +353,7 @@ class _AccountLoginScreenState extends State<AccountLoginScreen> {
                           color: Color(0xFF00D9FF),
                           size: 20,
                         ),
-                        SizedBox(width: 8),
+                        const SizedBox(width: 8),
                         Text(
                           'Demo Account Info',
                           style: TextStyle(
@@ -366,7 +366,7 @@ class _AccountLoginScreenState extends State<AccountLoginScreen> {
                     const SizedBox(height: 12),
                     const Text(
                       'LHFX Practice Account:\nLogin: 194302\nServer: LHFXDemo-Server',
-                      style: TextStyle(color: Colors.white70, fontSize: 12),
+                      style: const TextStyle(color: Colors.white70, fontSize: 12),
                     ),
                   ],
                 ),

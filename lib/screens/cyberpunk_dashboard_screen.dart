@@ -249,9 +249,9 @@ class _CyberpunkDashboardScreenState extends State<CyberpunkDashboardScreen>
               labelColor: QuantumColors.neonCyan,
               unselectedLabelColor: QuantumColors.textTertiary,
               tabs: const [
-                Tab(text: 'Overview', icon: Icon(Icons.dashboard_outlined)),
-                Tab(text: 'Markets', icon: Icon(Icons.show_chart)),
-                Tab(text: 'Signals', icon: Icon(Icons.notifications_outlined)),
+                const Tab(text: 'Overview', icon: Icon(Icons.dashboard_outlined)),
+                const Tab(text: 'Markets', icon: Icon(Icons.show_chart)),
+                const Tab(text: 'Signals', icon: Icon(Icons.notifications_outlined)),
               ],
             ),
           ),

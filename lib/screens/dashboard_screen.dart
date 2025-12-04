@@ -76,13 +76,13 @@ class _DashboardScreenState extends State<DashboardScreen> {
                           segments: const [
                             ButtonSegment(
                               value: TradingMode.conservative,
-                              label: Text('Conservative'),
-                              icon: Icon(Icons.shield_outlined),
+                              label: const Text('Conservative'),
+                              icon: const Icon(Icons.shield_outlined),
                             ),
                             ButtonSegment(
                               value: TradingMode.aggressive,
-                              label: Text('Aggressive'),
-                              icon: Icon(Icons.flash_on),
+                              label: const Text('Aggressive'),
+                              icon: const Icon(Icons.flash_on),
                             ),
                           ],
                           selected: {appState.tradingMode},

@@ -80,9 +80,9 @@ class _QuantumScreenState extends State<QuantumScreen> {
       appBar: AppBar(
         title: const Row(
           children: [
-            Icon(Icons.psychology, size: 28),
-            SizedBox(width: 12),
-            Text('Quantum Trading System'),
+            const Icon(Icons.psychology, size: 28),
+            const SizedBox(width: 12),
+            const Text('Quantum Trading System'),
           ],
         ),
         actions: [
@@ -477,8 +477,8 @@ class _QuantumScreenState extends State<QuantumScreen> {
             if (_quantumPredictions.isEmpty)
               const Center(
                 child: Padding(
-                  padding: EdgeInsets.all(24.0),
-                  child: Text('No predictions available'),
+                  padding: const EdgeInsets.all(24.0),
+                  child: const Text('No predictions available'),
                 ),
               )
             else

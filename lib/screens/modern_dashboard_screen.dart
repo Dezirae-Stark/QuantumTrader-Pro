@@ -127,11 +127,11 @@ class _ModernDashboardScreenState extends State<ModernDashboardScreen>
               controller: _tabController,
               indicatorColor: Colors.white,
               tabs: const [
-                Tab(text: 'Overview', icon: Icon(Icons.dashboard, size: 20)),
-                Tab(text: 'Markets', icon: Icon(Icons.trending_up, size: 20)),
+                const Tab(text: 'Overview', icon: Icon(Icons.dashboard, size: 20)),
+                const Tab(text: 'Markets', icon: Icon(Icons.trending_up, size: 20)),
                 Tab(
                   text: 'Signals',
-                  icon: Icon(Icons.notifications_active, size: 20),
+                  icon: const Icon(Icons.notifications_active, size: 20),
                 ),
               ],
             ),
@@ -233,13 +233,13 @@ class _ModernDashboardScreenState extends State<ModernDashboardScreen>
                       segments: const [
                         ButtonSegment(
                           value: TradingMode.conservative,
-                          label: Text('Conservative'),
-                          icon: Icon(Icons.shield_outlined),
+                          label: const Text('Conservative'),
+                          icon: const Icon(Icons.shield_outlined),
                         ),
                         ButtonSegment(
                           value: TradingMode.aggressive,
-                          label: Text('Aggressive'),
-                          icon: Icon(Icons.flash_on),
+                          label: const Text('Aggressive'),
+                          icon: const Icon(Icons.flash_on),
                         ),
                       ],
                       selected: {appState.tradingMode},

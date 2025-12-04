@@ -115,7 +115,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   const SizedBox(height: 12),
                   const Text(
                     'QuantumTrader Pro',
-                    style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                    style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
                   ),
                   const SizedBox(height: 4),
                   Text('Version 1.0.0', style: theme.textTheme.bodySmall),
@@ -144,7 +144,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     decoration: const InputDecoration(
                       labelText: 'API Endpoint',
                       hintText: 'http://localhost:8080',
-                      prefixIcon: Icon(Icons.link),
+                      prefixIcon: const Icon(Icons.link),
                       border: OutlineInputBorder(),
                     ),
                   ),
@@ -188,7 +188,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     decoration: const InputDecoration(
                       labelText: 'Bot Token',
                       hintText: 'Enter your Telegram bot token',
-                      prefixIcon: Icon(Icons.key),
+                      prefixIcon: const Icon(Icons.key),
                       border: OutlineInputBorder(),
                     ),
                     obscureText: true,
@@ -199,7 +199,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     decoration: const InputDecoration(
                       labelText: 'Chat ID',
                       hintText: 'Enter your chat ID',
-                      prefixIcon: Icon(Icons.chat),
+                      prefixIcon: const Icon(Icons.chat),
                       border: OutlineInputBorder(),
                     ),
                   ),

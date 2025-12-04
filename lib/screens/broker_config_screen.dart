@@ -54,7 +54,7 @@ class _BrokerConfigScreenState extends State<BrokerConfigScreen> {
     if (mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-          content: Text('Broker settings saved'),
+          content: const Text('Broker settings saved'),
           backgroundColor: Colors.green,
         ),
       );
@@ -160,7 +160,7 @@ class _BrokerConfigScreenState extends State<BrokerConfigScreen> {
                     const SizedBox(height: 16),
                     const Text(
                       'Select your broker platform. Each broker requires different configuration.',
-                      style: TextStyle(fontSize: 13, color: Colors.grey),
+                      style: const TextStyle(fontSize: 13, color: Colors.grey),
                     ),
                     const SizedBox(height: 16),
                     ...BrokerProvider.values.map((provider) {
@@ -292,7 +292,7 @@ class _BrokerConfigScreenState extends State<BrokerConfigScreen> {
                       decoration: const InputDecoration(
                         labelText: 'API Key (Optional)',
                         hintText: 'Enter your API key',
-                        prefixIcon: Icon(Icons.vpn_key),
+                        prefixIcon: const Icon(Icons.vpn_key),
                         border: OutlineInputBorder(),
                         helperText: 'Required for authenticated brokers',
                       ),
@@ -310,7 +310,7 @@ class _BrokerConfigScreenState extends State<BrokerConfigScreen> {
                       decoration: const InputDecoration(
                         labelText: 'API Secret (Optional)',
                         hintText: 'Enter your API secret',
-                        prefixIcon: Icon(Icons.lock),
+                        prefixIcon: const Icon(Icons.lock),
                         border: OutlineInputBorder(),
                         helperText: 'Required for authenticated brokers',
                       ),
@@ -328,7 +328,7 @@ class _BrokerConfigScreenState extends State<BrokerConfigScreen> {
                       decoration: const InputDecoration(
                         labelText: 'Account Number (Optional)',
                         hintText: 'Enter your trading account number',
-                        prefixIcon: Icon(Icons.account_circle),
+                        prefixIcon: const Icon(Icons.account_circle),
                         border: OutlineInputBorder(),
                       ),
                     ),
