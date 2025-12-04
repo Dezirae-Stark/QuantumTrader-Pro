@@ -48,7 +48,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
             const Text('QuantumTrader Pro'),
           ],
         ),
-        actions: [ConnectionStatusWidget(), const SizedBox(width: 8)],
+        actions: [const ConnectionStatusWidget(), const SizedBox(width: 8)],
       ),
       body: RefreshIndicator(
         onRefresh: _loadSignals,
@@ -115,12 +115,13 @@ class _DashboardScreenState extends State<DashboardScreen> {
                 ),
                 delegate: SliverChildBuilderDelegate((context, index) {
                   final symbol = _watchedSymbols[index];
-                  final marketData = appState.marketData[symbol];
+                  // For now, show placeholder data when not connected
+                  // In production, this would fetch from broker service
                   return TrendIndicatorCard(
                     symbol: symbol,
-                    price: marketData?['price']?.toDouble() ?? 0.0,
-                    changePercent: marketData?['changePercent']?.toDouble() ?? 0.0,
-                    isConnected: appState.isBrokerConnected,
+                    price: 0.0,
+                    changePercent: 0.0,
+                    isConnected: appState.isConnectedToMT4,
                   );
                 }, childCount: _watchedSymbols.length),
               ),
