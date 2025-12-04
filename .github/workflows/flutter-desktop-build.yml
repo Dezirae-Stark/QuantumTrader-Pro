@@ -1,8 +1,9 @@
+---
 name: Flutter Desktop Build
 
 on:
   push:
-    branches: [ main, desktop ]
+    branches: [main, desktop]
     paths:
       - 'lib/**'
       - 'android/**'
@@ -10,7 +11,7 @@ on:
       - 'pubspec.yaml'
       - '.github/workflows/flutter-desktop-build.yml'
   pull_request:
-    branches: [ main, desktop ]
+    branches: [main, desktop]
     paths:
       - 'lib/**'
       - 'android/**'

@@ -1,10 +1,11 @@
+---
 name: "CodeQL Security Analysis"
 
 on:
   push:
-    branches: [ main, develop ]
+    branches: [main, develop]
   pull_request:
-    branches: [ main, develop ]
+    branches: [main, develop]
   schedule:
     # Run at 2:00 AM UTC every Monday
     - cron: '0 2 * * 1'
@@ -25,7 +26,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        language: [ javascript, python ]
+        language: [javascript, python]
         # CodeQL supports: 'cpp', 'csharp', 'go', 'java', 'javascript', 'python', 'ruby', 'swift'
         # Learn more about CodeQL language support:
         # https://aka.ms/codeql-docs/language-support

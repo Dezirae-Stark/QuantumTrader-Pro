@@ -1,10 +1,11 @@
+---
 name: Code Quality
 
 on:
   push:
-    branches: [ main, desktop, develop ]
+    branches: [main, desktop, develop]
   pull_request:
-    branches: [ main, desktop ]
+    branches: [main, desktop]
 
 jobs:
   flutter-analyze:

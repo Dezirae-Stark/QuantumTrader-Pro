@@ -1,8 +1,9 @@
+---
 name: Python Backend CI
 
 on:
   push:
-    branches: [ main, desktop, develop ]
+    branches: [main, desktop, develop]
     paths:
       - 'backend/**'
       - 'ml/**'
@@ -13,7 +14,7 @@ on:
       - 'requirements.txt'
       - '.github/workflows/python-backend-ci.yml'
   pull_request:
-    branches: [ main, desktop ]
+    branches: [main, desktop]
     paths:
       - 'backend/**'
       - 'ml/**'
@@ -30,7 +31,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        python-version: [ '3.11', '3.12' ]
+        python-version: ['3.11', '3.12']
 
     steps:
     - name: Checkout code

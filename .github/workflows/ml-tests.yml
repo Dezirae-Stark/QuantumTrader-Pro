@@ -1,13 +1,14 @@
+---
 name: ML Engine Tests
 
 on:
   push:
-    branches: [ main, desktop, develop ]
+    branches: [main, desktop, develop]
     paths:
       - 'ml/**'
       - '.github/workflows/ml-tests.yml'
   pull_request:
-    branches: [ main, desktop ]
+    branches: [main, desktop]
     paths:
       - 'ml/**'
 
@@ -18,7 +19,7 @@ jobs:
 
     strategy:
       matrix:
-        python-version: [ '3.10', '3.11', '3.12' ]
+        python-version: ['3.10', '3.11', '3.12']
 
     steps:
     - name: Checkout code
