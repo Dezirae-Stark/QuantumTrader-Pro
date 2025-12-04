@@ -23,7 +23,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
   }
 
   Future<void> _loadSignals() async {
-    final brokerService = Provider.of<BrokerAdapterService>(context, listen: false);
+    final brokerService = 
+        Provider.of<BrokerAdapterService>(context, listen: false);
     final signals = await brokerService.fetchSignals();
     if (mounted) {
       Provider.of<AppState>(context, listen: false).updateSignals(signals);
@@ -113,17 +114,20 @@ class _DashboardScreenState extends State<DashboardScreen> {
                   crossAxisSpacing: 12,
                   mainAxisSpacing: 12,
                 ),
-                delegate: SliverChildBuilderDelegate((context, index) {
-                  final symbol = _watchedSymbols[index];
-                  // For now, show placeholder data when not connected
-                  // In production, this would fetch from broker service
-                  return TrendIndicatorCard(
-                    symbol: symbol,
-                    price: 0.0,
-                    changePercent: 0.0,
-                    isConnected: appState.isConnectedToMT4,
-                  );
-                }, childCount: _watchedSymbols.length),
+                delegate: SliverChildBuilderDelegate(
+                  (context, index) {
+                    final symbol = _watchedSymbols[index];
+                    // For now, show placeholder data when not connected
+                    // In production, this would fetch from broker service
+                    return TrendIndicatorCard(
+                      symbol: symbol,
+                      price: 0.0,
+                      changePercent: 0.0,
+                      isConnected: appState.isConnectedToMT4,
+                    );
+                  },
+                  childCount: _watchedSymbols.length,
+                ),
               ),
             ),
 
