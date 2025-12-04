@@ -2,13 +2,13 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'dart:async';
 import '../models/app_state.dart';
+import '../models/trading_enums.dart';
 import '../theme/colors/quantum_colors.dart';
 import '../theme/components/quantum_card.dart';
 import '../theme/components/quantum_button.dart';
 import '../theme/components/quantum_controls.dart';
 import '../services/broker_adapter_service.dart';
 import '../services/telegram_service.dart';
-import '../widgets/market_pair_dialog.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'broker_config_screen.dart';
 
@@ -26,7 +26,6 @@ class _CyberpunkDashboardScreenState extends State<CyberpunkDashboardScreen>
   late TelegramService _telegramService;
   late Box _marketSettingsBox;
   Timer? _refreshTimer;
-  bool _isLoadingMarketData = true;
 
   List<String> _watchedSymbols = [
     'EURUSD',
@@ -64,26 +63,6 @@ class _CyberpunkDashboardScreenState extends State<CyberpunkDashboardScreen>
     }
   }
 
-  void _updateWatchedPairs(List<String> newPairs) {
-    setState(() {
-      _watchedSymbols = newPairs;
-      // Initialize market data for new pairs
-      for (final symbol in _watchedSymbols) {
-        if (!_marketData.containsKey(symbol)) {
-          _marketData[symbol] = MarketData(
-            symbol: symbol,
-            price: 0.0,
-            change: 0.0,
-            changePercent: 0.0,
-            spread: 0.0,
-            volume: 0,
-            trend: TrendDirection.neutral,
-          );
-        }
-      }
-    });
-    _loadMarketData();
-  }
 
   void _startAutoRefresh() {
     _refreshTimer = Timer.periodic(const Duration(seconds: 5), (_) async {
@@ -109,7 +88,6 @@ class _CyberpunkDashboardScreenState extends State<CyberpunkDashboardScreen>
             trend: TrendDirection.neutral,
           );
         }
-        _isLoadingMarketData = false;
       });
       return;
     }
@@ -133,14 +111,11 @@ class _CyberpunkDashboardScreenState extends State<CyberpunkDashboardScreen>
               );
             }
           }
-          _isLoadingMarketData = false;
         });
       }
     } catch (e) {
       debugPrint('Error loading market data: $e');
-      setState(() {
-        _isLoadingMarketData = false;
-      });
+      // Error handled
     }
   }
 
@@ -249,9 +224,9 @@ class _CyberpunkDashboardScreenState extends State<CyberpunkDashboardScreen>
               labelColor: QuantumColors.neonCyan,
               unselectedLabelColor: QuantumColors.textTertiary,
               tabs: const [
-                const Tab(text: 'Overview', icon: Icon(Icons.dashboard_outlined)),
-                const Tab(text: 'Markets', icon: Icon(Icons.show_chart)),
-                const Tab(text: 'Signals', icon: Icon(Icons.notifications_outlined)),
+                Tab(text: 'Overview', icon: Icon(Icons.dashboard_outlined)),
+                Tab(text: 'Markets', icon: Icon(Icons.show_chart)),
+                Tab(text: 'Signals', icon: Icon(Icons.notifications_outlined)),
               ],
             ),
           ),

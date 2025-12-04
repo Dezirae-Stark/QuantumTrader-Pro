@@ -1,5 +1,3 @@
-/// Broker Service Abstraction for QuantumTrader Pro
-/// Supports multiple broker providers: MT4, MT5, Oanda, Binance, Generic REST
 import 'dart:convert';
 import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;

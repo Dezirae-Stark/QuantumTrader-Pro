@@ -144,23 +144,23 @@ class _MainNavigatorState extends State<MainNavigator> {
             },
             destinations: const [
               NavigationDestination(
-                icon: const Icon(Icons.dashboard_outlined),
-                selectedIcon: const Icon(Icons.dashboard),
+                icon: Icon(Icons.dashboard_outlined),
+                selectedIcon: Icon(Icons.dashboard),
                 label: 'Dashboard',
               ),
               NavigationDestination(
-                icon: const Icon(Icons.account_balance_wallet_outlined),
-                selectedIcon: const Icon(Icons.account_balance_wallet),
+                icon: Icon(Icons.account_balance_wallet_outlined),
+                selectedIcon: Icon(Icons.account_balance_wallet),
                 label: 'Portfolio',
               ),
               NavigationDestination(
-                icon: const Icon(Icons.psychology_outlined),
-                selectedIcon: const Icon(Icons.psychology),
+                icon: Icon(Icons.psychology_outlined),
+                selectedIcon: Icon(Icons.psychology),
                 label: 'Quantum',
               ),
               NavigationDestination(
-                icon: const Icon(Icons.settings_outlined),
-                selectedIcon: const Icon(Icons.settings),
+                icon: Icon(Icons.settings_outlined),
+                selectedIcon: Icon(Icons.settings),
                 label: 'Settings',
               ),
             ],

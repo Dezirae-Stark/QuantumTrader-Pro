@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import '../models/app_state.dart';
+import '../models/trading_enums.dart';
 
 class SignalCard extends StatelessWidget {
   final TradeSignal signal;

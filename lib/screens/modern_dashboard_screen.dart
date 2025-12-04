@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import 'package:fl_chart/fl_chart.dart';
 import 'dart:async';
 import '../models/app_state.dart';
+import '../models/trading_enums.dart';
 import '../widgets/signal_card.dart';
 import '../widgets/connection_status.dart';
 import 'broker_config_screen.dart';
@@ -127,11 +128,11 @@ class _ModernDashboardScreenState extends State<ModernDashboardScreen>
               controller: _tabController,
               indicatorColor: Colors.white,
               tabs: const [
-                const Tab(text: 'Overview', icon: Icon(Icons.dashboard, size: 20)),
-                const Tab(text: 'Markets', icon: Icon(Icons.trending_up, size: 20)),
+                Tab(text: 'Overview', icon: Icon(Icons.dashboard, size: 20)),
+                Tab(text: 'Markets', icon: Icon(Icons.trending_up, size: 20)),
                 Tab(
                   text: 'Signals',
-                  icon: const Icon(Icons.notifications_active, size: 20),
+                  icon: Icon(Icons.notifications_active, size: 20),
                 ),
               ],
             ),
@@ -233,13 +234,13 @@ class _ModernDashboardScreenState extends State<ModernDashboardScreen>
                       segments: const [
                         ButtonSegment(
                           value: TradingMode.conservative,
-                          label: const Text('Conservative'),
-                          icon: const Icon(Icons.shield_outlined),
+                          label: Text('Conservative'),
+                          icon: Icon(Icons.shield_outlined),
                         ),
                         ButtonSegment(
                           value: TradingMode.aggressive,
-                          label: const Text('Aggressive'),
-                          icon: const Icon(Icons.flash_on),
+                          label: Text('Aggressive'),
+                          icon: Icon(Icons.flash_on),
                         ),
                       ],
                       selected: {appState.tradingMode},

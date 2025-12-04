@@ -14,7 +14,7 @@ class AppIconPainter extends CustomPainter {
 
     // Background gradient
     final backgroundPaint = Paint()
-      ..shader = RadialGradient(
+      ..shader = const RadialGradient(
         colors: [
           QuantumColors.backgroundTertiary,
           QuantumColors.backgroundPrimary,
@@ -44,7 +44,7 @@ class AppIconPainter extends CustomPainter {
 
     // Draw stylized Q
     final qPaint = Paint()
-      ..shader = LinearGradient(
+      ..shader = const LinearGradient(
         begin: Alignment.topLeft,
         end: Alignment.bottomRight,
         colors: [

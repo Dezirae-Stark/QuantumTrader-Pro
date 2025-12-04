@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../models/app_state.dart';
+import '../models/trading_enums.dart';
 import '../services/broker_adapter_service.dart';
 import '../widgets/signal_card.dart';
 import '../widgets/trend_indicator.dart';

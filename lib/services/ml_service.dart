@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'package:flutter/services.dart';
 import 'package:logger/logger.dart';
+import '../models/trading_enums.dart';
 import 'autotrading_engine.dart';
 
 class MLService {

@@ -482,7 +482,7 @@ class CounterHedge {
   }
 }
 
-enum HedgeStatus { active, partial_closed, fully_closed, stopped }
+enum HedgeStatus { active, partialClosed, fullyClosed, stopped }
 
 /// Leg-out execution plan
 class LegOutPlan {

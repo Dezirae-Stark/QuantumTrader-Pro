@@ -14,7 +14,7 @@ class QuantumTheme {
         secondary: QuantumColors.neonMagenta,
         tertiary: QuantumColors.neonGreen,
         surface: QuantumColors.surface,
-        surfaceVariant: QuantumColors.surfaceElevated,
+        surfaceContainerHighest: QuantumColors.surfaceElevated,
         error: QuantumColors.error,
         onPrimary: QuantumColors.textOnAccent,
         onSecondary: QuantumColors.textOnAccent,
