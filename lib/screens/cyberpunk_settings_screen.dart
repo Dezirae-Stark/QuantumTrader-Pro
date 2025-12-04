@@ -757,7 +757,9 @@ class _CyberpunkSettingsScreenState extends State<CyberpunkSettingsScreen>
               ),
             ),
             child: Text(
-              'QuantumTrader Pro uses advanced machine learning and quantum-inspired algorithms to achieve professional-grade trading performance.',
+              'QuantumTrader Pro uses advanced machine learning and '
+              'quantum-inspired algorithms to achieve professional-grade '
+              'trading performance.',
               style: Theme.of(context).textTheme.bodySmall!.copyWith(
                 color: QuantumColors.textSecondary,
                 height: 1.5,

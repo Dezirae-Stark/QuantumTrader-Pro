@@ -256,7 +256,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
                       applicationIcon: const Icon(Icons.show_chart, size: 48),
                       children: [
                         const Text(
-                          'First Sterling QuantumTrader Pro - A full-featured mobile trading companion for MT4 with machine learning integration.',
+                          'First Sterling QuantumTrader Pro - A full-featured '
+                          'mobile trading companion for MT4 with machine '
+                          'learning integration.',
                         ),
                         const SizedBox(height: 16),
                         const Text('Built by: Dezirae Stark'),

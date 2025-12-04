@@ -10,7 +10,7 @@ on:
 
   # Generate SBOM on pushes to main
   push:
-    branches: ["main"]
+    branches: [ main ]
     paths:
       - 'bridge/package.json'
       - 'bridge/package-lock.json'
