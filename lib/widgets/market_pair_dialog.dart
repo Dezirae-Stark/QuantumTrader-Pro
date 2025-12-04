@@ -114,7 +114,7 @@ class _MarketPairDialogState extends State<MarketPairDialog> {
                 ),
                 IconButton(
                   onPressed: () => Navigator.of(context).pop(),
-                  icon: Icon(
+                  icon: const Icon(
                     Icons.close,
                     color: QuantumColors.textSecondary,
                   ),

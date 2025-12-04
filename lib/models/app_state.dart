@@ -1,8 +1,5 @@
 import 'package:flutter/material.dart';
-
-enum TradingMode { conservative, aggressive }
-
-enum TrendDirection { bullish, bearish, neutral }
+import 'trading_enums.dart';
 
 class AppState extends ChangeNotifier {
   TradingMode _tradingMode = TradingMode.conservative;

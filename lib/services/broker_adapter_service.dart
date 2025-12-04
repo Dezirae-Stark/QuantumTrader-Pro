@@ -98,10 +98,10 @@ class BrokerAdapterService {
     }
 
     _pollTimer?.cancel();
-    _pollTimer = Timer.periodic(Duration(seconds: intervalSeconds), (_) {
-      fetchMarketData();
-      fetchOpenTrades();
-      fetchAccountInfo();
+    _pollTimer = Timer.periodic(Duration(seconds: intervalSeconds), (_) async {
+      await fetchMarketData();
+      await fetchOpenTrades();
+      await fetchAccountInfo();
     });
     _logger.i('Started polling broker API every $intervalSeconds seconds');
   }

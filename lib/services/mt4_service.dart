@@ -21,9 +21,9 @@ class MT4Service {
 
   void startPolling({int intervalSeconds = 5}) {
     _pollTimer?.cancel();
-    _pollTimer = Timer.periodic(Duration(seconds: intervalSeconds), (_) {
-      fetchSignals();
-      fetchOpenTrades();
+    _pollTimer = Timer.periodic(Duration(seconds: intervalSeconds), (_) async {
+      await fetchSignals();
+      await fetchOpenTrades();
     });
     _logger.i('Started polling MT4 API every $intervalSeconds seconds');
   }

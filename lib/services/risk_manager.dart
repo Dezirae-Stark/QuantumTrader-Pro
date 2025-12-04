@@ -1,7 +1,7 @@
 import 'package:logger/logger.dart';
 import '../models/app_state.dart';
 import '../models/risk_assessment.dart';
-import 'autotrading_engine.dart';
+import '../models/trading_enums.dart';
 
 /// Advanced risk management with Kelly Criterion and dynamic position sizing
 class RiskManager {

@@ -8,8 +8,9 @@ import 'cantilever_hedge_manager.dart';
 import 'quantum_settings_service.dart';
 import '../models/app_state.dart';
 import '../models/risk_assessment.dart';
+import '../models/trading_enums.dart';
 
-enum TradingStatus { idle, analyzing, executing, monitoring }
+// TradingStatus moved to trading_enums.dart
 
 class AutoTradingEngine {
   final Logger _logger = Logger();
@@ -471,4 +472,4 @@ class MLPrediction {
   });
 }
 
-enum TradeDirection { buy, sell }
+// TradeDirection moved to trading_enums.dart
