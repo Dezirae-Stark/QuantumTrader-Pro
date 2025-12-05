@@ -39,7 +39,7 @@ class QuantumTheme {
       ),
 
       // Card theme
-      cardTheme: CardTheme(
+      cardTheme: CardThemeData(
         color: QuantumColors.surface,
         elevation: 0,
         shape: RoundedRectangleBorder(
@@ -177,7 +177,7 @@ class QuantumTheme {
       ),
 
       // Dialog theme
-      dialogTheme: DialogTheme(
+      dialogTheme: DialogThemeData(
         backgroundColor: QuantumColors.surface,
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(16),
